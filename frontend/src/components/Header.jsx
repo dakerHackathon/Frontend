@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { checkIsLoggedIn, logoutUser } from "../utils/auth";
+import logoImg from "../assets/BloomingLogo.png";
 
 const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(checkIsLoggedIn());
@@ -15,7 +16,7 @@ const Header = () => {
   return (
     <header className="flex justify-between items-center px-12 h-20 bg-white shadow-sm sticky top-0 z-50">
       <Link to="/" className="flex items-center gap-3">
-        <img src="/logo.png" alt="logo" className="w-10 h-10" />
+        <img src={logoImg} alt="logo" className="w-10 h-10" />
         <span className="text-3xl font-black text-[#336DFE]">Blooming</span>
       </Link>
 
@@ -36,7 +37,11 @@ const Header = () => {
             </Link>
           </>
         ) : (
-          <div className="relative">
+          <div className="flex items-center gap-4 relative">
+            <Link
+              to="/mails"
+              className="block px-5 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 font-medium"
+            >쪽지</Link>
             <button
               onClick={() => setShowDropdown(!showDropdown)}
               onBlur={() => setTimeout(() => setShowDropdown(false), 200)} // 포커스 해제시 닫힘

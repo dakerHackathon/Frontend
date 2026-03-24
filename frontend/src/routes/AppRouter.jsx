@@ -13,6 +13,7 @@ const AppRouter = () => {
         <Route path="/" element={<Home />} />
 
         <Route element={<ProtectedRoute />}>
+          <Route path="/mails" element={<MailPage/>}/>
           <Route path="/hackathons" element={<div>해커톤 페이지</div>} />
           <Route path="/teams" element={<div>팀 빌딩 페이지</div>} />
           <Route path="/ranking" element={<div>랭킹 페이지</div>} />
