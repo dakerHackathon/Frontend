@@ -1,10 +1,17 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { checkIsLoggedIn, logoutUser } from "../utils/auth";
 
 const Header = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // 로그인 상태 관리
+  const [isLoggedIn, setIsLoggedIn] = useState(checkIsLoggedIn());
   const [showDropdown, setShowDropdown] = useState(false);
+  const navigate = useNavigate();
 
+  const handleLogout = () => {
+    logoutUser();
+    setIsLoggedIn(false);
+    navigate("/login");
+  };
   return (
     <header className="flex justify-between items-center px-12 h-20 bg-white shadow-sm sticky top-0 z-50">
       <Link to="/" className="flex items-center gap-3">
@@ -53,7 +60,7 @@ const Header = () => {
                 </Link>
                 <hr className="my-1 border-gray-100" />
                 <button
-                  onClick={() => setIsLoggedIn(false)}
+                  onClick={handleLogout}
                   className="w-full text-left px-5 py-3 text-red-500 hover:bg-red-50 font-medium"
                 >
                   로그아웃
