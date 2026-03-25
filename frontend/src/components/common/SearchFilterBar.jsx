@@ -18,8 +18,7 @@ const FilterDropdown = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
-  const selectedOption =
-    options.find((option) => option.value === value) ?? options[0];
+  const selectedOption = options.find((option) => option.value === value) ?? options[0];
 
   useEffect(() => {
     const handlePointerDown = (event) => {
@@ -53,11 +52,7 @@ const FilterDropdown = ({
           ) : null}
           <span>{selectedOption.label}</span>
         </span>
-        <span
-          className={`text-slate-500 transition duration-200 ${
-            isOpen ? "rotate-180" : ""
-          }`}
-        >
+        <span className={`text-slate-500 transition duration-200 ${isOpen ? "rotate-180" : ""}`}>
           <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4 stroke-current">
             <path d="M5 7.5L10 12.5L15 7.5" strokeWidth="1.8" strokeLinecap="round" />
           </svg>
@@ -75,9 +70,7 @@ const FilterDropdown = ({
                 setIsOpen(false);
               }}
               className={`flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-bold transition hover:bg-[#F4F7FF] ${
-                option.value === value
-                  ? "bg-[#EEF3FF] text-[#2458E6]"
-                  : "text-slate-800"
+                option.value === value ? "bg-[#EEF3FF] text-[#2458E6]" : "text-slate-800"
               }`}
             >
               {showDot && option.dotTone ? (
@@ -126,7 +119,7 @@ const SearchFilterBar = ({
               value={searchValue}
               onChange={(event) => onSearchValueChange(event.target.value)}
               placeholder={searchPlaceholder}
-              className="h-12 w-full bg-transparent text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400"
+              className="h-12 w-full bg-transparent text-xs font-medium text-slate-700 outline-none placeholder:text-slate-400 sm:text-sm"
             />
             <span className="shrink-0 text-slate-500">
               <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 stroke-current">
