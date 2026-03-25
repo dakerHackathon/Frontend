@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import logoImg from "../assets/BloomingLogo.png";
 import { checkIsLoggedIn, getCurrentUser, logoutUser } from "../utils/auth";
 
 const navigationItems = [
@@ -25,9 +26,7 @@ const Header = () => {
     <header className="sticky top-0 z-50 border-b border-slate-300 bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-24 max-w-[1440px] items-center justify-between gap-6 px-4 lg:px-8">
         <Link to="/" className="flex items-center gap-4">
-          <div className="grid h-14 w-14 place-items-center rounded-2xl border border-[#C9D7FF] bg-[#F7F9FF] text-[#336DFE] shadow-sm">
-            <span className="text-xl font-black">&lt;&gt;</span>
-          </div>
+          <img src={logoImg} alt="Blooming logo" className="h-14 w-14 object-contain" />
           <span className="text-3xl font-black tracking-tight text-[#336DFE]">
             Blooming
           </span>
@@ -75,7 +74,14 @@ const Header = () => {
               </Link>
             </>
           ) : (
-            <div className="relative">
+            <div className="relative flex items-center gap-4">
+              <Link
+                to="/mails"
+                className="rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-blue-50 hover:text-blue-600"
+              >
+                쪽지
+              </Link>
+
               <button
                 onClick={() => setShowDropdown(!showDropdown)}
                 onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
@@ -102,7 +108,7 @@ const Header = () => {
               </button>
 
               {showDropdown && (
-                <div className="absolute right-0 mt-3 w-48 rounded-2xl border border-slate-200 bg-white py-2 shadow-2xl">
+                <div className="absolute right-0 top-[calc(100%+12px)] w-48 rounded-2xl border border-slate-200 bg-white py-2 shadow-2xl">
                   <Link
                     to="/mypage"
                     className="block px-5 py-3 font-medium text-slate-700 transition hover:bg-blue-50 hover:text-blue-600"
