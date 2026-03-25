@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import logoImg from "../assets/BloomingLogo.png";
 import { checkIsLoggedIn, getCurrentUser, logoutUser } from "../utils/auth";
 
@@ -12,7 +12,6 @@ const navigationItems = [
 const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(checkIsLoggedIn());
   const [showDropdown, setShowDropdown] = useState(false);
-  const location = useLocation();
   const navigate = useNavigate();
   const currentUser = getCurrentUser();
 
@@ -130,12 +129,6 @@ const Header = () => {
           )}
         </div>
       </div>
-
-      {location.pathname === "/" ? (
-        <div className="border-t border-slate-100 bg-[#F8FAFF] px-4 py-3 text-center text-sm font-medium text-slate-500 lg:hidden">
-          해커톤 플랫폼 탐색은 로그인 후 상단 메뉴에서 계속할 수 있습니다.
-        </div>
-      ) : null}
     </header>
   );
 };
