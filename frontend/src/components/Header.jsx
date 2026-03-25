@@ -24,11 +24,15 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-300 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex h-24 max-w-[1440px] items-center justify-between gap-6 px-4 lg:px-8">
-        <Link to="/" className="flex items-center gap-4">
-          <img src={logoImg} alt="Blooming logo" className="h-14 w-14 object-contain" />
-          <span className="text-3xl font-black tracking-tight text-[#336DFE]">
-            Blooming
+      <div className="mx-auto flex h-28 max-w-[1440px] items-center justify-between gap-6 px-4 lg:px-8">
+        <Link to="/" className="flex h-24 items-center gap-2 self-center">
+          <span className="flex h-20 w-20 items-center justify-center self-center">
+            <img src={logoImg} alt="Blooming logo" className="block h-20 w-20 object-contain" />
+          </span>
+          <span className="flex h-20 items-center self-center">
+            <span className="block text-3xl font-black leading-none tracking-tight text-[#336DFE]">
+              Blooming
+            </span>
           </span>
         </Link>
 
@@ -38,10 +42,8 @@ const Header = () => {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `relative py-8 text-lg font-bold transition ${
-                  isActive
-                    ? "text-[#336DFE]"
-                    : "text-slate-600 hover:text-slate-900"
+                `relative py-10 text-lg font-bold transition ${
+                  isActive ? "text-[#336DFE]" : "text-slate-600 hover:text-slate-900"
                 }`
               }
             >
