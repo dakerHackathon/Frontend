@@ -17,9 +17,9 @@ const AppRouter = () => {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/mails" element={<MailPage/>}/>
-          <Route path="/hackathons" element={<div>해커톤 페이지</div>} />
+          <Route path="/hackathons" element={<HackathonListPage/>} />
           <Route path="/teams" element={<RecruitMemberPage />} />
-          <Route path="/ranking" element={<div>랭킹 페이지</div>} />
+          <Route path="/ranking" element={<RankingPage/>} />
           <Route path="/mypage" element={<div>마이페이지</div>} />
         </Route>
       </Route>
