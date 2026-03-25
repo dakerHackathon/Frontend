@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import logoImg from "../assets/BloomingLogo.png";
 import { checkIsLoggedIn, getCurrentUser, logoutUser } from "../utils/auth";
 
@@ -12,7 +12,6 @@ const navigationItems = [
 const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(checkIsLoggedIn());
   const [showDropdown, setShowDropdown] = useState(false);
-  const location = useLocation(); // 누락되었던 useLocation import 추가 완료
   const navigate = useNavigate();
   const currentUser = getCurrentUser();
 
