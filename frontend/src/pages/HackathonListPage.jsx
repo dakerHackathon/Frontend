@@ -1,0 +1,342 @@
+import { useMemo, useState } from "react";
+import BaseInfoCard from "../components/common/BaseInfoCard";
+import MiniCalendar from "../components/common/MiniCalendar";
+import PageSectionHeader from "../components/common/PageSectionHeader";
+import PrimaryActionButton from "../components/common/PrimaryActionButton";
+import RankingSummaryCard from "../components/common/RankingSummaryCard";
+import SearchFilterBar from "../components/common/SearchFilterBar";
+import StatusBadge from "../components/common/StatusBadge";
+
+const hackathons = [
+  {
+    id: 1,
+    title: "AI 아이디어톤 2026",
+    status: "active",
+    statusLabel: "진행중",
+    dDay: "D-5",
+    period: "2026.03.16 ~ 2026.03.30",
+    location: "온라인",
+    contact: "없음",
+    region: "online",
+  },
+  {
+    id: 2,
+    title: "핀테크 해커톤 2026",
+    status: "upcoming",
+    statusLabel: "예정",
+    dDay: "D-12",
+    period: "2026.04.10 ~ 2026.04.12",
+    location: "서울",
+    contact: "이메일 접수",
+    region: "seoul",
+  },
+  {
+    id: 3,
+    title: "Green Tech Sprint",
+    status: "closed",
+    statusLabel: "마감",
+    dDay: "D-0",
+    period: "2026.02.27 ~ 2026.03.02",
+    location: "부산",
+    contact: "오픈채팅",
+    region: "busan",
+  },
+  {
+    id: 4,
+    title: "Campus Creator League",
+    status: "active",
+    statusLabel: "진행중",
+    dDay: "D-3",
+    period: "2026.03.20 ~ 2026.03.27",
+    location: "대전",
+    contact: "없음",
+    region: "daejeon",
+  },
+  {
+    id: 5,
+    title: "K-Cloud Build Challenge",
+    status: "active",
+    statusLabel: "진행중",
+    dDay: "D-7",
+    period: "2026.03.24 ~ 2026.04.01",
+    location: "온라인",
+    contact: "디스코드",
+    region: "online",
+  },
+  {
+    id: 6,
+    title: "Mobility Future Jam",
+    status: "upcoming",
+    statusLabel: "예정",
+    dDay: "D-15",
+    period: "2026.04.18 ~ 2026.04.19",
+    location: "판교",
+    contact: "없음",
+    region: "pangyo",
+  },
+  {
+    id: 7,
+    title: "Public Data Mashup",
+    status: "active",
+    statusLabel: "진행중",
+    dDay: "D-4",
+    period: "2026.03.21 ~ 2026.03.28",
+    location: "서울",
+    contact: "이메일 접수",
+    region: "seoul",
+  },
+  {
+    id: 8,
+    title: "Smart Factory Hack Day",
+    status: "active",
+    statusLabel: "진행중",
+    dDay: "D-9",
+    period: "2026.03.11 ~ 2026.03.31",
+    location: "울산",
+    contact: "운영진 문의",
+    region: "etc",
+  },
+  {
+    id: 9,
+    title: "Global Design Sprint",
+    status: "active",
+    statusLabel: "진행중",
+    dDay: "D-6",
+    period: "2026.03.19 ~ 2026.03.29",
+    location: "온라인",
+    contact: "없음",
+    region: "online",
+  },
+];
+
+const sidebarRankings = [
+  {
+    title: "블루밍 온도",
+    label: "온도",
+    entries: [
+      { rank: 1, name: "강석진", value: "43.5" },
+      { rank: 2, name: "김현호", value: "41.3" },
+      { rank: 3, name: "김민준", value: "39.8" },
+    ],
+    currentUser: { name: "My NickName - 18th", value: "36.5" },
+  },
+  {
+    title: "최다 우승",
+    label: "우승",
+    entries: [
+      { rank: 1, name: "강석진", value: "8회" },
+      { rank: 2, name: "김현호", value: "7회" },
+      { rank: 3, name: "김민준", value: "6회" },
+    ],
+    currentUser: { name: "My NickName - 18th", value: "0회" },
+  },
+  {
+    title: "최다 참여",
+    label: "참여",
+    entries: [
+      { rank: 1, name: "강석진", value: "15회" },
+      { rank: 2, name: "김현호", value: "14회" },
+      { rank: 3, name: "김민준", value: "11회" },
+    ],
+    currentUser: { name: "My NickName - 18th", value: "2회" },
+  },
+];
+
+const searchOptions = [
+  { value: "title", label: "제목" },
+  { value: "titleAndLocation", label: "제목 + 내용" },
+];
+
+const statusOptions = [
+  { value: "all", label: "전체 상태", dotTone: "neutral" },
+  { value: "active", label: "진행중", dotTone: "active" },
+  { value: "upcoming", label: "예정", dotTone: "upcoming" },
+  { value: "closed", label: "마감", dotTone: "closed" },
+];
+
+const regionOptions = [
+  { value: "all", label: "전체(지역)" },
+  { value: "online", label: "온라인" },
+  { value: "seoul", label: "서울" },
+  { value: "pangyo", label: "판교" },
+  { value: "busan", label: "부산" },
+  { value: "daejeon", label: "대전" },
+  { value: "etc", label: "기타" },
+];
+
+const sortOptions = [
+  { value: "latest", label: "최신순" },
+  { value: "deadline", label: "마감임박순" },
+  { value: "title", label: "이름순" },
+];
+
+const HackathonCard = ({ hackathon }) => {
+  const details = [
+    {
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 stroke-current">
+          <rect x="3.5" y="5.5" width="17" height="15" rx="2.5" strokeWidth="1.8" />
+          <path d="M7 3.5V7.5" strokeWidth="1.8" strokeLinecap="round" />
+          <path d="M17 3.5V7.5" strokeWidth="1.8" strokeLinecap="round" />
+          <path d="M3.5 9.5H20.5" strokeWidth="1.8" />
+        </svg>
+      ),
+      text: hackathon.period,
+    },
+    {
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 stroke-current">
+          <path
+            d="M12 20C15.5 16.4 18 13.7 18 10.5C18 6.9 15.3 4.5 12 4.5C8.7 4.5 6 6.9 6 10.5C6 13.7 8.5 16.4 12 20Z"
+            strokeWidth="1.8"
+          />
+          <circle cx="12" cy="10.5" r="2.3" strokeWidth="1.8" />
+        </svg>
+      ),
+      text: hackathon.location,
+    },
+    {
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 stroke-current">
+          <circle cx="12" cy="12" r="8.5" strokeWidth="1.8" />
+          <path d="M12 10V16" strokeWidth="1.8" strokeLinecap="round" />
+          <circle cx="12" cy="7.5" r="1" fill="currentColor" stroke="none" />
+        </svg>
+      ),
+      text: `연락 조건: ${hackathon.contact}`,
+    },
+  ];
+
+  return (
+    <BaseInfoCard className="group space-y-4">
+      <div className="rounded-2xl bg-slate-200 p-4 transition duration-200 group-hover:bg-[#DCE6FF]">
+        <div className="flex items-start justify-between gap-3">
+          <StatusBadge
+            label={hackathon.statusLabel}
+            tone={hackathon.status}
+            withDot={hackathon.status === "active"}
+          />
+          <span className="rounded-lg bg-[#FF3B30] px-3 py-1 text-xs font-black text-white">
+            {hackathon.dDay}
+          </span>
+        </div>
+        <div className="mt-16 h-24 rounded-xl bg-gradient-to-br from-white/60 to-white/0 transition duration-200 group-hover:from-white/80" />
+      </div>
+
+      <div className="space-y-2">
+        <h2 className="text-3xl font-black tracking-tight text-slate-950 transition duration-200 group-hover:text-[#2458E6]">
+          {hackathon.title}
+        </h2>
+      </div>
+
+      <div className="space-y-2 text-sm text-slate-600 transition duration-200 group-hover:text-slate-700">
+        {details.map((detail) => (
+          <div key={detail.text} className="flex items-center gap-2">
+            <span className="flex w-10 items-center justify-center text-slate-400">
+              {detail.icon}
+            </span>
+            <span>{detail.text}</span>
+          </div>
+        ))}
+      </div>
+
+      <PrimaryActionButton fullWidth>상세보기 -&gt;</PrimaryActionButton>
+    </BaseInfoCard>
+  );
+};
+
+const HackathonListPage = () => {
+  const [searchCategory, setSearchCategory] = useState("title");
+  const [searchValue, setSearchValue] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [regionFilter, setRegionFilter] = useState("all");
+  const [sortFilter, setSortFilter] = useState("latest");
+
+  const filteredHackathons = useMemo(() => {
+    const loweredSearch = searchValue.trim().toLowerCase();
+
+    const result = hackathons.filter((hackathon) => {
+      const searchableText =
+        searchCategory === "title"
+          ? hackathon.title
+          : `${hackathon.title} ${hackathon.location} ${hackathon.contact}`;
+
+      const matchesSearch =
+        loweredSearch.length === 0 || searchableText.toLowerCase().includes(loweredSearch);
+
+      const matchesStatus = statusFilter === "all" || hackathon.status === statusFilter;
+
+      const matchesRegion = regionFilter === "all" || hackathon.region === regionFilter;
+
+      return matchesSearch && matchesStatus && matchesRegion;
+    });
+
+    if (sortFilter === "title") {
+      return [...result].sort((left, right) => left.title.localeCompare(right.title));
+    }
+
+    if (sortFilter === "deadline") {
+      return [...result].sort((left, right) => left.dDay.localeCompare(right.dDay));
+    }
+
+    return result;
+  }, [regionFilter, searchCategory, searchValue, sortFilter, statusFilter]);
+
+  return (
+    <div className="min-h-screen bg-[#F3F6FF]">
+      <div className="mx-auto flex max-w-[1640px] flex-col gap-8 px-4 py-8 lg:flex-row lg:gap-14 lg:px-10 lg:py-10 2xl:gap-20">
+        <aside className="w-full shrink-0 space-y-4 lg:sticky lg:top-28 lg:w-[294px] lg:self-start">
+          <MiniCalendar />
+          {sidebarRankings.map((ranking) => (
+            <RankingSummaryCard key={ranking.title} {...ranking} />
+          ))}
+        </aside>
+
+        <section className="min-w-0 flex-[1.18] space-y-10">
+          <PageSectionHeader
+            title="해커톤 목록"
+            description="진행중인 행사부터 예정된 대회까지 한 번에 비교하고, 원하는 조건으로 빠르게 탐색할 수 있도록 구성했습니다."
+          />
+
+          <SearchFilterBar
+            searchOptions={searchOptions}
+            searchCategory={searchCategory}
+            onSearchCategoryChange={setSearchCategory}
+            searchValue={searchValue}
+            onSearchValueChange={setSearchValue}
+            searchPlaceholder="제목 또는 내용을 입력하세요."
+            filters={[
+              {
+                key: "status",
+                type: "status",
+                value: statusFilter,
+                onChange: setStatusFilter,
+                options: statusOptions,
+              },
+              {
+                key: "region",
+                value: regionFilter,
+                onChange: setRegionFilter,
+                options: regionOptions,
+              },
+              {
+                key: "sort",
+                value: sortFilter,
+                onChange: setSortFilter,
+                options: sortOptions,
+              },
+            ]}
+          />
+
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:gap-7">
+            {filteredHackathons.map((hackathon) => (
+              <HackathonCard key={hackathon.id} hackathon={hackathon} />
+            ))}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+};
+
+export default HackathonListPage;
