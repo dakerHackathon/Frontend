@@ -15,8 +15,8 @@ const Header = () => {
   };
   return (
     <header className="flex justify-between items-center px-12 h-20 bg-white shadow-sm sticky top-0 z-50">
-      <Link to="/" className="flex items-center gap-3">
-        <img src={logoImg} alt="logo" className="w-10 h-10" />
+      <Link to="/" className="flex items-center gap-1">
+        <img src={logoImg} alt="logo" className="h-20 w-auto -mr-5 mt-1.5" />
         <span className="text-3xl font-black text-[#336DFE]">Blooming</span>
       </Link>
 
