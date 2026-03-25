@@ -9,8 +9,10 @@ const SignUp = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    userId: "",
+    loginId: "",
     password: "",
+    passwordCheck: "",
+    nickName: "",
   });
 
   // 입력값 변경 핸들러
@@ -29,16 +31,29 @@ const SignUp = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const { name, email, userId, password } = formData;
+    const { name, email, loginId, password, passwordCheck, nickName } =
+      formData;
 
     // 간단한 유효성 검사
-    if (!name || !email || !userId || !password) {
+    if (
+      !name ||
+      !email ||
+      !loginId ||
+      !password ||
+      !passwordCheck ||
+      !nickName
+    ) {
       alert("모든 필수 항목(*)을 입력해주세요.");
       return;
     }
 
     if (!validateEmail(email)) {
       alert("올바른 이메일 형식을 입력해주세요.");
+      return;
+    }
+
+    if (password !== passwordCheck) {
+      alert("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
       return;
     }
 
@@ -104,9 +119,9 @@ const SignUp = () => {
               아이디 <span className="text-yellow-400">*</span>
             </label>
             <input
-              name="userId"
+              name="loginId"
               type="text"
-              value={formData.userId}
+              value={formData.loginId}
               onChange={handleChange}
               placeholder="아이디"
               className="w-full px-4 py-3 rounded-md border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-300"
@@ -122,6 +137,36 @@ const SignUp = () => {
               name="password"
               type="password"
               value={formData.password}
+              onChange={handleChange}
+              placeholder="비밀번호"
+              className="w-full px-4 py-3 rounded-md border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-300"
+            />
+          </div>
+
+          {/* 비밀번호 확인 */}
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-gray-700">
+              비밀번호 확인 <span className="text-yellow-400">*</span>
+            </label>
+            <input
+              name="passwordCheck"
+              type="password"
+              value={formData.passwordCheck}
+              onChange={handleChange}
+              placeholder="비밀번호를 한 번 더 입력해주세요"
+              className="w-full px-4 py-3 rounded-md border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-300"
+            />
+          </div>
+
+          {/* 비밀번호 */}
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-gray-700">
+              닉네임 <span className="text-yellow-400">*</span>
+            </label>
+            <input
+              name="nickName"
+              type="text"
+              value={formData.nickName}
               onChange={handleChange}
               placeholder="비밀번호"
               className="w-full px-4 py-3 rounded-md border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-300"
