@@ -170,7 +170,30 @@ const sortOptions = [
   { value: "title", label: "이름순" },
 ];
 
-const HackathonCard = ({ hackathon }) => {
+const FavoriteStarButton = ({ active, onToggle }) => (
+  <button
+    type="button"
+    aria-label={active ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+    aria-pressed={active}
+    onClick={onToggle}
+    className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-[#F5B23A] transition hover:bg-white hover:scale-105"
+  >
+    <svg
+      viewBox="0 0 24 24"
+      fill={active ? "currentColor" : "none"}
+      className="h-4.5 w-4.5"
+    >
+      <path
+        d="M12 3.7L14.6 8.97L20.42 9.82L16.21 13.92L17.2 19.7L12 16.96L6.8 19.7L7.79 13.92L3.58 9.82L9.4 8.97L12 3.7Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+    </svg>
+  </button>
+);
+
+const HackathonCard = ({ hackathon, isFavorite, onToggleFavorite }) => {
   const details = [
     {
       icon: (
@@ -209,7 +232,7 @@ const HackathonCard = ({ hackathon }) => {
 
   return (
     <BaseInfoCard className="group space-y-4">
-      <div className="rounded-2xl bg-slate-200 p-4 transition duration-200 group-hover:bg-[#DCE6FF]">
+      <div className="relative rounded-2xl bg-slate-200 p-4 transition duration-200 group-hover:bg-[#DCE6FF]">
         <div className="flex items-start justify-between gap-3">
           <StatusBadge
             label={hackathon.statusLabel}
@@ -221,6 +244,9 @@ const HackathonCard = ({ hackathon }) => {
           </span>
         </div>
         <div className="mt-16 h-24 rounded-xl bg-gradient-to-br from-white/60 to-white/0 transition duration-200 group-hover:from-white/80" />
+        <div className="absolute bottom-3 right-3">
+          <FavoriteStarButton active={isFavorite} onToggle={onToggleFavorite} />
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -251,6 +277,15 @@ const HackathonListPage = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [regionFilter, setRegionFilter] = useState("all");
   const [sortFilter, setSortFilter] = useState("latest");
+  const [favoriteIds, setFavoriteIds] = useState([]);
+
+  const toggleFavorite = (hackathonId) => {
+    setFavoriteIds((prevIds) =>
+      prevIds.includes(hackathonId)
+        ? prevIds.filter((id) => id !== hackathonId)
+        : [...prevIds, hackathonId],
+    );
+  };
 
   const filteredHackathons = useMemo(() => {
     const loweredSearch = searchValue.trim().toLowerCase();
@@ -330,7 +365,12 @@ const HackathonListPage = () => {
 
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:gap-7">
             {filteredHackathons.map((hackathon) => (
-              <HackathonCard key={hackathon.id} hackathon={hackathon} />
+              <HackathonCard
+                key={hackathon.id}
+                hackathon={hackathon}
+                isFavorite={favoriteIds.includes(hackathon.id)}
+                onToggleFavorite={() => toggleFavorite(hackathon.id)}
+              />
             ))}
           </div>
         </section>
