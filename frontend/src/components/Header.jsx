@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import logoImg from "../assets/BloomingLogo.png";
 import { checkIsLoggedIn, getCurrentUser, logoutUser } from "../utils/auth";
 
@@ -22,7 +23,7 @@ const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-300 bg-white/95 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-slate-300 bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-28 max-w-[1440px] items-center justify-between gap-6 px-4 lg:px-8">
         <Link to="/" className="flex h-24 items-center gap-2 self-center">
           <span className="flex h-20 w-20 items-center justify-center self-center">
@@ -105,7 +106,7 @@ const Header = () => {
                 </span>
               </button>
 
-              {showDropdown ? (
+              {showDropdown && (
                 <div className="absolute right-0 top-[calc(100%+12px)] w-48 rounded-2xl border border-slate-200 bg-white py-2 shadow-2xl">
                   <Link
                     to="/mypage"
@@ -122,14 +123,13 @@ const Header = () => {
                   </Link>
                   <hr className="my-1 border-slate-100" />
                   <button
-                    type="button"
                     onClick={handleLogout}
-                    className="w-full cursor-pointer px-5 py-3 text-left font-medium text-red-500 transition hover:bg-red-50"
+                    className="w-full px-5 py-3 text-left font-medium text-red-500 transition hover:bg-red-50"
                   >
                     로그아웃
                   </button>
                 </div>
-              ) : null}
+              )}
             </div>
           )}
         </div>
