@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import logoImg from "../assets/BloomingLogo.png";
 import { checkIsLoggedIn, getCurrentUser, logoutUser } from "../utils/auth";
 
@@ -12,7 +12,6 @@ const navigationItems = [
 const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(checkIsLoggedIn());
   const [showDropdown, setShowDropdown] = useState(false);
-  const location = useLocation();
   const navigate = useNavigate();
   const currentUser = getCurrentUser();
 
@@ -21,14 +20,6 @@ const Header = () => {
     setIsLoggedIn(false);
     setShowDropdown(false);
     navigate("/login");
-  };
-
-  const isActiveMenu = (to) => {
-    if (to === "/hackathons") {
-      return location.pathname === "/hackathons" || location.pathname.startsWith("/hackathons/");
-    }
-
-    return location.pathname === to || location.pathname.startsWith(`${to}/`);
   };
 
   return (
@@ -45,23 +36,27 @@ const Header = () => {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-10 lg:flex">
+        <nav className="hidden h-28 items-stretch gap-10 lg:flex">
           {navigationItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
-              className={() =>
-                `relative py-10 text-lg font-bold transition ${
-                  isActiveMenu(item.to) ? "text-[#336DFE]" : "text-slate-600 hover:text-slate-900"
+              className={({ isActive }) =>
+                `group relative inline-flex h-full items-center text-lg font-bold transition ${
+                  isActive ? "text-[#336DFE]" : "text-slate-600 hover:text-slate-900"
                 }`
               }
             >
-              <>
-                {item.label}
-                {isActiveMenu(item.to) ? (
-                  <span className="absolute inset-x-0 bottom-0 h-1 rounded-full bg-[#336DFE]" />
-                ) : null}
-              </>
+              {({ isActive }) => (
+                <>
+                  {item.label}
+                  <span
+                    className={`absolute inset-x-0 bottom-0 z-10 h-1 rounded-full bg-[#336DFE] transition duration-200 ${
+                      isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                    }`}
+                  />
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
