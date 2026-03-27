@@ -245,7 +245,7 @@ const RecruitWritePage = () => {
               </p>
             </div>
 
-            <BaseInfoCard className="p-6 sm:p-7">
+            <BaseInfoCard className="p-6 sm:p-7 hover:translate-y-0">
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="md:col-span-2">
                   <FieldLabel>모집 제목</FieldLabel>
