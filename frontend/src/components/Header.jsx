@@ -35,13 +35,13 @@ const Header = () => {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-10 lg:flex">
+        <nav className="hidden h-28 items-stretch gap-10 lg:flex">
           {navigationItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `relative py-10 text-lg font-bold transition ${
+                `group relative inline-flex h-full items-center text-lg font-bold transition ${
                   isActive ? "text-[#336DFE]" : "text-slate-600 hover:text-slate-900"
                 }`
               }
@@ -49,9 +49,11 @@ const Header = () => {
               {({ isActive }) => (
                 <>
                   {item.label}
-                  {isActive ? (
-                    <span className="absolute inset-x-0 bottom-0 h-1 rounded-full bg-[#336DFE]" />
-                  ) : null}
+                  <span
+                    className={`absolute inset-x-0 bottom-0 z-10 h-1 rounded-full bg-[#336DFE] transition duration-200 ${
+                      isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                    }`}
+                  />
                 </>
               )}
             </NavLink>
