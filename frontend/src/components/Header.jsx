@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import logoImg from "../assets/BloomingLogo.png";
 import { checkIsLoggedIn, getCurrentUser, logoutUser } from "../utils/auth";
 
@@ -79,9 +80,11 @@ const Header = () => {
           ) : (
             <div className="relative flex items-center gap-4">
               <button
+                type="button"
                 onClick={() => setShowDropdown(!showDropdown)}
                 onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-                className="flex items-center gap-3 rounded-2xl bg-slate-100 px-4 py-3 text-left transition hover:bg-slate-200"
+                className="flex cursor-pointer items-center gap-3 rounded-2xl bg-slate-100 px-4 py-3 text-left transition hover:bg-slate-200"
+
               >
                 <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#DDE5FF] text-lg font-black text-[#336DFE]">
                   {(currentUser?.name ?? "강석진").slice(0, 1)}

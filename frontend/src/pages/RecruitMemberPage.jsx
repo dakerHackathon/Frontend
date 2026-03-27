@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import BaseInfoCard from "../components/common/BaseInfoCard";
 import PrimaryActionButton from "../components/common/PrimaryActionButton";
 import SearchFilterBar from "../components/common/SearchFilterBar";
@@ -10,7 +11,8 @@ const recruitPosts = [
     title: "팀원 모집합니다.",
     tags: ["FE", "BE", "AI"],
     accent: "#336DFE",
-    description: "우리팀은 이런 사람을 원합니다.",
+    description:
+      "우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.",
     hackathonName: "AI 아이디어톤 2026",
     currentCount: 2,
     maxCount: 5,
@@ -270,7 +272,7 @@ const RecruitCard = ({ post, onOpen }) => {
       <div className="flex flex-1 flex-col">
         <div className="space-y-3">
           <span className="text-[10px] font-medium text-[#7C96FF]">{post.version}</span>
-          <h2 className="text-[1.75rem] font-black tracking-tight text-slate-950 transition duration-200 group-hover:text-[#2458E6] sm:text-[2rem]">
+          <h2 className="truncate text-[1.5rem] font-black tracking-tight text-slate-950 transition duration-200 group-hover:text-[#2458E6] sm:text-[1.7rem]">
             {post.title}
           </h2>
           <p className="text-sm font-black tracking-[0.01em] text-[#4E6FD8] sm:text-[15px]">
@@ -291,7 +293,7 @@ const RecruitCard = ({ post, onOpen }) => {
           </div>
         </div>
 
-        <p className="pt-5 text-sm font-medium text-slate-800 sm:pt-6 sm:text-base">
+        <p className="line-clamp-2 pt-5 text-sm font-medium text-slate-800 sm:pt-6 sm:text-base">
           {post.description}
         </p>
 
@@ -314,6 +316,7 @@ const RecruitCard = ({ post, onOpen }) => {
 };
 
 const RecruitMemberPage = () => {
+  const navigate = useNavigate();
   const [searchCategory, setSearchCategory] = useState("title");
   const [searchValue, setSearchValue] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -375,7 +378,9 @@ const RecruitMemberPage = () => {
               ]}
               actionButton={
                 <div className="w-full sm:w-auto">
-                  <PrimaryActionButton fullWidth>+ 글쓰기</PrimaryActionButton>
+                  <PrimaryActionButton fullWidth onClick={() => navigate("/teams/write")}>
+                    + 글쓰기
+                  </PrimaryActionButton>
                 </div>
               }
             />

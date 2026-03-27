@@ -4,6 +4,7 @@ import Home from "../pages/Home";
 import LoginPage from "../pages/LoginPage";
 import SignUp from "../pages/SignUp";
 import RecruitMemberPage from "../pages/RecruitMemberPage";
+import RecruitWritePage from "../pages/RecruitWritePage";
 import MailPage from "../pages/MailPage";
 import HackathonDetailPage from "../pages/HackathonDetailPage";
 import HackathonListPage from "../pages/HackathonListPage";
