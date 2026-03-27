@@ -405,18 +405,29 @@ const AvatarBadge = ({ player, large = false }) => (
   </div>
 );
 
-const TopThreeCard = ({ player, highlighted = false, visible = false, delay = 0 }) => {
+const TopThreeCard = ({
+  player,
+  highlighted = false,
+  visible = false,
+  delay = 0,
+  enterRotateY = 0,
+}) => {
   const tone = medalTones[player.rank];
 
   return (
     <article
       className={`relative overflow-visible rounded-[30px] border border-slate-200 px-6 pb-8 pt-16 shadow-[0_18px_40px_rgba(15,23,42,0.06)] ${tone.card} ${
         highlighted ? "xl:translate-y-0" : ""
-      } transition-[transform,opacity,filter] duration-500 ease-out`}
+      } transition-[transform,opacity,filter] duration-700 ease-out`}
       style={{
         transitionDelay: `${delay}ms`,
         opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0) scale(1)" : "translateY(18px) scale(0.97)",
+        transform: visible
+          ? "perspective(1200px) translateY(0) scale(1) rotateY(0deg)"
+          : `perspective(1200px) translateY(24px) scale(0.92) rotateY(${enterRotateY}deg)`,
+        transformStyle: "preserve-3d",
+        transformOrigin: "center center",
+        backfaceVisibility: "hidden",
         filter: visible ? "blur(0px)" : "blur(3px)",
       }}
     >
@@ -599,6 +610,7 @@ const RankingPage = () => {
                 player={topThree[1]}
                 visible={topCardsVisible}
                 delay={0}
+                enterRotateY={-120}
               />
               <TopThreeCard
                 key={`center-${activePeriod}-${animationSeed}-${topThree[0].rank}`}
@@ -606,12 +618,14 @@ const RankingPage = () => {
                 highlighted
                 visible={topCardsVisible}
                 delay={90}
+                enterRotateY={90}
               />
               <TopThreeCard
                 key={`right-${activePeriod}-${animationSeed}-${topThree[2].rank}`}
                 player={topThree[2]}
                 visible={topCardsVisible}
                 delay={180}
+                enterRotateY={120}
               />
             </div>
           </section>
