@@ -196,6 +196,10 @@ const RecruitDetailModal = ({ post, onClose }) => {
         </div>
 
         <div className="space-y-6 py-6">
+          <p className="text-sm font-black tracking-[0.01em] text-[#4E6FD8] sm:text-[15px]">
+            {post.accent}
+          </p>
+
           <div className="flex flex-wrap items-center gap-2">
             {post.tags.map((tag) => (
               <span
@@ -207,7 +211,6 @@ const RecruitDetailModal = ({ post, onClose }) => {
                 {tag}
               </span>
             ))}
-            <span className="text-sm font-black text-slate-500">{post.accent}</span>
           </div>
 
           <p className="text-base font-medium leading-7 text-slate-800">{post.description}</p>
@@ -270,6 +273,9 @@ const RecruitCard = ({ post, onOpen }) => {
           <h2 className="text-[1.75rem] font-black tracking-tight text-slate-950 transition duration-200 group-hover:text-[#2458E6] sm:text-[2rem]">
             {post.title}
           </h2>
+          <p className="text-sm font-black tracking-[0.01em] text-[#4E6FD8] sm:text-[15px]">
+            {post.accent}
+          </p>
 
           <div className="flex flex-wrap items-center gap-2">
             {post.tags.map((tag) => (
@@ -282,7 +288,6 @@ const RecruitCard = ({ post, onOpen }) => {
                 {tag}
               </span>
             ))}
-            <span className="text-sm font-black text-slate-500">{post.accent}</span>
           </div>
         </div>
 
