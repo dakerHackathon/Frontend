@@ -1,4 +1,8 @@
+import { useNavigate } from "react-router-dom";
+
 const InboxSection = ({ unreadCount = 3 }) => {
+  const navigate = useNavigate();
+
   return (
     <section className="rounded-2xl border border-blue-200 bg-slate-100 p-6 shadow-[0_8px_16px_rgba(30,64,175,0.08)]">
       <div className="flex items-center justify-between">
@@ -14,12 +18,16 @@ const InboxSection = ({ unreadCount = 3 }) => {
             </svg>
           </div>
           <div>
-            <h3 className="text-4xl font-black leading-none text-slate-900">내 쪽지함</h3>
+            <h3 className="text-3xl font-black leading-none text-slate-900">내 쪽지함</h3>
             <p className="mt-1 text-base font-semibold text-slate-500">확인하지 않은 쪽지 {unreadCount}통</p>
           </div>
         </div>
 
-        <button type="button" className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-blue-500 shadow">
+        <button
+          type="button"
+          onClick={() => navigate("/mails")}
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-blue-500 shadow transition-all duration-150 ease-out hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95 active:shadow-sm"
+        >
           <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5">
             <path
               d="M8 5.5L12.5 10L8 14.5"

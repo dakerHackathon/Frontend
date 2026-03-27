@@ -52,7 +52,10 @@ const MyPage = () => {
     if (voteLocks[voteKey]) return;
 
     // TODO: 백엔드 연동 시 온도 반영 로직 이관
-    setVoteLocks((prev) => ({ ...prev, [voteKey]: true }));
+    setVoteLocks((prev) => ({
+      ...prev,
+      [voteKey]: value > 0 ? "up" : "down",
+    }));
     setTemperature((prev) => Number((prev + value).toFixed(1)));
   };
 
@@ -69,13 +72,15 @@ const MyPage = () => {
         <div className="flex flex-col gap-4">
           <ProfileSection profile={profile} onEdit={openEditModal} />
 
-          <HackathonListSection
-            hackathons={initialHackathons}
-            voteLocks={voteLocks}
-            onVote={handleVote}
-          />
+          <div className="grid gap-4 lg:grid-cols-2">
+            <HackathonListSection
+              hackathons={initialHackathons}
+              voteLocks={voteLocks}
+              onVote={handleVote}
+            />
 
-          <TeamStatusSection teams={teams} onOpenTeam={setTeamModal} />
+            <TeamStatusSection teams={teams} onOpenTeam={setTeamModal} />
+          </div>
         </div>
 
         <div className="flex flex-col gap-4">
@@ -98,7 +103,11 @@ const MyPage = () => {
         onSave={saveProfile}
       />
 
-      <TeamMembersModal team={teamModal} onClose={() => setTeamModal(null)} />
+      <TeamMembersModal
+        team={teamModal}
+        onClose={() => setTeamModal(null)}
+        currentUserEmail={profile.email}
+      />
     </div>
   );
 };
