@@ -18,7 +18,7 @@ const Header = () => {
   const handleLogout = () => {
     logoutUser();
     setIsLoggedIn(false);
-    navigate("/login");
+    navigate("/");
   };
 
   return (
@@ -78,13 +78,6 @@ const Header = () => {
             </>
           ) : (
             <div className="relative flex items-center gap-4">
-              <Link
-                to="/mails"
-                className="rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-blue-50 hover:text-blue-600"
-              >
-                쪽지
-              </Link>
-
               <button
                 onClick={() => setShowDropdown(!showDropdown)}
                 onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
@@ -117,6 +110,13 @@ const Header = () => {
                     className="block px-5 py-3 font-medium text-slate-700 transition hover:bg-blue-50 hover:text-blue-600"
                   >
                     마이페이지
+                  </Link>
+                  <hr className="my-1 border-slate-100" />
+                  <Link
+                    to="/mails"
+                    className="block px-5 py-3 font-medium text-slate-700 transition hover:bg-blue-50 hover:text-blue-600"
+                  >
+                    쪽지
                   </Link>
                   <hr className="my-1 border-slate-100" />
                   <button

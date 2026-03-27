@@ -23,7 +23,9 @@ export const userHandlers = [
         code: "200",
         message: "요청이 성공적입니다.",
         data: {
-          userId: user.id, // PK(고유번호) 반환
+          userId: user.id,
+          name: user.name,
+          nickName: user.nickName,
         },
       });
     }
@@ -62,7 +64,7 @@ export const userHandlers = [
       );
     }
 
-    // 새 유저 저장 (기존 util 로직 활용)
+    // 새 유저 저장
     const newUser = {
       id: Date.now(),
       email,
