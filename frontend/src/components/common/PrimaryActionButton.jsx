@@ -1,9 +1,4 @@
-const PrimaryActionButton = ({
-  children,
-  type = "button",
-  onClick,
-  fullWidth = false,
-}) => {
+const PrimaryActionButton = ({ children, type = "button", onClick, fullWidth = false }) => {
   return (
     <button
       type={type}
