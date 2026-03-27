@@ -1,6 +1,260 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import MiniCalendar from "../components/common/MiniCalendar";
 
-const DAYS = ["S", "M", "T", "W", "T", "F", "S"];
+const periodTabs = [
+  { key: "weekly", label: "주간" },
+  { key: "monthly", label: "월간" },
+  { key: "cumulative", label: "누적" },
+];
+
+const rankingByPeriod = {
+  weekly: [
+    {
+      rank: 1,
+      name: "이민호",
+      github: "https://github.com/minho-dev",
+      temperature: 96.5,
+      points: 142,
+      avatar: { initials: "이", bg: "from-slate-900 to-slate-700", ring: "ring-[#F2C94C]" },
+    },
+    {
+      rank: 2,
+      name: "박서준",
+      github: "https://github.com/seojun-lab",
+      temperature: 92.1,
+      points: 138,
+      avatar: { initials: "박", bg: "from-[#8C6239] to-[#D7B48A]", ring: "ring-[#CFD8E8]" },
+    },
+    {
+      rank: 3,
+      name: "남주혁",
+      github: null,
+      temperature: 88.4,
+      points: 125,
+      avatar: { initials: "남", bg: "from-[#2A2525] to-[#5B433B]", ring: "ring-[#E2871A]" },
+    },
+    {
+      rank: 4,
+      name: "김유정",
+      github: "https://github.com/yujeong-kim",
+      temperature: 94.0,
+      points: 112,
+      avatar: { initials: "김", bg: "from-[#8F2D56] to-[#D65D8E]" },
+    },
+    {
+      rank: 5,
+      name: "송강",
+      github: "https://github.com/songkang-dev",
+      temperature: 85.2,
+      points: 108,
+      avatar: { initials: "송", bg: "from-[#5B7083] to-[#AFC3D6]" },
+    },
+    {
+      rank: 6,
+      name: "한지민",
+      github: null,
+      temperature: 89.9,
+      points: 98,
+      avatar: { initials: "한", bg: "from-[#3D4E3E] to-[#8AA47B]" },
+    },
+    {
+      rank: 7,
+      name: "임윤아",
+      github: "https://github.com/yoona-dev",
+      temperature: 91.3,
+      points: 94,
+      avatar: { initials: "임", bg: "from-[#5B6EFF] to-[#9EA9FF]" },
+    },
+    {
+      rank: 8,
+      name: "차은우",
+      github: null,
+      temperature: 97.2,
+      points: 89,
+      avatar: { initials: "차", bg: "from-[#4E5A67] to-[#A0AFBE]" },
+    },
+    {
+      rank: 9,
+      name: "수지",
+      github: "https://github.com/suji-lab",
+      temperature: 87.5,
+      points: 82,
+      avatar: { initials: "수", bg: "from-[#006B8F] to-[#48A7C7]" },
+    },
+    {
+      rank: 10,
+      name: "박보검",
+      github: null,
+      temperature: 93.8,
+      points: 77,
+      avatar: { initials: "박", bg: "from-[#7A4A35] to-[#DAB39F]" },
+    },
+  ],
+  monthly: [
+    {
+      rank: 1,
+      name: "김현호",
+      github: "https://github.com/hyunho-dev",
+      temperature: 95.2,
+      points: 514,
+      avatar: { initials: "김", bg: "from-[#1C3D6E] to-[#537FBA]", ring: "ring-[#F2C94C]" },
+    },
+    {
+      rank: 2,
+      name: "강석진",
+      github: "https://github.com/seokjin-dev",
+      temperature: 93.8,
+      points: 498,
+      avatar: { initials: "강", bg: "from-[#765D45] to-[#C5A180]", ring: "ring-[#CFD8E8]" },
+    },
+    {
+      rank: 3,
+      name: "김민준",
+      github: null,
+      temperature: 89.2,
+      points: 472,
+      avatar: { initials: "김", bg: "from-[#362525] to-[#6F5353]", ring: "ring-[#E2871A]" },
+    },
+    {
+      rank: 4,
+      name: "이승제",
+      github: "https://github.com/seungje-lab",
+      temperature: 90.4,
+      points: 455,
+      avatar: { initials: "이", bg: "from-[#744A77] to-[#B784BE]" },
+    },
+    {
+      rank: 5,
+      name: "김유진",
+      github: null,
+      temperature: 87.6,
+      points: 432,
+      avatar: { initials: "김", bg: "from-[#495E34] to-[#9FBC80]" },
+    },
+    {
+      rank: 6,
+      name: "정우성",
+      github: "https://github.com/woosung-dev",
+      temperature: 91.7,
+      points: 420,
+      avatar: { initials: "정", bg: "from-[#39424E] to-[#7D90A5]" },
+    },
+    {
+      rank: 7,
+      name: "유인나",
+      github: "https://github.com/inna-yu",
+      temperature: 88.1,
+      points: 408,
+      avatar: { initials: "유", bg: "from-[#7757A4] to-[#B49CDA]" },
+    },
+    {
+      rank: 8,
+      name: "주지훈",
+      github: null,
+      temperature: 86.9,
+      points: 401,
+      avatar: { initials: "주", bg: "from-[#5F5E5A] to-[#B7B6B0]" },
+    },
+    {
+      rank: 9,
+      name: "배수지",
+      github: "https://github.com/bae-suji",
+      temperature: 90.9,
+      points: 388,
+      avatar: { initials: "배", bg: "from-[#0E738A] to-[#63C2D6]" },
+    },
+    {
+      rank: 10,
+      name: "최민우",
+      github: null,
+      temperature: 85.4,
+      points: 375,
+      avatar: { initials: "최", bg: "from-[#6E4A2A] to-[#C7A27D]" },
+    },
+  ],
+  cumulative: [
+    {
+      rank: 1,
+      name: "강석진",
+      github: "https://github.com/seokjin-dev",
+      temperature: 98.2,
+      points: 1280,
+      avatar: { initials: "강", bg: "from-[#14213D] to-[#4361EE]", ring: "ring-[#F2C94C]" },
+    },
+    {
+      rank: 2,
+      name: "김현호",
+      github: "https://github.com/hyunho-dev",
+      temperature: 96.7,
+      points: 1214,
+      avatar: { initials: "김", bg: "from-[#8A5C2B] to-[#E7BD8C]", ring: "ring-[#CFD8E8]" },
+    },
+    {
+      rank: 3,
+      name: "김민준",
+      github: null,
+      temperature: 94.3,
+      points: 1176,
+      avatar: { initials: "김", bg: "from-[#2D2025] to-[#7C5E67]", ring: "ring-[#E2871A]" },
+    },
+    {
+      rank: 4,
+      name: "이승제",
+      github: "https://github.com/seungje-lab",
+      temperature: 92.4,
+      points: 1108,
+      avatar: { initials: "이", bg: "from-[#5B3B6A] to-[#AE8CC3]" },
+    },
+    {
+      rank: 5,
+      name: "김유진",
+      github: null,
+      temperature: 91.2,
+      points: 1060,
+      avatar: { initials: "김", bg: "from-[#425534] to-[#8FB174]" },
+    },
+    {
+      rank: 6,
+      name: "임윤아",
+      github: "https://github.com/yoona-dev",
+      temperature: 95.8,
+      points: 1002,
+      avatar: { initials: "임", bg: "from-[#5C68E8] to-[#B0B8FF]" },
+    },
+    {
+      rank: 7,
+      name: "한지민",
+      github: null,
+      temperature: 90.5,
+      points: 978,
+      avatar: { initials: "한", bg: "from-[#3D4E3E] to-[#8AA47B]" },
+    },
+    {
+      rank: 8,
+      name: "차은우",
+      github: null,
+      temperature: 97.6,
+      points: 956,
+      avatar: { initials: "차", bg: "from-[#4E5A67] to-[#A0AFBE]" },
+    },
+    {
+      rank: 9,
+      name: "배수지",
+      github: "https://github.com/bae-suji",
+      temperature: 93.1,
+      points: 921,
+      avatar: { initials: "배", bg: "from-[#006B8F] to-[#48A7C7]" },
+    },
+    {
+      rank: 10,
+      name: "박보검",
+      github: null,
+      temperature: 92.6,
+      points: 905,
+      avatar: { initials: "박", bg: "from-[#7A4A35] to-[#DAB39F]" },
+    },
+  ],
+};
 
 const sideRankingSections = [
   {
@@ -38,101 +292,31 @@ const sideRankingSections = [
   },
 ];
 
-const spotlightCards = [
-  { key: "attendance", label: "최다 참여 랭킹" },
-  { key: "wins", label: "최다 우승 랭킹" },
-  { key: "temperature", label: "온도 랭킹" },
-];
-
-const tableTabs = [
-  { key: "wins", label: "최다 우승", valueLabel: "우승 횟수" },
-  { key: "attendance", label: "최다 참여", valueLabel: "참여 횟수" },
-  { key: "temperature", label: "온도 랭킹", valueLabel: "온도" },
-];
-
-const rankingRows = {
-  wins: [
-    { rank: 1, name: "강석진", value: "8회" },
-    { rank: 2, name: "김현호", value: "7회" },
-    { rank: 3, name: "김민준", value: "4회" },
-    { rank: 4, name: "이승제", value: "4회" },
-    { rank: 5, name: "김유진", value: "3회" },
-    { rank: 6, name: "NicknameA", value: "3회" },
-    { rank: 7, name: "NicknameB", value: "2회" },
-    { rank: 8, name: "NicknameA", value: "1회" },
-  ],
-  attendance: [
-    { rank: 1, name: "강석진", value: "15회" },
-    { rank: 2, name: "김현호", value: "14회" },
-    { rank: 3, name: "김민준", value: "11회" },
-    { rank: 4, name: "이승제", value: "10회" },
-    { rank: 5, name: "김유진", value: "9회" },
-    { rank: 6, name: "NicknameA", value: "8회" },
-    { rank: 7, name: "NicknameB", value: "7회" },
-    { rank: 8, name: "NicknameC", value: "6회" },
-  ],
-  temperature: [
-    { rank: 1, name: "강석진", value: "43.5" },
-    { rank: 2, name: "김현호", value: "41.3" },
-    { rank: 3, name: "김민준", value: "39.8" },
-    { rank: 4, name: "이승제", value: "38.9" },
-    { rank: 5, name: "김유진", value: "37.4" },
-    { rank: 6, name: "NicknameA", value: "36.8" },
-    { rank: 7, name: "NicknameB", value: "35.6" },
-    { rank: 8, name: "NicknameC", value: "35.1" },
-  ],
+const medalTones = {
+  1: {
+    ring: "ring-[#F2C94C]",
+    line: "bg-[#F2C94C]",
+    badge: "bg-[#F2C94C] text-white",
+    card: "bg-[#EEF3FF]",
+  },
+  2: {
+    ring: "ring-[#CFD8E8]",
+    line: "bg-[#CFD8E8]",
+    badge: "bg-[#CFD8E8] text-slate-700",
+    card: "bg-white",
+  },
+  3: {
+    ring: "ring-[#E2871A]",
+    line: "bg-[#E2871A]",
+    badge: "bg-[#E2871A] text-white",
+    card: "bg-white",
+  },
 };
 
-const medalColors = {
-  1: "text-[#FFB547]",
-  2: "text-slate-400",
-  3: "text-[#D99950]",
-};
-
-const buildCalendar = (baseDate) => {
-  const year = baseDate.getFullYear();
-  const month = baseDate.getMonth();
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
-  const prevLastDay = new Date(year, month, 0);
-  const days = [];
-  const firstWeekday = firstDay.getDay();
-
-  for (let index = firstWeekday - 1; index >= 0; index -= 1) {
-    days.push({
-      key: `prev-${index}`,
-      date: prevLastDay.getDate() - index,
-      muted: true,
-    });
-  }
-
-  for (let date = 1; date <= lastDay.getDate(); date += 1) {
-    days.push({
-      key: `current-${date}`,
-      date,
-      muted: false,
-      isToday: year === 2026 && month === 2 && date === 24,
-    });
-  }
-
-  const remainder = (7 - (days.length % 7)) % 7;
-
-  for (let date = 1; date <= remainder; date += 1) {
-    days.push({
-      key: `next-${date}`,
-      date,
-      muted: true,
-    });
-  }
-
-  return days;
-};
-
-const getOrdinalLabel = (rank) => {
-  if (rank === 1) return "1st";
-  if (rank === 2) return "2nd";
-  if (rank === 3) return "3rd";
-  return `${rank}th`;
+const rankBadgeTones = {
+  1: "bg-[#F2C94C] text-white",
+  2: "bg-[#CFD8E8] text-slate-700",
+  3: "bg-[#E2871A] text-white",
 };
 
 const UserIcon = ({ className = "" }) => (
@@ -162,90 +346,11 @@ const TrophyIcon = ({ className = "" }) => (
   </svg>
 );
 
-const CalendarArrowButton = ({ direction, onClick }) => (
-  <button
-    type="button"
-    aria-label={direction === "left" ? "이전 달" : "다음 달"}
-    onClick={onClick}
-    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/50 text-white transition hover:bg-white/10"
-  >
-    <svg
-      viewBox="0 0 20 20"
-      fill="none"
-      className={`h-4 w-4 ${direction === "right" ? "rotate-180" : ""}`}
-    >
-      <path
-        d="M11.5 5.5L7 10L11.5 14.5"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  </button>
+const GithubIcon = ({ className = "" }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 2C6.48 2 2 6.58 2 12.24C2 16.77 4.87 20.61 8.84 21.97C9.34 22.07 9.52 21.75 9.52 21.48C9.52 21.23 9.51 20.39 9.51 19.5C6.73 20.12 6.14 18.29 6.14 18.29C5.68 17.08 5.03 16.76 5.03 16.76C4.12 16.12 5.1 16.13 5.1 16.13C6.1 16.2 6.64 17.18 6.64 17.18C7.53 18.76 8.97 18.31 9.55 18.04C9.64 17.38 9.89 16.93 10.17 16.67C7.95 16.41 5.62 15.52 5.62 11.56C5.62 10.43 6.01 9.51 6.65 8.79C6.55 8.53 6.2 7.46 6.75 6.01C6.75 6.01 7.59 5.73 9.5 7.06C10.31 6.83 11.18 6.72 12.05 6.72C12.92 6.72 13.79 6.83 14.6 7.06C16.51 5.73 17.35 6.01 17.35 6.01C17.9 7.46 17.55 8.53 17.45 8.79C18.09 9.51 18.48 10.43 18.48 11.56C18.48 15.53 16.14 16.4 13.92 16.67C14.27 16.99 14.58 17.63 14.58 18.61C14.58 20 14.57 21.13 14.57 21.48C14.57 21.75 14.75 22.08 15.26 21.97C19.23 20.61 22.1 16.77 22.1 12.24C22.1 6.58 17.62 2 12 2Z" />
+  </svg>
 );
-
-const RankingCalendar = () => {
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 2, 1));
-  const monthLabel = `${currentDate.getMonth() + 1}월`;
-  const calendarDays = useMemo(() => buildCalendar(currentDate), [currentDate]);
-
-  return (
-    <section className="overflow-hidden rounded-[28px] border border-slate-300 bg-white shadow-[0_18px_40px_rgba(15,23,42,0.10)]">
-      <div className="flex items-center justify-between bg-[#336DFE] px-6 py-5 text-white">
-        <CalendarArrowButton
-          direction="left"
-          onClick={() =>
-            setCurrentDate(
-              (prevDate) => new Date(prevDate.getFullYear(), prevDate.getMonth() - 1, 1),
-            )
-          }
-        />
-        <span className="text-[1.9rem] font-black">{monthLabel}</span>
-        <CalendarArrowButton
-          direction="right"
-          onClick={() =>
-            setCurrentDate(
-              (prevDate) => new Date(prevDate.getFullYear(), prevDate.getMonth() + 1, 1),
-            )
-          }
-        />
-      </div>
-
-      <div className="grid grid-cols-7 gap-y-3 px-5 py-5 text-center">
-        {DAYS.map((day) => (
-          <span key={day} className="text-sm font-medium text-slate-400">
-            {day}
-          </span>
-        ))}
-
-        {calendarDays.map((day, index) => {
-          const isSunday = index % 7 === 0;
-          const isSaturday = index % 7 === 6;
-
-          return (
-            <span
-              key={day.key}
-              className={`mx-auto inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition hover:bg-[#EEF3FF] ${
-                day.isToday
-                  ? "bg-[#EAF0FF] text-[#336DFE]"
-                  : day.muted
-                    ? "text-slate-300"
-                    : isSunday
-                      ? "text-[#EB3B3B]"
-                      : isSaturday
-                        ? "text-[#336DFE]"
-                        : "text-slate-900"
-              }`}
-            >
-              {day.date}
-            </span>
-          );
-        })}
-      </div>
-    </section>
-  );
-};
 
 const SidebarRankingCard = ({ title, metric, entries, myScore }) => (
   <section className="rounded-[24px] border border-slate-300 bg-white px-5 py-5 shadow-[0_16px_36px_rgba(15,23,42,0.08)]">
@@ -261,11 +366,9 @@ const SidebarRankingCard = ({ title, metric, entries, myScore }) => (
           className="flex items-center justify-between gap-3 text-xs font-semibold sm:text-sm"
         >
           <div className="flex items-center gap-2.5">
-            <span
-              className={`inline-flex items-center gap-1 leading-none ${medalColors[entry.rank] ?? "text-slate-800"}`}
-            >
+            <span className="inline-flex items-center gap-1 leading-none text-slate-800">
               <TrophyIcon className="h-4 w-4 shrink-0" />
-              <span className="font-black leading-none">{getOrdinalLabel(entry.rank)}</span>
+              <span className="font-black leading-none">{entry.rank}위</span>
             </span>
             <div className="flex h-4 items-center gap-1.5">
               <UserIcon className="h-[13px] w-[13px] shrink-0 text-[#9CB3FF]" />
@@ -287,83 +390,145 @@ const SidebarRankingCard = ({ title, metric, entries, myScore }) => (
   </section>
 );
 
-const PodiumIllustration = () => (
-  <div className="mx-auto mt-14 flex w-full max-w-[220px] items-end justify-center">
-    <div className="relative flex h-10 w-[66px] items-start justify-center bg-[#FFD21E]">
-      <UserIcon className="absolute -top-8 h-9 w-9 text-slate-950" />
-    </div>
-    <div className="relative flex h-[70px] w-[66px] items-start justify-center bg-[#FFD21E]">
-      <UserIcon className="absolute -top-9 h-10 w-10 text-slate-950" />
-    </div>
-    <div className="relative flex h-8 w-[66px] items-start justify-center bg-[#FFD21E]">
-      <UserIcon className="absolute -top-8 h-9 w-9 text-slate-950" />
-    </div>
+const AvatarBadge = ({ player, large = false }) => (
+  <div
+    className={`relative inline-flex items-center justify-center rounded-full bg-gradient-to-br text-white ring-4 ${player.avatar.ring ?? "ring-white"} ${
+      large ? "h-24 w-24 text-3xl" : "h-16 w-16 text-xl"
+    } ${player.avatar.bg}`}
+  >
+    <span className="font-black">{player.avatar.initials}</span>
+    {player.rank === 1 ? (
+      <span className="absolute -right-1 -top-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F2C94C] text-white shadow-lg">
+        <TrophyIcon className="h-4 w-4" />
+      </span>
+    ) : null}
   </div>
 );
 
-const SpotlightCard = ({ label }) => (
-  <article className="rounded-[30px] border border-slate-200 bg-white px-6 py-7 shadow-[0_18px_40px_rgba(15,23,42,0.06)] sm:px-8 sm:py-8">
-    <h2 className="mb-4 text-center text-[1.55rem] font-black tracking-tight text-[#336DFE] sm:text-[1.75rem]">
-      {label}
-    </h2>
-    <PodiumIllustration />
-  </article>
+const TopThreeCard = ({
+  player,
+  highlighted = false,
+  visible = false,
+  delay = 0,
+  enterRotateY = 0,
+}) => {
+  const tone = medalTones[player.rank];
+
+  return (
+    <article
+      className={`relative overflow-visible rounded-[30px] border border-slate-200 px-6 pb-8 pt-16 shadow-[0_18px_40px_rgba(15,23,42,0.06)] ${tone.card} ${
+        highlighted ? "xl:translate-y-0" : ""
+      } transition-[transform,opacity,filter] duration-700 ease-out`}
+      style={{
+        transitionDelay: `${delay}ms`,
+        opacity: visible ? 1 : 0,
+        transform: visible
+          ? "perspective(1200px) translateY(0) scale(1) rotateY(0deg)"
+          : `perspective(1200px) translateY(24px) scale(0.92) rotateY(${enterRotateY}deg)`,
+        transformStyle: "preserve-3d",
+        transformOrigin: "center center",
+        backfaceVisibility: "hidden",
+        filter: visible ? "blur(0px)" : "blur(3px)",
+      }}
+    >
+      <div className={`absolute left-0 right-0 top-0 h-1 rounded-t-[30px] ${tone.line}`} />
+
+      <div className="flex justify-center">
+        <div className="-mt-[5.5rem] mb-4">
+          <AvatarBadge player={player} large={highlighted} />
+        </div>
+      </div>
+
+      <div className="text-center">
+        <span className={`inline-flex rounded-full px-3 py-1 text-xs font-black ${tone.badge}`}>
+          Rank {player.rank}
+        </span>
+        <h3 className="mt-3 text-[1.7rem] font-black text-slate-950">{player.name}</h3>
+        <p className="mt-4 text-[1.9rem] font-black text-[#336DFE]">{player.points}</p>
+        <p className="mt-1 text-sm font-semibold italic text-slate-400">Points</p>
+      </div>
+    </article>
+  );
+};
+
+const TemperatureBar = ({ value }) => (
+  <div className="flex items-center gap-4">
+    <div className="h-2.5 w-28 overflow-hidden rounded-full bg-[#E5ECFF]">
+      <div
+        className="h-full rounded-full bg-[#336DFE]"
+        style={{ width: `${Math.min(value, 100)}%` }}
+      />
+    </div>
+    <span className="min-w-[64px] text-sm font-bold text-slate-700">{value.toFixed(1)}°C</span>
+  </div>
 );
 
-const RankingTable = ({ tab, rows, onChangeTab }) => (
-  <section className="rounded-[30px] border border-slate-200 bg-white px-5 py-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)] sm:px-8 sm:py-8 lg:px-10 lg:py-9">
-    <div className="flex flex-wrap items-center gap-x-6 gap-y-3 border-b border-slate-200 pb-6 sm:gap-x-8">
-      <span className="text-lg font-black text-[#5B6B8C] sm:text-xl">랭킹</span>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:gap-x-5">
-        {tableTabs.map((item) => (
-          <button
-            key={item.key}
-            type="button"
-            onClick={() => onChangeTab(item.key)}
-            className={`text-lg font-black transition sm:text-xl ${
-              item.key === tab ? "text-[#336DFE]" : "text-slate-300 hover:text-slate-500"
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
+const RankingTable = ({ rows }) => (
+  <section className="rounded-[30px] border border-slate-200 bg-white px-5 py-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)] sm:px-8 sm:py-8">
+    <div className="border-b border-slate-200 pb-5">
+      <h2 className="text-[1.45rem] font-black tracking-tight text-slate-950">랭킹 TOP 10</h2>
     </div>
 
     <div className="mt-6 overflow-hidden rounded-[28px] border border-slate-200">
-      <div className="grid grid-cols-[112px_1fr_100px] items-center bg-[#336DFE] px-4 py-4 text-xs font-black text-white sm:grid-cols-[160px_1fr_140px] sm:px-5 sm:text-base lg:grid-cols-[180px_1fr_180px] lg:px-6 lg:text-lg">
-        <span />
-        <span>닉네임</span>
-        <span className="text-center">
-          {tableTabs.find((item) => item.key === tab)?.valueLabel}
-        </span>
+      <div className="grid grid-cols-[92px_minmax(0,1.5fr)_240px_160px] items-center gap-10 bg-[#F8FAFF] px-6 py-4 text-sm font-black text-slate-700">
+        <span className="justify-self-center font-extrabold text-slate-900">순위</span>
+        <span className="justify-self-center font-extrabold text-slate-900">닉네임</span>
+        <span className="justify-self-center font-extrabold text-slate-900">온도</span>
+        <span className="justify-self-center font-extrabold text-slate-900">포인트</span>
       </div>
 
       <div>
         {rows.map((row) => (
           <div
-            key={`${tab}-${row.rank}-${row.name}`}
-            className={`grid grid-cols-[112px_1fr_100px] items-center px-4 py-4 text-xs font-bold sm:grid-cols-[160px_1fr_140px] sm:px-5 sm:text-sm lg:grid-cols-[180px_1fr_180px] lg:px-6 lg:text-lg ${
-              row.rank % 2 === 1 ? "bg-[#F5F8FF]" : "bg-white"
-            }`}
+            key={`${row.rank}-${row.name}`}
+            className="grid grid-cols-[92px_minmax(0,1.5fr)_240px_160px] items-center gap-10 border-t border-slate-100 px-6 py-5 text-sm"
           >
-            <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
-              {row.rank <= 3 ? (
-                <TrophyIcon
-                  className={`h-4 w-4 shrink-0 self-center sm:h-5 sm:w-5 ${medalColors[row.rank]}`}
-                />
-              ) : (
-                <span className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" />
-              )}
-              <span className="text-sm font-black leading-none text-slate-950 sm:text-xl lg:text-[1.45rem]">
-                {getOrdinalLabel(row.rank)}
+            <div className="flex items-center justify-center">
+              <span
+                className={`inline-flex h-9 w-9 items-center justify-center rounded-full text-sm font-black ${
+                  rankBadgeTones[row.rank] ?? "text-slate-700"
+                }`}
+              >
+                {row.rank}
               </span>
             </div>
-            <div className="flex items-center gap-2 sm:gap-2.5">
-              <UserIcon className="h-[18px] w-[18px] shrink-0 text-[#A7BBFF] sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
-              <span className="font-black leading-none text-[#336DFE]">{row.name}</span>
+
+            <div className="flex min-w-0 items-center justify-center">
+              <div className="inline-flex max-w-full items-center justify-center gap-3">
+                <div className="shrink-0">
+                  <AvatarBadge player={row} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="truncate text-[1rem] font-extrabold leading-none text-slate-900">
+                    {row.name}
+                  </span>
+                  {row.github ? (
+                    <a
+                      href={row.github}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EEF3FF] text-[#336DFE] transition hover:bg-[#336DFE] hover:text-white"
+                      aria-label={`${row.name} GitHub`}
+                    >
+                      <GithubIcon className="h-4 w-4" />
+                    </a>
+                  ) : (
+                    <div
+                      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[#336DFE]"
+                      aria-label={`GitHub Empty`}
+                    ></div>
+                  )}
+                </div>
+              </div>
             </div>
-            <span className="text-center font-black leading-none text-slate-950">{row.value}</span>
+
+            <div className="justify-self-center">
+              <TemperatureBar value={row.temperature} />
+            </div>
+
+            <div className="justify-self-center text-[1rem] font-extrabold text-[#336DFE]">
+              {row.points}점
+            </div>
           </div>
         ))}
       </div>
@@ -372,14 +537,41 @@ const RankingTable = ({ tab, rows, onChangeTab }) => (
 );
 
 const RankingPage = () => {
-  const [activeTab, setActiveTab] = useState("wins");
-  const activeRows = useMemo(() => rankingRows[activeTab] ?? rankingRows.wins, [activeTab]);
+  const [activePeriod, setActivePeriod] = useState("weekly");
+  const [topCardsVisible, setTopCardsVisible] = useState(false);
+  const [animationSeed, setAnimationSeed] = useState(0);
+  const activeRows = useMemo(
+    () =>
+      [...(rankingByPeriod[activePeriod] ?? rankingByPeriod.weekly)].sort(
+        (left, right) => right.points - left.points,
+      ),
+    [activePeriod],
+  );
+  const topThree = activeRows.slice(0, 3);
+
+  useEffect(() => {
+    setTopCardsVisible(false);
+    setAnimationSeed((seed) => seed + 1);
+    let timeoutId;
+    const frame = window.requestAnimationFrame(() => {
+      timeoutId = window.setTimeout(() => {
+        setTopCardsVisible(true);
+      }, 40);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, [activePeriod]);
 
   return (
     <div className="min-h-screen bg-[#F3F6FF]">
       <div className="mx-auto flex max-w-[1640px] flex-col gap-8 px-4 py-8 lg:flex-row lg:gap-14 lg:px-8 lg:py-10">
         <aside className="w-full shrink-0 space-y-5 lg:sticky lg:top-28 lg:w-[294px] lg:self-start">
-          <RankingCalendar />
+          <MiniCalendar />
           {sideRankingSections.map((section) => (
             <SidebarRankingCard key={section.key} {...section} />
           ))}
@@ -392,13 +584,53 @@ const RankingPage = () => {
             </h1>
           </div>
 
-          <div className="grid gap-6 xl:grid-cols-3">
-            {spotlightCards.map((card) => (
-              <SpotlightCard key={card.key} {...card} />
-            ))}
-          </div>
+          <section className="rounded-[30px] border border-slate-200 bg-white px-5 py-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)] sm:px-8 sm:py-8">
+            <div className="flex justify-end">
+              <div className="inline-flex rounded-full bg-[#F1F4FB] p-1">
+                {periodTabs.map((tab) => (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setActivePeriod(tab.key)}
+                    className={`cursor-pointer rounded-full px-5 py-2 text-sm font-black transition ${
+                      activePeriod === tab.key
+                        ? "bg-[#336DFE] text-white shadow-[0_10px_24px_rgba(51,109,254,0.22)]"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-          <RankingTable tab={activeTab} rows={activeRows} onChangeTab={setActiveTab} />
+            <div className="mt-14 grid gap-8 xl:grid-cols-[1fr_1.12fr_1fr]">
+              <TopThreeCard
+                key={`left-${activePeriod}-${animationSeed}-${topThree[1].rank}`}
+                player={topThree[1]}
+                visible={topCardsVisible}
+                delay={0}
+                enterRotateY={-120}
+              />
+              <TopThreeCard
+                key={`center-${activePeriod}-${animationSeed}-${topThree[0].rank}`}
+                player={topThree[0]}
+                highlighted
+                visible={topCardsVisible}
+                delay={90}
+                enterRotateY={90}
+              />
+              <TopThreeCard
+                key={`right-${activePeriod}-${animationSeed}-${topThree[2].rank}`}
+                player={topThree[2]}
+                visible={topCardsVisible}
+                delay={180}
+                enterRotateY={120}
+              />
+            </div>
+          </section>
+
+          <RankingTable rows={activeRows} />
         </section>
       </div>
     </div>
