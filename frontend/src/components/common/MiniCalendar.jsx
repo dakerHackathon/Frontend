@@ -47,8 +47,8 @@ const MiniCalendar = () => {
   const calendarDays = useMemo(() => buildCalendar(currentDate), [currentDate]);
 
   return (
-    <div className="overflow-hidden rounded-[30px] border border-slate-300 bg-white shadow-[0_20px_45px_rgba(15,23,42,0.12)] transition duration-200 hover:border-[#C9D7FF] hover:shadow-[0_24px_50px_rgba(51,109,254,0.12)]">
-      <div className="flex items-center justify-between bg-[#336DFE] px-6 py-6 text-white">
+    <div className="overflow-hidden rounded-[28px] border border-slate-300 bg-white shadow-[0_18px_40px_rgba(15,23,42,0.10)] transition duration-200 hover:border-[#C9D7FF] hover:shadow-[0_22px_46px_rgba(51,109,254,0.12)]">
+      <div className="flex items-center justify-between bg-[#336DFE] px-6 py-5 text-white">
         <button
           type="button"
           aria-label="previous month"
@@ -57,11 +57,11 @@ const MiniCalendar = () => {
               (prevDate) => new Date(prevDate.getFullYear(), prevDate.getMonth() - 1, 1),
             )
           }
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/50 text-lg transition hover:bg-white/10"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/50 text-base transition hover:bg-white/10"
         >
           &lt;
         </button>
-        <span className="text-2xl font-black">{monthLabel}</span>
+        <span className="text-[1.5rem] font-black">{monthLabel}</span>
         <button
           type="button"
           aria-label="next month"
@@ -70,15 +70,15 @@ const MiniCalendar = () => {
               (prevDate) => new Date(prevDate.getFullYear(), prevDate.getMonth() + 1, 1),
             )
           }
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/50 text-lg transition hover:bg-white/10"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/50 text-base transition hover:bg-white/10"
         >
           &gt;
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-y-4 px-6 py-5 text-center text-lg">
+      <div className="grid grid-cols-7 gap-y-3 px-5 py-5 text-center">
         {DAYS.map((day) => (
-          <span key={day} className="font-medium text-slate-400">
+          <span key={day} className="text-sm font-medium text-slate-400">
             {day}
           </span>
         ))}
@@ -90,7 +90,7 @@ const MiniCalendar = () => {
           return (
             <span
               key={day.key}
-              className={`mx-auto inline-flex h-9 w-9 items-center justify-center rounded-full text-base font-medium transition duration-150 hover:bg-[#EEF3FF] ${
+              className={`mx-auto inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition duration-150 hover:bg-[#EEF3FF] ${
                 day.isToday
                   ? "bg-[#EAF0FF] text-[#336DFE]"
                   : day.muted
