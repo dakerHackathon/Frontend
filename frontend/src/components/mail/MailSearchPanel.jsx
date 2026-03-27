@@ -1,4 +1,4 @@
-const MailSearchPanel = ({ tabs, activeTab, onTabChange }) => {
+const MailSearchPanel = ({ tabs, activeTab, onTabChange, onOpenCompose }) => {
   return (
     <section className="rounded-2xl bg-white border border-[#E9EDF5] p-4 shadow-sm">
       <label className="sr-only" htmlFor="mail-search">
@@ -30,9 +30,10 @@ const MailSearchPanel = ({ tabs, activeTab, onTabChange }) => {
 
       <button
         type="button"
+        onClick={onOpenCompose}
         className="mt-5 h-12 w-full rounded-lg bg-[#336DFE] text-base font-bold text-white shadow-sm transition hover:bg-[#2558D6]"
       >
-        +새 메시지 작성하기
+        + 새 메시지 작성하기
       </button>
     </section>
   );
