@@ -12,7 +12,6 @@ const navigationItems = [
 const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(checkIsLoggedIn());
   const [showDropdown, setShowDropdown] = useState(false);
-  const location = useLocation();
   const navigate = useNavigate();
   const currentUser = getCurrentUser();
 
