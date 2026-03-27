@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import logoImg from "../assets/BloomingLogo.png";
 import { checkIsLoggedIn, getCurrentUser, logoutUser } from "../utils/auth";
 
@@ -36,13 +36,13 @@ const Header = () => {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-10 lg:flex">
+        <nav className="hidden h-28 items-stretch gap-10 lg:flex">
           {navigationItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `relative py-10 text-lg font-bold transition ${
+                `group relative inline-flex h-full items-center text-lg font-bold transition ${
                   isActive ? "text-[#336DFE]" : "text-slate-600 hover:text-slate-900"
                 }`
               }
@@ -50,9 +50,11 @@ const Header = () => {
               {({ isActive }) => (
                 <>
                   {item.label}
-                  {isActive ? (
-                    <span className="absolute inset-x-0 bottom-0 h-1 rounded-full bg-[#336DFE]" />
-                  ) : null}
+                  <span
+                    className={`absolute inset-x-0 bottom-0 z-10 h-1 rounded-full bg-[#336DFE] transition duration-200 ${
+                      isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                    }`}
+                  />
                 </>
               )}
             </NavLink>
@@ -130,12 +132,6 @@ const Header = () => {
           )}
         </div>
       </div>
-
-      {location.pathname === "/" ? (
-        <div className="border-t border-slate-100 bg-[#F8FAFF] px-4 py-3 text-center text-sm font-medium text-slate-500 lg:hidden">
-          해커톤 플랫폼 탐색은 로그인 후 상단 메뉴에서 계속할 수 있습니다.
-        </div>
-      ) : null}
     </header>
   );
 };
