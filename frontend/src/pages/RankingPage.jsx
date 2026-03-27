@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import MiniCalendar from "../components/common/MiniCalendar";
 
 const periodTabs = [
@@ -405,14 +405,20 @@ const AvatarBadge = ({ player, large = false }) => (
   </div>
 );
 
-const TopThreeCard = ({ player, highlighted = false }) => {
+const TopThreeCard = ({ player, highlighted = false, visible = false, delay = 0 }) => {
   const tone = medalTones[player.rank];
 
   return (
     <article
       className={`relative overflow-visible rounded-[30px] border border-slate-200 px-6 pb-8 pt-16 shadow-[0_18px_40px_rgba(15,23,42,0.06)] ${tone.card} ${
         highlighted ? "xl:translate-y-0" : ""
-      }`}
+      } transition-[transform,opacity,filter] duration-500 ease-out`}
+      style={{
+        transitionDelay: `${delay}ms`,
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0) scale(1)" : "translateY(18px) scale(0.97)",
+        filter: visible ? "blur(0px)" : "blur(3px)",
+      }}
     >
       <div className={`absolute left-0 right-0 top-0 h-1 rounded-t-[30px] ${tone.line}`} />
 
@@ -521,6 +527,8 @@ const RankingTable = ({ rows }) => (
 
 const RankingPage = () => {
   const [activePeriod, setActivePeriod] = useState("weekly");
+  const [topCardsVisible, setTopCardsVisible] = useState(false);
+  const [animationSeed, setAnimationSeed] = useState(0);
   const activeRows = useMemo(
     () =>
       [...(rankingByPeriod[activePeriod] ?? rankingByPeriod.weekly)].sort(
@@ -529,6 +537,24 @@ const RankingPage = () => {
     [activePeriod],
   );
   const topThree = activeRows.slice(0, 3);
+
+  useEffect(() => {
+    setTopCardsVisible(false);
+    setAnimationSeed((seed) => seed + 1);
+    let timeoutId;
+    const frame = window.requestAnimationFrame(() => {
+      timeoutId = window.setTimeout(() => {
+        setTopCardsVisible(true);
+      }, 40);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, [activePeriod]);
 
   return (
     <div className="min-h-screen bg-[#F3F6FF]">
@@ -568,9 +594,25 @@ const RankingPage = () => {
             </div>
 
             <div className="mt-14 grid gap-8 xl:grid-cols-[1fr_1.12fr_1fr]">
-              <TopThreeCard player={topThree[1]} />
-              <TopThreeCard player={topThree[0]} highlighted />
-              <TopThreeCard player={topThree[2]} />
+              <TopThreeCard
+                key={`left-${activePeriod}-${animationSeed}-${topThree[1].rank}`}
+                player={topThree[1]}
+                visible={topCardsVisible}
+                delay={0}
+              />
+              <TopThreeCard
+                key={`center-${activePeriod}-${animationSeed}-${topThree[0].rank}`}
+                player={topThree[0]}
+                highlighted
+                visible={topCardsVisible}
+                delay={90}
+              />
+              <TopThreeCard
+                key={`right-${activePeriod}-${animationSeed}-${topThree[2].rank}`}
+                player={topThree[2]}
+                visible={topCardsVisible}
+                delay={180}
+              />
             </div>
           </section>
 
