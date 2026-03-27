@@ -3,9 +3,12 @@ import Layout from "../components/Layout";
 import Home from "../pages/Home";
 import LoginPage from "../pages/LoginPage";
 import SignUp from "../pages/SignUp";
+import RecruitMemberPage from "../pages/RecruitMemberPage";
 import MailPage from "../pages/MailPage";
 import HackathonDetailPage from "../pages/HackathonDetailPage";
 import HackathonListPage from "../pages/HackathonListPage";
+import RankingPage from "../pages/RankingPage";
+import MyPage from "../pages/MyPage";
 import ProtectedRoute from "./ProtectedRoute";
 
 const AppRouter = () => {
