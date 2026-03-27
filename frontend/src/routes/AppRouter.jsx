@@ -7,6 +7,7 @@ import RecruitMemberPage from "../pages/RecruitMemberPage";
 import MailPage from "../pages/MailPage";
 import HackathonListPage from "../pages/HackathonListPage";
 import RankingPage from "../pages/RankingPage";
+import MyPage from "../pages/MyPage";
 import ProtectedRoute from "./ProtectedRoute";
 
 const AppRouter = () => {
@@ -20,7 +21,7 @@ const AppRouter = () => {
           <Route path="/hackathons" element={<HackathonListPage/>} />
           <Route path="/teams" element={<RecruitMemberPage />} />
           <Route path="/ranking" element={<RankingPage/>} />
-          <Route path="/mypage" element={<div>마이페이지</div>} />
+          <Route path="/mypage" element={<MyPage />} />
         </Route>
       </Route>
 
