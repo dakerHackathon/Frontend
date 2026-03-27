@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { registerUser } from "../utils/auth"; // auth.js에서 가져오기
+import { useAuth } from "../hooks/useAuth";
 
 const SignUp = () => {
   const navigate = useNavigate();
+
+  const { handleSignUp } = useAuth();
 
   // 1. 입력 데이터를 객체 하나로 관리
   const [formData, setFormData] = useState({
@@ -29,7 +31,7 @@ const SignUp = () => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const { name, email, loginId, password, passwordCheck, nickName } =
       formData;
@@ -63,13 +65,14 @@ const SignUp = () => {
     }
 
     // 3. auth.js의 registerUser 호출
-    const result = registerUser(formData);
+    const result = await handleSignUp(formData);
 
     if (result.isSuccess) {
-      alert(result.message);
-      navigate("/login"); // 가입 성공 시 로그인 페이지로 이동
+      alert(result.message || "회원가입이 완료되었습니다!");
+      navigate("/");
     } else {
-      alert(result.message); // 중복 이메일/아이디 등 에러 메시지
+      // 중복 아이디/이메일 등 에러 메시지가 여기서 출력됩니다.
+      alert(result.message || "회원가입에 실패했습니다.");
     }
   };
 
