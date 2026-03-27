@@ -1,26 +1,30 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginUser } from "../utils/auth.js";
+import { useAuth } from "../hooks/useAuth";
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [loginId, setloginId] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = (e) => {
+  const { handleLogin } = useAuth();
+
+  const onSubmit = async (e) => {
     e.preventDefault();
 
-    if (!email || !password) {
+    if (!loginId || !password) {
       alert("이메일과 비밀번호를 모두 입력해주세요.");
       return;
     }
 
-    const result = loginUser(email, password);
+    // 3. 훅의 handleLogin(API 기반)을 호출합니다.
+    const result = await handleLogin(loginId, password);
 
-    if (result.isSuccess) {
-      navigate("/"); // 로그인 성공 시 홈으로 이동
+    if (result && result.isSuccess) {
+      navigate("/"); // 성공 시 홈으로
     } else {
-      alert(result.message);
+      // 4. 에러 메시지 처리 (메시지가 없으면 기본값 출력)
+      alert(result?.message || "로그인에 실패했습니다.");
     }
   };
 
@@ -49,7 +53,7 @@ const LoginPage = () => {
           </div>
 
           {/* 폼 섹션 */}
-          <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+          <form className="mt-8 space-y-6" onSubmit={onSubmit}>
             <div className="space-y-4">
               {/* 아이디 입력 */}
               <div>
@@ -60,10 +64,10 @@ const LoginPage = () => {
                   이메일
                 </label>
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="example@email.com"
+                  type="text"
+                  value={loginId}
+                  onChange={(e) => setloginId(e.target.value)}
+                  placeholder="아이디"
                   className="w-full px-4 py-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>

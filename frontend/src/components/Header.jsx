@@ -18,7 +18,7 @@ const Header = () => {
   const handleLogout = () => {
     logoutUser();
     setIsLoggedIn(false);
-    navigate("/login");
+    navigate("/");
   };
 
   return (
@@ -26,7 +26,11 @@ const Header = () => {
       <div className="mx-auto flex h-28 max-w-[1440px] items-center justify-between gap-6 px-4 lg:px-8">
         <Link to="/" className="flex h-24 items-center gap-2 self-center">
           <span className="flex h-20 w-20 items-center justify-center self-center">
-            <img src={logoImg} alt="Blooming logo" className="block h-20 w-20 object-contain" />
+            <img
+              src={logoImg}
+              alt="Blooming logo"
+              className="block h-20 w-20 object-contain"
+            />
           </span>
           <span className="flex h-20 items-center self-center">
             <span className="block text-3xl font-black leading-none tracking-tight text-[#336DFE]">
@@ -42,7 +46,9 @@ const Header = () => {
               to={item.to}
               className={({ isActive }) =>
                 `relative py-10 text-lg font-bold transition ${
-                  isActive ? "text-[#336DFE]" : "text-slate-600 hover:text-slate-900"
+                  isActive
+                    ? "text-[#336DFE]"
+                    : "text-slate-600 hover:text-slate-900"
                 }`
               }
             >
@@ -76,13 +82,6 @@ const Header = () => {
             </>
           ) : (
             <div className="relative flex items-center gap-4">
-              <Link
-                to="/mails"
-                className="rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-blue-50 hover:text-blue-600"
-              >
-                쪽지
-              </Link>
-
               <button
                 onClick={() => setShowDropdown(!showDropdown)}
                 onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
@@ -115,6 +114,13 @@ const Header = () => {
                     className="block px-5 py-3 font-medium text-slate-700 transition hover:bg-blue-50 hover:text-blue-600"
                   >
                     마이페이지
+                  </Link>
+                  <hr className="my-1 border-slate-100" />
+                  <Link
+                    to="/mails"
+                    className="block px-5 py-3 font-medium text-slate-700 transition hover:bg-blue-50 hover:text-blue-600"
+                  >
+                    쪽지
                   </Link>
                   <hr className="my-1 border-slate-100" />
                   <button
