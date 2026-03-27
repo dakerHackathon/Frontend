@@ -2,8 +2,18 @@ const createPrize = (grand, first, second) => ({
   total: `총 상금 ${grand}`,
   items: [
     { tier: "대상", amount: first, tone: "gold", description: "가장 완성도 높은 팀에게 수여" },
-    { tier: "최우수상", amount: second, tone: "silver", description: "실행력과 성장 가능성이 높은 팀" },
-    { tier: "우수상", amount: "300만 원", tone: "bronze", description: "아이디어와 발표력이 인상적인 팀" },
+    {
+      tier: "최우수상",
+      amount: second,
+      tone: "silver",
+      description: "실행력과 성장 가능성이 높은 팀",
+    },
+    {
+      tier: "우수상",
+      amount: "300만 원",
+      tone: "bronze",
+      description: "아이디어와 발표력이 인상적인 팀",
+    },
   ],
 });
 
@@ -52,12 +62,30 @@ export const hackathons = [
       ],
     },
     submissions: [
-      { name: "기획안_vFinal.pdf", date: "2026.03.26", status: "제출완료" },
-      { name: "기술명세서.docx", date: "-", status: "미제출" },
+      { name: "기획안_vFinal.pdf", date: "2026.03.26", size: "12.4MB", status: "제출완료" },
+      { name: "기술명세서.docx", date: "-", size: "0MB", status: "미제출" },
     ],
+    submissionGuide: {
+      deadline: "2026.03.30 23:59",
+      formats: "zip, pdf, csv",
+      maxSize: "최대 50MB",
+      notePlaceholder: "제출 버전의 핵심 변경사항이나 참고 메모를 남겨주세요.",
+      requiredItems: ["기획안 pdf", "결과물 압축본 zip"],
+      tips: [
+        "필수 제출물은 팀 소개서와 결과물 압축본입니다.",
+        "파일명은 팀명_제출일 형식으로 맞춰주세요.",
+        "최종 제출 후에는 운영진 승인 전까지 1회만 수정할 수 있습니다.",
+      ],
+    },
     leaderboard: {
       average: 83.8,
       note: "예선 통과 팀 평균",
+      entries: [
+        { rank: 1, team: "Blooming Crew", score: 92.4 },
+        { rank: 2, team: "Prompt One", score: 89.7 },
+        { rank: 3, team: "Green Byte", score: 87.9 },
+        { rank: 4, team: "Signal Lab", score: 84.2 },
+      ],
     },
   },
   {
@@ -94,7 +122,7 @@ export const hackathons = [
       { label: "시장성", weight: 20, score: 76 },
       { label: "발표력", weight: 15, score: 84 },
     ],
-    prize: createPrize("1,000만 원", "500만 원", "300만 원"),
+    prize: createPrize("1,100만 원", "500만 원", "300만 원"),
     teams: {
       count: 9,
       items: [
@@ -103,10 +131,30 @@ export const hackathons = [
       ],
     },
     submissions: [
-      { name: "서비스소개서.pdf", date: "2026.04.08", status: "제출완료" },
-      { name: "발표자료.pptx", date: "-", status: "미제출" },
+      { name: "서비스소개서.pdf", date: "2026.04.08", size: "8.2MB", status: "제출완료" },
+      { name: "발표자료.pptx", date: "-", size: "0MB", status: "미제출" },
     ],
-    leaderboard: { average: 80.2, note: "예선 통과 팀 평균" },
+    submissionGuide: {
+      deadline: "2026.04.12 18:00",
+      formats: "pdf, pptx, zip",
+      maxSize: "최대 30MB",
+      notePlaceholder: "서비스 요약, 데모 계정, 심사 시 참고할 내용을 적어주세요.",
+      requiredItems: ["서비스 소개서 pdf", "발표자료 pptx"],
+      tips: [
+        "서비스소개서는 반드시 pdf 형식으로 제출해야 합니다.",
+        "발표자료는 최종 심사 전까지 교체 가능합니다.",
+        "데모 링크가 있다면 notes에 함께 작성해 주세요.",
+      ],
+    },
+    leaderboard: {
+      average: 80.2,
+      note: "예선 통과 팀 평균",
+      entries: [
+        { rank: 1, team: "PayFlow", score: 90.1 },
+        { rank: 2, team: "Vault Nine", score: 88.5 },
+        { rank: 3, team: "Market Fit", score: 84.8 },
+      ],
+    },
   },
   {
     id: 3,
@@ -151,10 +199,29 @@ export const hackathons = [
       ],
     },
     submissions: [
-      { name: "최종제출.zip", date: "2026.03.01", status: "제출완료" },
-      { name: "회고노트.md", date: "2026.03.02", status: "제출완료" },
+      { name: "최종제출.zip", date: "2026.03.01", size: "42.8MB", status: "제출완료" },
+      { name: "회고노트.md", date: "2026.03.02", size: "0.2MB", status: "제출완료" },
     ],
-    leaderboard: { average: 84.4, note: "최종 심사 평균" },
+    submissionGuide: {
+      deadline: "2026.03.01 21:00",
+      formats: "zip, pdf, md",
+      maxSize: "최대 100MB",
+      notePlaceholder: "환경 문제 해결 포인트와 시연 방법을 메모로 남겨주세요.",
+      requiredItems: ["최종 결과물 zip", "발표 요약 pdf"],
+      tips: [
+        "압축 파일 안에는 실행 가이드와 환경 설정 문서를 포함해 주세요.",
+        "회고 노트는 선택 제출이지만 가산점 대상입니다.",
+      ],
+    },
+    leaderboard: {
+      average: 84.4,
+      note: "최종 심사 평균",
+      entries: [
+        { rank: 1, team: "Green Pulse", score: 93.6 },
+        { rank: 2, team: "Eco Beam", score: 91.3 },
+        { rank: 3, team: "Re:Earth", score: 88.4 },
+      ],
+    },
   },
   {
     id: 4,
@@ -194,10 +261,29 @@ export const hackathons = [
       items: [{ name: "Campus Loop", members: "4명", role: "프론트 / 디자인" }],
     },
     submissions: [
-      { name: "중간발표.pdf", date: "2026.03.24", status: "제출완료" },
-      { name: "최종발표.pptx", date: "-", status: "미제출" },
+      { name: "중간발표.pdf", date: "2026.03.24", size: "5.1MB", status: "제출완료" },
+      { name: "최종발표.pptx", date: "-", size: "0MB", status: "미제출" },
     ],
-    leaderboard: { average: 81.1, note: "현재 참가팀 평균" },
+    submissionGuide: {
+      deadline: "2026.03.27 17:00",
+      formats: "pdf, pptx",
+      maxSize: "최대 20MB",
+      notePlaceholder: "학생 대상 서비스 검증 결과나 인터뷰 요약을 적어주세요.",
+      requiredItems: ["중간발표 pdf", "최종발표 pptx"],
+      tips: [
+        "중간발표 자료는 수정본 업로드가 가능합니다.",
+        "최종 발표자료에는 핵심 사용자 시나리오를 꼭 포함해 주세요.",
+      ],
+    },
+    leaderboard: {
+      average: 81.1,
+      note: "현재 참가팀 평균",
+      entries: [
+        { rank: 1, team: "Campus Loop", score: 87.1 },
+        { rank: 2, team: "Dorm Mate", score: 84.6 },
+        { rank: 3, team: "Class Pick", score: 82.8 },
+      ],
+    },
   },
   {
     id: 5,
@@ -238,10 +324,29 @@ export const hackathons = [
       items: [{ name: "Cloud Nine", members: "4명", role: "백엔드 / DevOps" }],
     },
     submissions: [
-      { name: "아키텍처다이어그램.pdf", date: "2026.03.28", status: "제출완료" },
-      { name: "데모링크.txt", date: "2026.03.30", status: "제출완료" },
+      { name: "아키텍처다이어그램.pdf", date: "2026.03.28", size: "9.7MB", status: "제출완료" },
+      { name: "데모링크.txt", date: "2026.03.30", size: "0.1MB", status: "제출완료" },
     ],
-    leaderboard: { average: 86.2, note: "예선 통과 팀 평균" },
+    submissionGuide: {
+      deadline: "2026.04.01 23:59",
+      formats: "zip, pdf, txt",
+      maxSize: "최대 100MB",
+      notePlaceholder: "배포 주소, 테스트 계정, 인프라 구조 설명을 적어주세요.",
+      requiredItems: ["아키텍처 다이어그램 pdf", "배포 정보 txt"],
+      tips: [
+        "배포 링크와 레포지토리 주소를 함께 제출하면 좋습니다.",
+        "텍스트 파일에는 실행 방법과 환경 변수를 간단히 정리해 주세요.",
+      ],
+    },
+    leaderboard: {
+      average: 86.2,
+      note: "예선 통과 팀 평균",
+      entries: [
+        { rank: 1, team: "Cloud Nine", score: 94.2 },
+        { rank: 2, team: "Latency Zero", score: 90.8 },
+        { rank: 3, team: "Deploy Fast", score: 88.1 },
+      ],
+    },
   },
   {
     id: 6,
@@ -282,10 +387,29 @@ export const hackathons = [
       items: [{ name: "MoveOn", members: "4명", role: "데이터 / 기획" }],
     },
     submissions: [
-      { name: "사전기획서.pdf", date: "-", status: "미제출" },
-      { name: "프로토타입링크", date: "-", status: "미제출" },
+      { name: "사전기획서.pdf", date: "-", size: "0MB", status: "미제출" },
+      { name: "프로토타입링크", date: "-", size: "0MB", status: "미제출" },
     ],
-    leaderboard: { average: 0, note: "심사 전" },
+    submissionGuide: {
+      deadline: "2026.04.19 16:00",
+      formats: "pdf, link, zip",
+      maxSize: "최대 40MB",
+      notePlaceholder: "프로토타입 링크와 이동 시나리오 설명을 남겨주세요.",
+      requiredItems: ["사전기획서 pdf", "프로토타입 링크"],
+      tips: [
+        "프로토타입 링크는 모바일 환경에서도 확인 가능해야 합니다.",
+        "사전기획서에는 해결하려는 이동 문제를 명확히 적어주세요.",
+      ],
+    },
+    leaderboard: {
+      average: 0,
+      note: "심사 전",
+      entries: [
+        { rank: 1, team: "MoveOn", score: 0 },
+        { rank: 2, team: "Transit Sync", score: 0 },
+        { rank: 3, team: "Lane Shift", score: 0 },
+      ],
+    },
   },
   {
     id: 7,
@@ -326,10 +450,29 @@ export const hackathons = [
       items: [{ name: "City Dash", members: "3명", role: "기획 / 데이터" }],
     },
     submissions: [
-      { name: "기획안.pdf", date: "2026.03.24", status: "제출완료" },
-      { name: "최종발표.pdf", date: "-", status: "미제출" },
+      { name: "기획안.pdf", date: "2026.03.24", size: "6.3MB", status: "제출완료" },
+      { name: "최종발표.pdf", date: "-", size: "0MB", status: "미제출" },
     ],
-    leaderboard: { average: 82.4, note: "예선 통과 팀 평균" },
+    submissionGuide: {
+      deadline: "2026.03.28 18:00",
+      formats: "pdf, csv, zip",
+      maxSize: "최대 25MB",
+      notePlaceholder: "활용한 공공데이터와 핵심 서비스 흐름을 적어주세요.",
+      requiredItems: ["기획안 pdf", "최종 발표자료 pdf"],
+      tips: [
+        "사용한 데이터셋 목록과 출처를 notes에 함께 남겨주세요.",
+        "csv 파일은 원본이 아닌 가공 예시만 제출해도 됩니다.",
+      ],
+    },
+    leaderboard: {
+      average: 82.4,
+      note: "예선 통과 팀 평균",
+      entries: [
+        { rank: 1, team: "City Dash", score: 89.2 },
+        { rank: 2, team: "Open Route", score: 86.7 },
+        { rank: 3, team: "Data Civic", score: 84.1 },
+      ],
+    },
   },
   {
     id: 8,
@@ -370,10 +513,29 @@ export const hackathons = [
       items: [{ name: "Factory Lens", members: "5명", role: "백엔드 / 시각화" }],
     },
     submissions: [
-      { name: "요구사항분석.pdf", date: "2026.03.18", status: "제출완료" },
-      { name: "최종시연영상.mp4", date: "-", status: "미제출" },
+      { name: "요구사항분석.pdf", date: "2026.03.18", size: "4.8MB", status: "제출완료" },
+      { name: "최종시연영상.mp4", date: "-", size: "0MB", status: "미제출" },
     ],
-    leaderboard: { average: 84.9, note: "예선 통과 팀 평균" },
+    submissionGuide: {
+      deadline: "2026.03.31 20:00",
+      formats: "pdf, mp4, zip",
+      maxSize: "최대 150MB",
+      notePlaceholder: "시연 환경과 실제 공정 개선 포인트를 메모해 주세요.",
+      requiredItems: ["요구사항 분석 pdf", "시연 영상 mp4"],
+      tips: [
+        "시연 영상은 3분 이내로 압축해 제출해 주세요.",
+        "요구사항 분석 문서는 심사 가중치가 높습니다.",
+      ],
+    },
+    leaderboard: {
+      average: 84.9,
+      note: "예선 통과 팀 평균",
+      entries: [
+        { rank: 1, team: "Factory Lens", score: 91.7 },
+        { rank: 2, team: "Line Flow", score: 88.3 },
+        { rank: 3, team: "Viz Ops", score: 86.9 },
+      ],
+    },
   },
   {
     id: 9,
@@ -414,12 +576,30 @@ export const hackathons = [
       items: [{ name: "Sprint Zero", members: "4명", role: "디자인 / 리서치" }],
     },
     submissions: [
-      { name: "프로토타입링크.txt", date: "2026.03.26", status: "제출완료" },
-      { name: "유저테스트노트.md", date: "-", status: "미제출" },
+      { name: "프로토타입링크.txt", date: "2026.03.26", size: "0.1MB", status: "제출완료" },
+      { name: "유저테스트노트.md", date: "-", size: "0MB", status: "미제출" },
     ],
-    leaderboard: { average: 85.6, note: "예선 통과 팀 평균" },
+    submissionGuide: {
+      deadline: "2026.03.29 22:00",
+      formats: "link, md, pdf",
+      maxSize: "최대 15MB",
+      notePlaceholder: "프로토타입 테스트 결과와 관찰 포인트를 적어주세요.",
+      requiredItems: ["프로토타입 링크", "유저 테스트 노트 md"],
+      tips: [
+        "유저 테스트 노트는 선택 제출이지만 강하게 권장됩니다.",
+        "링크 제출 시 접근 권한을 전체 공개로 열어 주세요.",
+      ],
+    },
+    leaderboard: {
+      average: 85.6,
+      note: "예선 통과 팀 평균",
+      entries: [
+        { rank: 1, team: "Sprint Zero", score: 92.8 },
+        { rank: 2, team: "Global Touch", score: 89.4 },
+        { rank: 3, team: "Flow Grid", score: 87.2 },
+      ],
+    },
   },
 ];
 
-export const getHackathonBySlug = (slug) =>
-  hackathons.find((hackathon) => hackathon.slug === slug);
+export const getHackathonBySlug = (slug) => hackathons.find((hackathon) => hackathon.slug === slug);
