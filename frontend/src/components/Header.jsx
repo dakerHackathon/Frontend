@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import logoImg from "../assets/BloomingLogo.png";
 import { checkIsLoggedIn, getCurrentUser, logoutUser } from "../utils/auth";
 
@@ -12,27 +12,17 @@ const navigationItems = [
 const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(checkIsLoggedIn());
   const [showDropdown, setShowDropdown] = useState(false);
-  const location = useLocation();
   const navigate = useNavigate();
   const currentUser = getCurrentUser();
 
   const handleLogout = () => {
     logoutUser();
     setIsLoggedIn(false);
-    setShowDropdown(false);
     navigate("/login");
   };
 
-  const isActiveMenu = (to) => {
-    if (to === "/hackathons") {
-      return location.pathname === "/hackathons" || location.pathname.startsWith("/hackathons/");
-    }
-
-    return location.pathname === to || location.pathname.startsWith(`${to}/`);
-  };
-
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-300 bg-white/95 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-slate-300 bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-28 max-w-[1440px] items-center justify-between gap-6 px-4 lg:px-8">
         <Link to="/" className="flex h-24 items-center gap-2 self-center">
           <span className="flex h-20 w-20 items-center justify-center self-center">
@@ -45,23 +35,27 @@ const Header = () => {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-10 lg:flex">
+        <nav className="hidden h-28 items-stretch gap-10 lg:flex">
           {navigationItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
-              className={() =>
-                `relative py-10 text-lg font-bold transition ${
-                  isActiveMenu(item.to) ? "text-[#336DFE]" : "text-slate-600 hover:text-slate-900"
+              className={({ isActive }) =>
+                `group relative inline-flex h-full items-center text-lg font-bold transition ${
+                  isActive ? "text-[#336DFE]" : "text-slate-600 hover:text-slate-900"
                 }`
               }
             >
-              <>
-                {item.label}
-                {isActiveMenu(item.to) ? (
-                  <span className="absolute inset-x-0 bottom-0 h-1 rounded-full bg-[#336DFE]" />
-                ) : null}
-              </>
+              {({ isActive }) => (
+                <>
+                  {item.label}
+                  <span
+                    className={`absolute inset-x-0 bottom-0 z-10 h-1 rounded-full bg-[#336DFE] transition duration-200 ${
+                      isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                    }`}
+                  />
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -92,10 +86,9 @@ const Header = () => {
               </Link>
 
               <button
-                type="button"
-                onClick={() => setShowDropdown((prev) => !prev)}
+                onClick={() => setShowDropdown(!showDropdown)}
                 onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-                className="flex cursor-pointer items-center gap-3 rounded-2xl bg-slate-100 px-4 py-3 text-left transition hover:bg-slate-200"
+                className="flex items-center gap-3 rounded-2xl bg-slate-100 px-4 py-3 text-left transition hover:bg-slate-200"
               >
                 <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#DDE5FF] text-lg font-black text-[#336DFE]">
                   {(currentUser?.name ?? "강석진").slice(0, 1)}
@@ -117,7 +110,7 @@ const Header = () => {
                 </span>
               </button>
 
-              {showDropdown ? (
+              {showDropdown && (
                 <div className="absolute right-0 top-[calc(100%+12px)] w-48 rounded-2xl border border-slate-200 bg-white py-2 shadow-2xl">
                   <Link
                     to="/mypage"
@@ -127,14 +120,13 @@ const Header = () => {
                   </Link>
                   <hr className="my-1 border-slate-100" />
                   <button
-                    type="button"
                     onClick={handleLogout}
-                    className="w-full cursor-pointer px-5 py-3 text-left font-medium text-red-500 transition hover:bg-red-50"
+                    className="w-full px-5 py-3 text-left font-medium text-red-500 transition hover:bg-red-50"
                   >
                     로그아웃
                   </button>
                 </div>
-              ) : null}
+              )}
             </div>
           )}
         </div>
