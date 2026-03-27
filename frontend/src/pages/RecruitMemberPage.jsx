@@ -243,7 +243,7 @@ const RecruitDetailModal = ({ post, onClose }) => {
 
         <div className="flex justify-end border-t border-slate-100 pt-5">
           <div className="w-full sm:w-auto">
-            <PrimaryActionButton fullWidth>참여하기</PrimaryActionButton>
+            <PrimaryActionButton fullWidth>지원하기</PrimaryActionButton>
           </div>
         </div>
       </div>
