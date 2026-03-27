@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import BaseInfoCard from "../components/common/BaseInfoCard";
 import MiniCalendar from "../components/common/MiniCalendar";
 import PageSectionHeader from "../components/common/PageSectionHeader";
@@ -192,6 +192,7 @@ const HackathonCard = ({ hackathon, isFavorite, onToggleFavorite, onOpenDetail }
 };
 
 const HackathonListPage = () => {
+  const location = useLocation();
   const navigate = useNavigate();
   const [searchCategory, setSearchCategory] = useState("title");
   const [searchValue, setSearchValue] = useState("");
@@ -290,7 +291,11 @@ const HackathonListPage = () => {
                 hackathon={hackathon}
                 isFavorite={favoriteIds.includes(hackathon.id)}
                 onToggleFavorite={() => toggleFavorite(hackathon.id)}
-                onOpenDetail={() => navigate(`/hackathons/${hackathon.slug}`)}
+                onOpenDetail={() =>
+                  navigate(`/hackathons/${hackathon.slug}`, {
+                    state: { backgroundLocation: location },
+                  })
+                }
               />
             ))}
           </div>
