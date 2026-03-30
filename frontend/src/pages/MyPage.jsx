@@ -6,6 +6,7 @@ import InboxSection from "../components/mypage/InboxSection";
 import ProfileEditModal from "../components/mypage/ProfileEditModal";
 import ProfileSection from "../components/mypage/ProfileSection";
 import SavedHackathonsSection from "../components/mypage/SavedHackathonsSection";
+import TeamCreateModal from "../components/mypage/TeamCreateModal";
 import TeamStatusSection from "../components/mypage/TeamStatusSection";
 import {
   initialHackathons,
@@ -15,15 +16,22 @@ import {
   teams,
 } from "../components/mypage/constants";
 
+const TEAMS_STORAGE_KEY = "mypageTeams";
+
 const MyPage = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(initialProfile);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isTeamCreateOpen, setIsTeamCreateOpen] = useState(false);
   const [editForm, setEditForm] = useState(initialProfile);
   const [skillQuery, setSkillQuery] = useState("");
   const [temperature, setTemperature] = useState(43.5);
   const [voteLocks, setVoteLocks] = useState({});
   const [savedItems, setSavedItems] = useState(savedHackathons);
+  const [teamItems, setTeamItems] = useState(() => {
+    const storedTeams = localStorage.getItem(TEAMS_STORAGE_KEY);
+    return storedTeams ? JSON.parse(storedTeams) : teams;
+  });
 
   const filteredSkills = useMemo(
     () =>
@@ -70,6 +78,40 @@ const MyPage = () => {
     setSavedItems((prev) => prev.filter((item) => item.id !== hackathonId));
   };
 
+  const handleCreateTeam = (teamData) => {
+    const newTeamId = `t${Date.now()}`;
+    const newMemberId = `tm${Date.now()}`;
+
+    setTeamItems((prev) => {
+      const nextTeams = [
+        {
+          id: newTeamId,
+          name: teamData.name,
+          role: "팀장",
+          leaderId: newMemberId,
+          description: teamData.description,
+          linkedHackathonId: null,
+          members: [
+            {
+              id: newMemberId,
+              name: profile.name,
+              nickname: profile.name,
+              email: profile.email,
+              role: "팀장",
+              part: teamData.role,
+            },
+          ],
+        },
+        ...prev,
+      ];
+
+      localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(nextTeams));
+      return nextTeams;
+    });
+
+    setIsTeamCreateOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-slate-100 px-4 py-8">
       <div className="mx-auto grid w-full max-w-[1200px] gap-4 lg:grid-cols-[2fr_1fr]">
@@ -84,8 +126,9 @@ const MyPage = () => {
             />
 
             <TeamStatusSection
-              teams={teams}
+              teams={teamItems}
               onOpenTeam={(teamId) => navigate(`/mypage/teams/${teamId}`)}
+              onAddTeam={() => setIsTeamCreateOpen(true)}
             />
           </div>
         </div>
@@ -111,6 +154,13 @@ const MyPage = () => {
         filteredSkills={filteredSkills}
         onClose={closeEditModal}
         onSave={saveProfile}
+      />
+
+      <TeamCreateModal
+        isOpen={isTeamCreateOpen}
+        profile={profile}
+        onClose={() => setIsTeamCreateOpen(false)}
+        onCreate={handleCreateTeam}
       />
     </div>
   );

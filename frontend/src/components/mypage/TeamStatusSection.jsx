@@ -1,9 +1,20 @@
 import { cardClass } from "./constants";
 
-const TeamStatusSection = ({ teams, onOpenTeam }) => {
+const TeamStatusSection = ({ teams, onOpenTeam, onAddTeam }) => {
   return (
     <section className={`${cardClass} space-y-3`}>
-      <h2 className="text-lg font-bold">소속 팀 현황</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-bold">소속 팀 현황</h2>
+        <button
+          type="button"
+          onClick={onAddTeam}
+          className="inline-flex items-center justify-center text-xl font-bold leading-none text-[#2458E6] transition hover:text-[#1D4ED8]"
+          aria-label="팀 추가"
+          title="팀 추가"
+        >
+          +
+        </button>
+      </div>
       {teams.map((team) => (
         <div key={team.id} className="rounded-xl border border-slate-200 p-3">
           <div className="flex items-center justify-between gap-3">

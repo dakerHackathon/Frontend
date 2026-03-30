@@ -12,12 +12,19 @@ import {
   teams,
 } from "../components/mypage/constants";
 
+const TEAMS_STORAGE_KEY = "mypageTeams";
+
+const getStoredTeams = () => {
+  const storedTeams = localStorage.getItem(TEAMS_STORAGE_KEY);
+  return storedTeams ? JSON.parse(storedTeams) : teams;
+};
+
 const TeamDetailPage = () => {
   const { teamId } = useParams();
   const navigate = useNavigate();
 
   const sourceTeam = useMemo(
-    () => teams.find((team) => team.id === teamId) ?? null,
+    () => getStoredTeams().find((team) => team.id === teamId) ?? null,
     [teamId],
   );
 
@@ -56,6 +63,13 @@ const TeamDetailPage = () => {
     (hackathon) => hackathon.id === teamForm.linkedHackathonId,
   );
 
+  const updateStoredTeam = (updater) => {
+    const nextTeams = getStoredTeams().map((team) =>
+      team.id === teamId ? updater(team) : team,
+    );
+    localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(nextTeams));
+  };
+
   const filteredCandidates = inviteCandidatePool.filter((candidate) => {
     if (members.some((member) => member.email === candidate.email)) {
       return false;
@@ -80,10 +94,19 @@ const TeamDetailPage = () => {
 
   const handleTeamSave = (nextTeamForm) => {
     setTeamForm((prev) => ({ ...prev, ...nextTeamForm }));
+    updateStoredTeam((team) => ({
+      ...team,
+      name: nextTeamForm.name,
+      description: nextTeamForm.description,
+    }));
     setSaveNotice("팀 정보 수정 내용이 임시 저장되었습니다.");
   };
 
   const handleLinkHackathon = () => {
+    updateStoredTeam((team) => ({
+      ...team,
+      linkedHackathonId: teamForm.linkedHackathonId,
+    }));
     setSaveNotice(
       linkedHackathon
         ? `${linkedHackathon.title} 해커톤에 팀이 연결되었습니다.`
@@ -99,6 +122,12 @@ const TeamDetailPage = () => {
 
   const handlePartChange = (memberId, value) => {
     handleMemberFieldChange(memberId, "part", value);
+    updateStoredTeam((team) => ({
+      ...team,
+      members: team.members.map((member) =>
+        member.id === memberId ? { ...member, part: value } : member,
+      ),
+    }));
   };
 
   const handleInvite = () => {
@@ -131,15 +160,25 @@ const TeamDetailPage = () => {
 
   const handleKickMember = (member) => {
     setMembers((prev) => prev.filter((entry) => entry.id !== member.id));
+    updateStoredTeam((team) => ({
+      ...team,
+      members: team.members.filter((entry) => entry.id !== member.id),
+    }));
     setSaveNotice(`${member.name} 님을 팀에서 추방했습니다.`);
   };
 
   const handleLeaveTeam = (member) => {
     setMembers((prev) => prev.filter((entry) => entry.id !== member.id));
+    updateStoredTeam((team) => ({
+      ...team,
+      members: team.members.filter((entry) => entry.id !== member.id),
+    }));
     setSaveNotice(`${member.name} 님이 팀에서 나갔습니다.`);
   };
 
   const handleDisbandTeam = () => {
+    const nextTeams = getStoredTeams().filter((team) => team.id !== teamId);
+    localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(nextTeams));
     setSaveNotice("팀이 해체되었습니다.");
   };
 
