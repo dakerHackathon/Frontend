@@ -7,9 +7,9 @@ const TeamStatusSection = ({ teams, onOpenTeam }) => {
       {teams.map((team) => (
         <div key={team.id} className="rounded-xl border border-slate-200 p-3">
           <div className="flex items-center justify-between">
-            <div>
+            <div className="min-w-0">
               <p className="font-semibold">{team.name}</p>
-              <p className="text-xs text-slate-500">{team.description}</p>
+              <p className="truncate text-xs text-slate-500">{team.description}</p>
             </div>
             <button
               type="button"

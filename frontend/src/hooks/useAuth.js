@@ -40,11 +40,11 @@ export const useAuth = () => {
   // --- 회원가입 ---
   const handleSignUp = async (userData) => {
     try {
-      // 1. signupApi.execute를 실행하면 Handler로 데이터가 날아갑니다.
+      // 1. signupApi.execute를 실행하면 Handler로 데이터가 들어갑니다.
       const result = await signupApi.execute(userData);
 
       if (result && result.isSuccess) {
-        // 기존에 가입된 유저 리스트
+        // 기존에 가입한 유저 리스트
         const users = JSON.parse(localStorage.getItem("users") || "[]");
         const newUser = {
           ...userData,
@@ -67,7 +67,7 @@ export const useAuth = () => {
 
   return {
     handleLogin,
-    handleSignUp, // 이제 외부에서 이 함수를 씁니다!
+    handleSignUp, // 이제 외부에서 이 함수를 씁니다.
     isLoading: loginApi.isLoading || signupApi.isLoading,
     loginError: loginApi.error,
     signupError: signupApi.error,
