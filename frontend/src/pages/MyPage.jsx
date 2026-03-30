@@ -23,6 +23,7 @@ const MyPage = () => {
   const [skillQuery, setSkillQuery] = useState("");
   const [temperature, setTemperature] = useState(43.5);
   const [voteLocks, setVoteLocks] = useState({});
+  const [savedItems, setSavedItems] = useState(savedHackathons);
 
   const filteredSkills = useMemo(
     () =>
@@ -37,7 +38,7 @@ const MyPage = () => {
   const stats = [
     { label: "우승 횟수", value: "3회", icon: "wins" },
     { label: "참여 횟수", value: "8회", icon: "join" },
-    { label: "관심 북마크", value: `${savedHackathons.length}개`, icon: "bookmark" },
+    { label: "관심 북마크", value: `${savedItems.length}개`, icon: "bookmark" },
     { label: "종합 랭킹", value: "18위", icon: "rank" },
   ];
 
@@ -65,6 +66,10 @@ const MyPage = () => {
     setIsEditOpen(false);
   };
 
+  const handleRemoveSavedHackathon = (hackathonId) => {
+    setSavedItems((prev) => prev.filter((item) => item.id !== hackathonId));
+  };
+
   return (
     <div className="min-h-screen bg-slate-100 px-4 py-8">
       <div className="mx-auto grid w-full max-w-[1200px] gap-4 lg:grid-cols-[2fr_1fr]">
@@ -88,7 +93,10 @@ const MyPage = () => {
         <div className="flex flex-col gap-4">
           <ActivityTemperatureCard temperature={temperature} stats={stats} />
 
-          <SavedHackathonsSection savedHackathons={savedHackathons} />
+          <SavedHackathonsSection
+            savedHackathons={savedItems}
+            onRemove={handleRemoveSavedHackathon}
+          />
 
           <InboxSection unreadCount={3} />
         </div>
