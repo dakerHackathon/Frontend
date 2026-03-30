@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import MailSidebar from "../components/mail/MailSidebar";
 import MailViewer from "../components/mail/MailViewer";
 import NewMessageModal from "../components/mail/NewMessageModal";
@@ -95,10 +96,11 @@ const initialMailData = [
 ];
 
 const Hackathons = () => {
+  const location = useLocation();
   const [messages, setMessages] = useState(initialMailData);
   const [activeTab, setActiveTab] = useState("all");
   const [activeMessageId, setActiveMessageId] = useState(initialMailData[0].id);
-  const [isComposeOpen, setIsComposeOpen] = useState(false);
+  const [isComposeOpen, setIsComposeOpen] = useState(Boolean(location.state?.composeTo));
 
   const filteredMessages = useMemo(() => {
     if (activeTab === "all") {
@@ -159,6 +161,8 @@ const Hackathons = () => {
       <NewMessageModal
         isOpen={isComposeOpen}
         onClose={() => setIsComposeOpen(false)}
+        initialReceiver={location.state?.composeTo ?? ""}
+        initialSubject={location.state?.composeSubject ?? ""}
       />
     </div>
   );

@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ActivityTemperatureCard from "../components/mypage/ActivityTemperatureCard";
 import HackathonListSection from "../components/mypage/HackathonListSection";
 import InboxSection from "../components/mypage/InboxSection";
 import ProfileEditModal from "../components/mypage/ProfileEditModal";
 import ProfileSection from "../components/mypage/ProfileSection";
 import SavedHackathonsSection from "../components/mypage/SavedHackathonsSection";
-import TeamMembersModal from "../components/mypage/TeamMembersModal";
 import TeamStatusSection from "../components/mypage/TeamStatusSection";
 import {
   initialHackathons,
@@ -16,13 +16,13 @@ import {
 } from "../components/mypage/constants";
 
 const MyPage = () => {
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(initialProfile);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editForm, setEditForm] = useState(initialProfile);
   const [skillQuery, setSkillQuery] = useState("");
   const [temperature, setTemperature] = useState(43.5);
   const [voteLocks, setVoteLocks] = useState({});
-  const [teamModal, setTeamModal] = useState(null);
 
   const filteredSkills = useMemo(
     () =>
@@ -37,7 +37,7 @@ const MyPage = () => {
   const stats = [
     { label: "우승 횟수", value: "3회", icon: "wins" },
     { label: "참여 횟수", value: "8회", icon: "join" },
-    { label: "나의 북마크", value: `${savedHackathons.length}개`, icon: "bookmark" },
+    { label: "관심 북마크", value: `${savedHackathons.length}개`, icon: "bookmark" },
     { label: "종합 랭킹", value: "18위", icon: "rank" },
   ];
 
@@ -51,7 +51,6 @@ const MyPage = () => {
     const voteKey = `${hackathonId}:${memberId}`;
     if (voteLocks[voteKey]) return;
 
-    // TODO: 백엔드 연동 시 온도 반영 로직 이관
     setVoteLocks((prev) => ({
       ...prev,
       [voteKey]: value > 0 ? "up" : "down",
@@ -79,7 +78,10 @@ const MyPage = () => {
               onVote={handleVote}
             />
 
-            <TeamStatusSection teams={teams} onOpenTeam={setTeamModal} />
+            <TeamStatusSection
+              teams={teams}
+              onOpenTeam={(teamId) => navigate(`/mypage/teams/${teamId}`)}
+            />
           </div>
         </div>
 
@@ -101,12 +103,6 @@ const MyPage = () => {
         filteredSkills={filteredSkills}
         onClose={closeEditModal}
         onSave={saveProfile}
-      />
-
-      <TeamMembersModal
-        team={teamModal}
-        onClose={() => setTeamModal(null)}
-        currentUserEmail={profile.email}
       />
     </div>
   );
