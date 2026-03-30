@@ -3,16 +3,23 @@ import MainCard from "../components/MainCard";
 const Home = () => {
   const cardData = [
     {
-      title: "해커톤 목록 페이지로 이동",
-      description: "해커톤 이미지와 설명이 들어갈 곳",
+      title: "해커톤 탐색",
+      description: `당신의 열정을 불태울 최신 해커톤 소식을 확인하세요. 분야별, 일정별로 나에게 딱 맞는
+      대회를 찾을 수 있습니다.`,
       path: "/hackathons",
     },
     {
-      title: "팀원 모집 & 팀 리스트 생성",
-      description: "팀원 모집 & 팀 생성 디자인",
+      title: "팀 빌딩 & 모집",
+      description: `혼자 고민하지 마세요.
+      함께 성장하고 승리할 팀원을 찾거나 직접 팀을 생성하여 시너지를 만들어보세요.`,
       path: "/teams",
     },
-    { title: "랭킹 보기", description: "랭킹 목록 디자인", path: "/ranking" },
+    {
+      title: "랭킹 & 성과",
+      description: `실시간으로 업데이트되는 랭킹을 확인하고 나의 성장 지표를 관리하세요.
+      우수한 성과는 당신의 커리어가 됩니다.`,
+      path: "/ranking",
+    },
   ];
 
   return (
