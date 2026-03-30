@@ -1,4 +1,5 @@
 import { useState } from "react";
+import mailDeleteIcon from "../../assets/mailDeleteIcon.png";
 
 const ActionCircle = ({ children, color = "#B8C1D2", onClick }) => (
   <button
@@ -35,11 +36,16 @@ const MailViewer = ({ message, onToggleStar, onDelete }) => {
   return (
     <section className="flex min-h-[640px] flex-1 flex-col rounded-2xl border border-[#E4E9F2] bg-white p-8 shadow-sm">
       <div className="flex items-start justify-between gap-4">
-        <div className="rounded-xl border border-[#EDE6C8] bg-[#FFFDF2] px-4 py-3 text-base leading-7 text-[#656D7E]">
-          <p>
-            ✉ 보낸 사람: {message.sender} ({message.role})
-          </p>
-          <p>⏰ 날짜: {message.date}</p>
+        <div className="flex flex-col gap-2">
+          <div className="w-fit rounded-xl border border-[#EDE6C8] bg-[#E8F0FE] px-4 py-2 text-base text-[#656D7E]">
+            <p>
+              ✉ 보낸 사람: {message.sender} ({message.role})
+            </p>
+          </div>
+          {/* 날짜 박스 */}
+          <div className="w-fit rounded-xl border border-[#EDE6C8] bg-[#E8F0FE] px-4 py-2 text-base text-[#656D7E]">
+            <p>⏰ 날짜: {message.date}</p>
+          </div>
         </div>
 
         <div className="flex gap-2">
@@ -50,15 +56,22 @@ const MailViewer = ({ message, onToggleStar, onDelete }) => {
             {isStarred ? "★" : "☆"}
           </ActionCircle>
           <ActionCircle color="#F16A6A" onClick={() => onDelete(message.id)}>
-            ✕
+            <img
+              src={mailDeleteIcon}
+              alt="delete"
+              className="w-6 h-6 object-contain transition-opacity group-hover:opacity-80"
+            />
           </ActionCircle>
         </div>
       </div>
 
-      <h1 className="mt-10 text-5xl font-black tracking-tight text-[#2F3645]">{message.subject}</h1>
+      <h1 className="mt-10 text-5xl font-black tracking-tight text-[#2F3645]">
+        {message.subject}
+      </h1>
       <div className="mt-6 h-px w-full bg-[#E7EBF4]" />
 
       <article className="mt-8 space-y-7 text-xl leading-[1.95] text-[#4C5568]">
+        {/* 내용(html 형태로 저장된 문자열) 을 html 파싱해서 그대로 보여줌 */}
         {message.body.map((paragraph, idx) => (
           <p key={idx} dangerouslySetInnerHTML={{ __html: paragraph }} />
         ))}
@@ -69,7 +82,13 @@ const MailViewer = ({ message, onToggleStar, onDelete }) => {
               {isTeamInvite ? "팀 초대 응답" : "합류 요청 검토"}
             </p>
             {inviteDecision ? (
-              <p className={inviteDecision === "accept" ? "font-semibold text-emerald-700" : "font-semibold text-rose-600"}>
+              <p
+                className={
+                  inviteDecision === "accept"
+                    ? "font-semibold text-emerald-700"
+                    : "font-semibold text-rose-600"
+                }
+              >
                 {inviteDecision === "accept"
                   ? isTeamInvite
                     ? "팀 초대를 수락했습니다."
@@ -109,8 +128,11 @@ const MailViewer = ({ message, onToggleStar, onDelete }) => {
         )}
 
         <p>
-          감사합니다.<br />
-          {isDecisionMessage ? `${message.sender} 드림.` : "해커톤 운영위원회 드림."}
+          감사합니다.
+          <br />
+          {isDecisionMessage
+            ? `${message.sender} 드림.`
+            : "해커톤 운영위원회 드림."}
         </p>
       </article>
 
