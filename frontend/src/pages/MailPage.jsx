@@ -21,7 +21,7 @@ const MailPage = () => {
       if (activeTab === "starred") return messages.filter((m) => m.isStar);
       return messages;
     } else {
-      // Teams 모드 필터 (type 1: 초대받음, type 2: 신청받음)
+      // Teams 모드 필터 (type 1: 팀 참가 신청받음, type 2: 팀 초대받음)
       if (activeTab === "invited")
         return invitations.filter((i) => i.type === 1);
       if (activeTab === "requested")
@@ -38,14 +38,32 @@ const MailPage = () => {
     );
   }, [filteredItems, activeMessageId]);
 
-  // [핸들러] 메시지 선택 (읽음 처리 포함)
-  const handleSelectMessage = (id) => {
-    setActiveMessageId(id);
+  // [핸들러] 메시지 선택 (지연된 읽음 처리 로직)
+  const handleSelectMessage = (nextId) => {
+    // 1. 현재 선택된 메일이 있고, 모드가 messages일 때만 실행
     if (currentMode === "messages") {
-      setMessages((prev) =>
-        prev.map((m) => (m.id === id ? { ...m, isRead: true } : m)),
-      );
+      // 2. 이미 선택된 메일을 다시 클릭한 경우 (마지막 1개 남았을 때 등)
+      if (activeMessageId === nextId) {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === nextId ? { ...m, isRead: true } : m)),
+        );
+        // 리스트에서 사라질 것이므로 다음 선택 초기화
+        setActiveMessageId(null);
+        return;
+      }
+
+      // 3. 다른 메일을 클릭한 경우: '이전' 메일(activeMessageId)을 읽음 처리
+      if (activeMessageId) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === activeMessageId ? { ...m, isRead: true } : m,
+          ),
+        );
+      }
     }
+
+    // 4. 새로운 메일로 화면 전환
+    setActiveMessageId(nextId);
   };
 
   // [핸들러] 별표 토글
