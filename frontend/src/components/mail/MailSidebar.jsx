@@ -10,8 +10,8 @@ const MESSAGE_TABS = [
 ];
 
 const TEAM_TABS = [
-  { id: "invited", label: "초대받음" },
   { id: "requested", label: "신청받음" },
+  { id: "invited", label: "초대받음" },
 ];
 
 const MailSidebar = ({
