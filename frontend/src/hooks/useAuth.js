@@ -23,7 +23,7 @@ export const useAuth = () => {
   // --- 회원가입 ---
   const handleSignUp = async (userData) => {
     try {
-      // 1. signupApi.execute를 실행하면 Handler로 데이터가 날아갑니다.
+      // 1. signupApi.execute를 실행하면 Handler로 데이터가 들어갑니다.
       const result = await signupApi.execute(userData);
       return result;
     } catch (e) {
@@ -38,7 +38,7 @@ export const useAuth = () => {
 
   return {
     handleLogin,
-    handleSignUp, // 이제 외부에서 이 함수를 씁니다!
+    handleSignUp, // 이제 외부에서 이 함수를 씁니다.
     isLoading: loginApi.isLoading || signupApi.isLoading,
     loginError: loginApi.error,
     signupError: signupApi.error,

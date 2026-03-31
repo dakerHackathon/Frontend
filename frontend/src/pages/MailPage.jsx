@@ -5,65 +5,65 @@ import MailViewer from "../components/mail/MailViewer";
 import NewMessageModal from "../components/mail/NewMessageModal";
 
 const MailPage = () => {
-  // 모드 상태: "messages" | "teams"
   const [currentMode, setCurrentMode] = useState("messages");
   const [messages, setMessages] = useState(mockMessages);
-  const [invitations, setInvitations] = useState(mockInvitations);
-
+  const [invitations] = useState(mockInvitations);
   const [activeTab, setActiveTab] = useState("all");
   const [activeMessageId, setActiveMessageId] = useState(mockMessages[0]?.id);
   const [isComposeOpen, setIsComposeOpen] = useState(false);
 
-  // [로직] 모드와 탭에 따른 필터링 (에러 방지를 위해 useMemo 사용)
   const filteredItems = useMemo(() => {
     if (currentMode === "messages") {
-      if (activeTab === "unread") return messages.filter((m) => !m.isRead);
-      if (activeTab === "starred") return messages.filter((m) => m.isStar);
+      if (activeTab === "unread") return messages.filter((message) => !message.isRead);
+      if (activeTab === "starred") return messages.filter((message) => message.isStar);
       return messages;
-    } else {
-      // Teams 모드 필터 (type 1: 초대받음, type 2: 신청받음)
-      if (activeTab === "invited")
-        return invitations.filter((i) => i.type === 1);
-      if (activeTab === "requested")
-        return invitations.filter((i) => i.type === 2);
-      return invitations;
     }
-  }, [currentMode, activeTab, messages, invitations]);
 
-  // 현재 선택된 메시지 객체 찾기
-  const selectedMessage = useMemo(() => {
-    return (
-      filteredItems.find((m) => (m.id || m.invitationId) === activeMessageId) ||
-      filteredItems[0]
-    );
-  }, [filteredItems, activeMessageId]);
+    if (activeTab === "invited") {
+      return invitations.filter((invitation) => invitation.type === 1);
+    }
 
-  // [핸들러] 메시지 선택 (읽음 처리 포함)
+    if (activeTab === "requested") {
+      return invitations.filter((invitation) => invitation.type === 2);
+    }
+
+    return invitations;
+  }, [activeTab, currentMode, invitations, messages]);
+
+  const selectedMessage = useMemo(
+    () =>
+      filteredItems.find((item) => (item.id || item.invitationId) === activeMessageId) ??
+      filteredItems[0],
+    [activeMessageId, filteredItems],
+  );
+
   const handleSelectMessage = (id) => {
     setActiveMessageId(id);
+
     if (currentMode === "messages") {
       setMessages((prev) =>
-        prev.map((m) => (m.id === id ? { ...m, isRead: true } : m)),
+        prev.map((message) =>
+          message.id === id ? { ...message, isRead: true } : message,
+        ),
       );
     }
   };
 
-  // [핸들러] 별표 토글
   const handleToggleStar = (id) => {
     setMessages((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, isStar: !m.isStar } : m)),
+      prev.map((message) =>
+        message.id === id ? { ...message, isStar: !message.isStar } : message,
+      ),
     );
   };
 
-  // [핸들러] 삭제
   const handleDeleteMessage = (id) => {
     if (window.confirm("정말 삭제하시겠습니까?")) {
-      setMessages((prev) => prev.filter((m) => m.id !== id));
+      setMessages((prev) => prev.filter((message) => message.id !== id));
       setActiveMessageId(null);
     }
   };
 
-  // [핸들러] 모드 변경
   const handleModeChange = (mode) => {
     setCurrentMode(mode);
     setActiveTab(mode === "messages" ? "all" : "invited");
