@@ -9,6 +9,51 @@ import { getHackathonBySlug } from "../data/hackathons";
 const sectionIconClass = "h-4.5 w-4.5 text-[#336DFE]";
 const evaluationColors = ["#4C6FFF", "#2EC5CE", "#FFB84D", "#FF6B8A"];
 
+const getPositionToneClass = (position) => {
+  const normalized = position.trim().toLowerCase();
+
+  if (["fe", "frontend", "프론트", "프론트엔드"].includes(normalized)) {
+    return "bg-[#2F46FF] text-white";
+  }
+  if (["be", "backend", "백엔드"].includes(normalized)) {
+    return "bg-[#5ACB35] text-white";
+  }
+  if (["ai", "ml", "머신러닝"].includes(normalized)) {
+    return "bg-[#6B7280] text-white";
+  }
+  if (["db", "data", "데이터"].includes(normalized)) {
+    return "bg-[#FFB84D] text-white";
+  }
+  if (["designer", "design", "디자인", "디자이너", "ux/ui"].includes(normalized)) {
+    return "bg-[#FF72B6] text-white";
+  }
+  if (["기획", "pm", "po", "planner"].includes(normalized)) {
+    return "bg-[#8B5CF6] text-white";
+  }
+
+  return "bg-slate-100 text-slate-600";
+};
+
+const extractTeamPositions = (team) =>
+  (team.positions ?? team.role.split("/"))
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+const formatPositionLabel = (position) => {
+  const normalized = position.trim().toLowerCase();
+
+  if (["frontend", "프론트", "프론트엔드"].includes(normalized)) return "FE";
+  if (["backend", "백엔드"].includes(normalized)) return "BE";
+  if (["ai", "ml", "머신러닝"].includes(normalized)) return "AI";
+  if (["db", "data", "데이터"].includes(normalized)) return "DB";
+  if (["designer", "design", "디자인", "디자이너", "ux/ui"].includes(normalized)) {
+    return "DESIGNER";
+  }
+  if (["기획", "pm", "po", "planner"].includes(normalized)) return "PM";
+
+  return position.toUpperCase();
+};
+
 const iconOverview = (
   <svg viewBox="0 0 24 24" fill="none" className={sectionIconClass}>
     <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" />
@@ -332,7 +377,9 @@ const HackathonDetailPage = () => {
             <div className="space-y-5">
               <BaseInfoCard className="rounded-[28px] p-6 sm:p-7">
                 <SectionTitle icon={iconOverview} title="대회 개요" />
-                <p className="text-sm leading-7 text-slate-600 sm:text-[15px]">{hackathon.summary}</p>
+                <p className="text-sm leading-7 text-slate-600 sm:text-[15px]">
+                  {hackathon.summary}
+                </p>
 
                 <div className="mt-6 grid gap-6 border-t border-dashed border-slate-200 pt-5 sm:grid-cols-2 sm:gap-20">
                   <InfoRow label="주최" value={hackathon.host} />
@@ -411,7 +458,7 @@ const HackathonDetailPage = () => {
               </BaseInfoCard>
 
               <div className="grid gap-5 lg:grid-cols-2">
-                <BaseInfoCard className="rounded-[28px] p-6">
+                <BaseInfoCard className="flex h-full flex-col rounded-[28px] p-6">
                   <SectionTitle icon={iconPrize} title="상금" />
                   <p className="text-xl font-black text-slate-900">{hackathon.prize.total}</p>
                   <div className="mt-4 grid gap-3">
@@ -421,13 +468,15 @@ const HackathonDetailPage = () => {
                   </div>
                 </BaseInfoCard>
 
-                <BaseInfoCard className="rounded-[28px] p-6">
+                <BaseInfoCard className="flex min-h-[500px] flex-col rounded-[28px] p-6">
                   <SectionTitle icon={iconTeam} title="팀 현황" />
                   <div className="rounded-2xl bg-[#F7F9FF] px-4 py-4">
                     <p className="text-sm font-medium text-slate-500">현재 등록 팀</p>
-                    <p className="mt-2 text-3xl font-black text-slate-900">{hackathon.teams.count}팀</p>
+                    <p className="mt-2 text-3xl font-black text-slate-900">
+                      {hackathon.teams.count}팀
+                    </p>
                   </div>
-                  <div className="mt-4 space-y-3">
+                  <div className="mt-4 flex-1 space-y-3">
                     {hackathon.teams.items.map((team) => (
                       <div
                         key={team.name}
@@ -436,15 +485,33 @@ const HackathonDetailPage = () => {
                         <div className="flex items-center justify-between gap-3">
                           <div>
                             <p className="text-sm font-black text-slate-900">{team.name}</p>
-                            <p className="mt-1 text-xs text-slate-500">{team.role}</p>
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {extractTeamPositions(team).map((position) => (
+                                <span
+                                  key={`${team.name}-${position}`}
+                                  className={`rounded-md px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.03em] ${getPositionToneClass(position)}`}
+                                >
+                                  {formatPositionLabel(position)}
+                                </span>
+                              ))}
+                            </div>
                           </div>
                           <span className="text-sm font-bold text-[#336DFE]">{team.members}</span>
                         </div>
                       </div>
                     ))}
                   </div>
-                  <div className="mt-4">
-                    <PrimaryActionButton fullWidth>팀 만들기 / 참가하기</PrimaryActionButton>
+                  <div className="mt-auto pt-2">
+                    <div className="grid gap-3 sm:grid-cols-[0.9fr_1.1fr]">
+                      <button
+                        type="button"
+                        onClick={() => navigate("/mypage")}
+                        className="inline-flex h-12 cursor-pointer items-center justify-center rounded-2xl border border-[#D8E4FF] bg-[#F8FAFF] px-4 text-sm font-bold text-[#336DFE] transition hover:border-[#BDD2FF] hover:bg-[#EEF4FF]"
+                      >
+                        팀 만들기
+                      </button>
+                      <PrimaryActionButton fullWidth>참가 요청</PrimaryActionButton>
+                    </div>
                   </div>
                 </BaseInfoCard>
               </div>
@@ -475,7 +542,9 @@ const HackathonDetailPage = () => {
                 <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-bold text-slate-900">{normalizedSubmission.name}</p>
+                      <p className="text-sm font-bold text-slate-900">
+                        {normalizedSubmission.name}
+                      </p>
                       <div className="mt-2 flex flex-wrap items-center gap-2">
                         <span className="rounded-full bg-[#EEF3FF] px-2.5 py-1 text-[11px] font-black uppercase text-[#336DFE]">
                           zip
@@ -502,7 +571,11 @@ const HackathonDetailPage = () => {
                           aria-label={`${normalizedSubmission.name} 다운로드`}
                           className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-[#D6E2FF] bg-[#F8FAFF] text-[#336DFE] transition hover:bg-[#EEF3FF]"
                         >
-                          <svg viewBox="0 0 24 24" fill="none" className="h-4.5 w-4.5 stroke-current">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            className="h-4.5 w-4.5 stroke-current"
+                          >
                             <path d="M12 4.5V14.5" strokeWidth="1.8" strokeLinecap="round" />
                             <path
                               d="M8.5 11.5L12 15L15.5 11.5"
