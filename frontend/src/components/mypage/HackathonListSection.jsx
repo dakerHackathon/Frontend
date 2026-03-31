@@ -178,8 +178,7 @@ const HackathonListSection = ({ hackathons, voteLocks, onVote }) => {
                   <span className="rounded-full bg-slate-100 px-2 py-1 text-xs">{hackathon.status}</span>
                 </div>
 
-                <div className="mt-3 flex items-center justify-between rounded-lg bg-slate-50 p-2">
-                  <p className="text-xs font-semibold text-slate-500">팀원 {hackathon.members.length}명 평가 가능</p>
+                <div className="mt-3 flex justify-end">
                   <button
                     type="button"
                     onClick={() => setSelectedHackathon(hackathon)}

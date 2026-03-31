@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 
-const NewMessageModal = ({ isOpen, onClose }) => {
-  const [receiver, setReceiver] = useState("");
-  const [subject, setSubject] = useState("");
+const NewMessageModal = ({ isOpen, onClose, initialReceiver = "", initialSubject = "" }) => {
+  const [receiver, setReceiver] = useState(initialReceiver);
+  const [subject, setSubject] = useState(initialSubject);
   const [content, setContent] = useState("");
 
   if (!isOpen) return null;
