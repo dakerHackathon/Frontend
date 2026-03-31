@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import MiniCalendar from "../components/common/MiniCalendar";
+import RankingSidebarCard from "../components/common/RankingSidebarCard";
 
 const periodTabs = [
   { key: "weekly", label: "주간" },
@@ -149,7 +150,7 @@ const rankingByPeriod = {
     },
     {
       rank: 8,
-      name: "주지훈",
+      name: "주우재",
       github: null,
       temperature: 86.9,
       points: 401,
@@ -165,7 +166,7 @@ const rankingByPeriod = {
     },
     {
       rank: 10,
-      name: "최민우",
+      name: "최민호",
       github: null,
       temperature: 85.4,
       points: 375,
@@ -319,15 +320,9 @@ const rankBadgeTones = {
   3: "bg-[#E2871A] text-white",
 };
 
-const UserIcon = ({ className = "" }) => (
-  <svg viewBox="0 0 24 24" fill="none" className={className}>
-    <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.8" />
-    <path
-      d="M4.5 19C5.6 15.7 8.4 14 12 14C15.6 14 18.4 15.7 19.5 19"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-    />
+const GithubIcon = ({ className = "" }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 2C6.48 2 2 6.58 2 12.24C2 16.77 4.87 20.61 8.84 21.97C9.34 22.07 9.52 21.75 9.52 21.48C9.52 21.23 9.51 20.39 9.51 19.5C6.73 20.12 6.14 18.29 6.14 18.29C5.68 17.08 5.03 16.76 5.03 16.76C4.12 16.12 5.1 16.13 5.1 16.13C6.1 16.2 6.64 17.18 6.64 17.18C7.53 18.76 8.97 18.31 9.55 18.04C9.64 17.38 9.89 16.93 10.17 16.67C7.95 16.41 5.62 15.52 5.62 11.56C5.62 10.43 6.01 9.51 6.65 8.79C6.55 8.53 6.2 7.46 6.75 6.01C6.75 6.01 7.59 5.73 9.5 7.06C10.31 6.83 11.18 6.72 12.05 6.72C12.92 6.72 13.79 6.83 14.6 7.06C16.51 5.73 17.35 6.01 17.35 6.01C17.9 7.46 17.55 8.53 17.45 8.79C18.09 9.51 18.48 10.43 18.48 11.56C18.48 15.53 16.14 16.4 13.92 16.67C14.27 16.99 14.58 17.63 14.58 18.61C14.58 20 14.57 21.13 14.57 21.48C14.57 21.75 14.75 22.08 15.26 21.97C19.23 20.61 22.1 16.77 22.1 12.24C22.1 6.58 17.62 2 12 2Z" />
   </svg>
 );
 
@@ -344,50 +339,6 @@ const TrophyIcon = ({ className = "" }) => (
     <path d="M12 12.5V16.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
     <path d="M9.5 19.5H14.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
   </svg>
-);
-
-const GithubIcon = ({ className = "" }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M12 2C6.48 2 2 6.58 2 12.24C2 16.77 4.87 20.61 8.84 21.97C9.34 22.07 9.52 21.75 9.52 21.48C9.52 21.23 9.51 20.39 9.51 19.5C6.73 20.12 6.14 18.29 6.14 18.29C5.68 17.08 5.03 16.76 5.03 16.76C4.12 16.12 5.1 16.13 5.1 16.13C6.1 16.2 6.64 17.18 6.64 17.18C7.53 18.76 8.97 18.31 9.55 18.04C9.64 17.38 9.89 16.93 10.17 16.67C7.95 16.41 5.62 15.52 5.62 11.56C5.62 10.43 6.01 9.51 6.65 8.79C6.55 8.53 6.2 7.46 6.75 6.01C6.75 6.01 7.59 5.73 9.5 7.06C10.31 6.83 11.18 6.72 12.05 6.72C12.92 6.72 13.79 6.83 14.6 7.06C16.51 5.73 17.35 6.01 17.35 6.01C17.9 7.46 17.55 8.53 17.45 8.79C18.09 9.51 18.48 10.43 18.48 11.56C18.48 15.53 16.14 16.4 13.92 16.67C14.27 16.99 14.58 17.63 14.58 18.61C14.58 20 14.57 21.13 14.57 21.48C14.57 21.75 14.75 22.08 15.26 21.97C19.23 20.61 22.1 16.77 22.1 12.24C22.1 6.58 17.62 2 12 2Z" />
-  </svg>
-);
-
-const SidebarRankingCard = ({ title, metric, entries, myScore }) => (
-  <section className="rounded-[24px] border border-slate-300 bg-white px-5 py-5 shadow-[0_16px_36px_rgba(15,23,42,0.08)]">
-    <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-      <h2 className="text-[1.2rem] font-black text-[#336DFE]">{title}</h2>
-      <span className="text-sm font-black text-slate-900">{metric}</span>
-    </div>
-
-    <div className="space-y-3 py-4">
-      {entries.map((entry) => (
-        <div
-          key={entry.rank}
-          className="flex items-center justify-between gap-3 text-xs font-semibold sm:text-sm"
-        >
-          <div className="flex items-center gap-2.5">
-            <span className="inline-flex items-center gap-1 leading-none text-slate-800">
-              <TrophyIcon className="h-4 w-4 shrink-0" />
-              <span className="font-black leading-none">{entry.rank}위</span>
-            </span>
-            <div className="flex h-4 items-center gap-1.5">
-              <UserIcon className="h-[13px] w-[13px] shrink-0 text-[#9CB3FF]" />
-              <span className="font-black leading-none text-[#336DFE]">{entry.name}</span>
-            </div>
-          </div>
-          <span className="font-black leading-none text-[#F59E0B]">{entry.value}</span>
-        </div>
-      ))}
-    </div>
-
-    <div className="flex items-center justify-between rounded-2xl bg-[#DDE5FF] px-4 py-3 text-xs font-bold text-[#336DFE] sm:text-sm">
-      <div className="flex h-4 items-center gap-1.5">
-        <UserIcon className="h-[13px] w-[13px] shrink-0" />
-        <span className="leading-none">My NickName·18th</span>
-      </div>
-      <span className="leading-none">{myScore}</span>
-    </div>
-  </section>
 );
 
 const AvatarBadge = ({ player, large = false }) => (
@@ -513,10 +464,7 @@ const RankingTable = ({ rows }) => (
                       <GithubIcon className="h-4 w-4" />
                     </a>
                   ) : (
-                    <div
-                      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[#336DFE]"
-                      aria-label={`GitHub Empty`}
-                    ></div>
+                    <div className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full" />
                   )}
                 </div>
               </div>
@@ -540,6 +488,7 @@ const RankingPage = () => {
   const [activePeriod, setActivePeriod] = useState("weekly");
   const [topCardsVisible, setTopCardsVisible] = useState(false);
   const [animationSeed, setAnimationSeed] = useState(0);
+
   const activeRows = useMemo(
     () =>
       [...(rankingByPeriod[activePeriod] ?? rankingByPeriod.weekly)].sort(
@@ -547,6 +496,7 @@ const RankingPage = () => {
       ),
     [activePeriod],
   );
+
   const topThree = activeRows.slice(0, 3);
 
   useEffect(() => {
@@ -573,7 +523,13 @@ const RankingPage = () => {
         <aside className="w-full shrink-0 space-y-5 lg:sticky lg:top-28 lg:w-[294px] lg:self-start">
           <MiniCalendar />
           {sideRankingSections.map((section) => (
-            <SidebarRankingCard key={section.key} {...section} />
+            <RankingSidebarCard
+              key={section.key}
+              title={section.title}
+              metric={section.metric}
+              entries={section.entries}
+              currentUser={{ name: "My NickName·18th", value: section.myScore }}
+            />
           ))}
         </aside>
 
@@ -606,23 +562,23 @@ const RankingPage = () => {
 
             <div className="mt-14 grid gap-8 xl:grid-cols-[1fr_1.12fr_1fr]">
               <TopThreeCard
-                key={`left-${activePeriod}-${animationSeed}-${topThree[1].rank}`}
-                player={topThree[1]}
+                key={`left-${activePeriod}-${animationSeed}-${topThree[1]?.rank ?? "x"}`}
+                player={topThree[1] ?? activeRows[1]}
                 visible={topCardsVisible}
                 delay={0}
                 enterRotateY={-120}
               />
               <TopThreeCard
-                key={`center-${activePeriod}-${animationSeed}-${topThree[0].rank}`}
-                player={topThree[0]}
+                key={`center-${activePeriod}-${animationSeed}-${topThree[0]?.rank ?? "x"}`}
+                player={topThree[0] ?? activeRows[0]}
                 highlighted
                 visible={topCardsVisible}
                 delay={90}
                 enterRotateY={90}
               />
               <TopThreeCard
-                key={`right-${activePeriod}-${animationSeed}-${topThree[2].rank}`}
-                player={topThree[2]}
+                key={`right-${activePeriod}-${animationSeed}-${topThree[2]?.rank ?? "x"}`}
+                player={topThree[2] ?? activeRows[2]}
                 visible={topCardsVisible}
                 delay={180}
                 enterRotateY={120}
