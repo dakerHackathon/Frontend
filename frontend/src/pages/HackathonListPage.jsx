@@ -64,12 +64,6 @@ const regionOptions = [
   { value: "etc", label: "기타" },
 ];
 
-const sortOptions = [
-  { value: "latest", label: "최신순" },
-  { value: "deadline", label: "마감임박순" },
-  { value: "title", label: "이름순" },
-];
-
 const FavoriteStarButton = ({ active, onToggle }) => (
   <button
     type="button"
@@ -198,7 +192,6 @@ const HackathonListPage = () => {
   const [searchValue, setSearchValue] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [regionFilter, setRegionFilter] = useState("all");
-  const [sortFilter, setSortFilter] = useState("latest");
   const [favoriteIds, setFavoriteIds] = useState([]);
 
   const toggleFavorite = (hackathonId) => {
@@ -212,7 +205,7 @@ const HackathonListPage = () => {
   const filteredHackathons = useMemo(() => {
     const loweredSearch = searchValue.trim().toLowerCase();
 
-    const result = hackathons.filter((hackathon) => {
+    return hackathons.filter((hackathon) => {
       const searchableText =
         searchCategory === "title"
           ? hackathon.title
@@ -226,17 +219,7 @@ const HackathonListPage = () => {
 
       return matchesSearch && matchesStatus && matchesRegion;
     });
-
-    if (sortFilter === "title") {
-      return [...result].sort((left, right) => left.title.localeCompare(right.title));
-    }
-
-    if (sortFilter === "deadline") {
-      return [...result].sort((left, right) => left.dDay.localeCompare(right.dDay));
-    }
-
-    return result;
-  }, [regionFilter, searchCategory, searchValue, sortFilter, statusFilter]);
+  }, [regionFilter, searchCategory, searchValue, statusFilter]);
 
   return (
     <div className="min-h-screen bg-[#F3F6FF]">
@@ -274,12 +257,6 @@ const HackathonListPage = () => {
                 value: regionFilter,
                 onChange: setRegionFilter,
                 options: regionOptions,
-              },
-              {
-                key: "sort",
-                value: sortFilter,
-                onChange: setSortFilter,
-                options: sortOptions,
               },
             ]}
           />
