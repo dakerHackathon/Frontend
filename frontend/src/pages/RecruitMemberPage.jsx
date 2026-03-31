@@ -58,7 +58,7 @@ const recruitPosts = [
     title: "팀원 모집합니다.",
     tags: ["FE", "BE", "AI"],
     accent: "#336DFE",
-    description: "같이 밤새 달릴 열정 있는 팀원을 기다립니다.",
+    description: "같이 밤새울 의지 있는 팀원을 기다립니다.",
     hackathonName: "AI 아이디어톤 2026",
     positionSlots: {
       FE: { current: 1, total: 2 },
@@ -74,7 +74,7 @@ const recruitPosts = [
     title: "AI 직군 마감 직전입니다.",
     tags: ["FE", "BE", "AI"],
     accent: "#336DFE",
-    description: "현재는 AI 포지션 중심으로 확인 중이며, 빠르게 합류 가능하신 분을 찾습니다.",
+    description: "현재는 AI 포지션 중심으로 확인 중이며 빠르게 합류 가능한 분을 찾습니다.",
     hackathonName: "AI 아이디어톤 2026",
     positionSlots: {
       FE: { current: 1, total: 2 },
@@ -87,10 +87,10 @@ const recruitPosts = [
   {
     id: 6,
     version: "1분전",
-    title: "디자이너와 개발자 함께 모집해요.",
+    title: "디자이너와 개발자 모두 모집해요.",
     tags: ["FE", "BE", "AI", "DESIGNER"],
     accent: "#336DFE",
-    description: "브랜딩과 UI 디테일까지 같이 만들어갈 분을 기다립니다.",
+    description: "브랜딩과 UI 콘셉트까지 같이 만들어갈 분을 기다립니다.",
     hackathonName: "AI 아이디어톤 2026",
     positionSlots: {
       FE: { current: 1, total: 2 },
@@ -170,27 +170,27 @@ const CloseIcon = ({ className = "h-4 w-4" }) => (
   </svg>
 );
 
-const PositionSlotList = ({ post, compact = false }) => (
-  <div className={`flex flex-wrap gap-2 ${compact ? "pt-3" : ""}`}>
-    {getPositionSlotEntries(post).map(([tag, slot]) => (
-      <div
-        key={`${post.id}-${tag}`}
-        className={`inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white ${
-          compact ? "px-2.5 py-1.5" : "px-3 py-2"
-        }`}
-      >
-        <span
-          className={`inline-flex items-center justify-center rounded-md px-2 py-1 text-[10px] font-black ${
-            tagColorMap[tag] ?? "bg-slate-200 text-slate-700"
-          }`}
+const PositionSlotList = ({ post, compact = false, titled = false }) => (
+  <div className={`${compact ? "pt-3" : ""}`}>
+    <div className={`flex flex-wrap gap-2 ${titled ? "mt-1" : ""}`}>
+      {getPositionSlotEntries(post).map(([tag, slot]) => (
+        <div
+          key={`${post.id}-${tag}`}
+          className={`inline-flex items-center gap-2 rounded-xl border font-black ${
+            compact ? "px-2.5 py-2 text-xs" : "px-3 py-2 text-sm"
+          } border-slate-200 bg-white text-slate-600`}
         >
-          {tag}
-        </span>
-        <span className={`font-black text-slate-800 ${compact ? "text-xs" : "text-sm"}`}>
-          {slot.current}/{slot.total}
-        </span>
-      </div>
-    ))}
+          <span
+            className={`inline-flex min-w-9 items-center justify-center rounded-md px-2 py-1 text-[10px] font-black ${
+              tagColorMap[tag] ?? "bg-slate-200 text-slate-700"
+            }`}
+          >
+            {tag}
+          </span>
+          <span>{slot.total - slot.current}명</span>
+        </div>
+      ))}
+    </div>
   </div>
 );
 
@@ -296,9 +296,7 @@ const RecruitDetailModal = ({ post, onClose }) => {
                       >
                         {tag}
                       </span>
-                      <span>
-                        {slot.current}/{slot.total}
-                      </span>
+                      <span>{slot.total - slot.current}명</span>
                     </button>
                   );
                 })
@@ -354,7 +352,7 @@ const RecruitCard = ({ post, onOpen }) => {
 
   return (
     <BaseInfoCard
-      className="group flex min-h-[340px] cursor-pointer flex-col p-5 sm:min-h-[360px] sm:p-6"
+      className="group flex min-h-[390px] cursor-pointer flex-col p-5 sm:min-h-[410px] sm:p-6"
       onClick={handleOpen}
       role="button"
       tabIndex={0}
@@ -366,28 +364,46 @@ const RecruitCard = ({ post, onOpen }) => {
       }}
     >
       <div className="flex flex-1 flex-col">
-        <div className="space-y-3">
+    <div className="space-y-3">
           <span className="text-[10px] font-medium text-[#7C96FF]">{post.version}</span>
-          <h2 className="truncate text-[1.25rem] font-black tracking-tight text-slate-950 transition duration-200 group-hover:text-[#2458E6] sm:text-[1.45rem]">
+          <h2 className="truncate text-[1.2rem] font-black tracking-tight text-slate-950 transition duration-200 group-hover:text-[#2458E6] sm:text-[1.35rem]">
             {post.title}
           </h2>
           <p className="text-sm font-black tracking-[0.01em] text-[#4E6FD8] sm:text-[15px]">
             {post.accent}
           </p>
-
           <PositionSlotList post={post} compact />
         </div>
 
-        <p className="line-clamp-2 pt-5 text-sm font-medium text-slate-800 sm:pt-6 sm:text-base">
+        <p className="line-clamp-2 pt-4 text-sm font-medium leading-7 text-slate-800 sm:pt-5 sm:text-base">
           {post.description}
         </p>
 
-        <div className="mt-auto flex items-end justify-between gap-4 pt-6 sm:pt-8">
-          <span className="text-xs font-bold text-slate-900 sm:text-sm">{post.hackathonName}</span>
-          <span className="inline-flex items-center gap-1.5 text-base font-semibold text-slate-500 sm:text-lg">
-            <MemberCountIcon />
-            {totalCounts.current}/{totalCounts.total}
-          </span>
+        <div className="mt-auto pt-5">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-3xl border border-[#E5ECFF] bg-[#F8FAFF] px-4 py-4">
+            <div className="min-w-0">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.12em] text-[#6B86E8]">
+                <HackathonIcon className="h-3.5 w-3.5" />
+                참여 해커톤
+              </span>
+              <p className="mt-2 truncate text-sm font-black text-slate-900 sm:text-[1rem]">
+                {post.hackathonName}
+              </p>
+            </div>
+            <div className="flex items-center gap-3 border-l border-[#D7E2FF] pl-4">
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-[#336DFE] shadow-[0_8px_18px_rgba(51,109,254,0.12)]">
+                <MemberCountIcon className="h-4 w-4" />
+              </span>
+              <div className="text-center">
+                <span className="block text-[11px] font-semibold tracking-[0.12em] text-[#6B86E8]">
+                  모집 인원
+                </span>
+                <span className="mt-1 block text-lg font-black text-slate-900">
+                  {totalCounts.current}/{totalCounts.total}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -452,7 +468,7 @@ const RecruitMemberPage = () => {
               onSearchCategoryChange={setSearchCategory}
               searchValue={searchValue}
               onSearchValueChange={setSearchValue}
-              searchPlaceholder="제목 또는 내용을 입력하세요."
+              searchPlaceholder="제목 또는 내용을 입력해 주세요."
               filters={[
                 {
                   key: "status",
