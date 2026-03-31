@@ -26,7 +26,11 @@ const Header = () => {
       <div className="mx-auto flex h-28 max-w-[1440px] items-center justify-between gap-6 px-4 lg:px-8">
         <Link to="/" className="flex h-24 items-center gap-2 self-center">
           <span className="flex h-20 w-20 items-center justify-center self-center">
-            <img src={logoImg} alt="Blooming logo" className="block h-20 w-20 object-contain" />
+            <img
+              src={logoImg}
+              alt="Blooming logo"
+              className="block h-20 w-20 object-contain"
+            />
           </span>
           <span className="flex h-20 items-center self-center">
             <span className="block text-3xl font-black leading-none tracking-tight text-[#336DFE]">
@@ -42,7 +46,9 @@ const Header = () => {
               to={item.to}
               className={({ isActive }) =>
                 `group relative inline-flex h-full items-center text-lg font-bold transition ${
-                  isActive ? "text-[#336DFE]" : "text-slate-600 hover:text-slate-900"
+                  isActive
+                    ? "text-[#336DFE]"
+                    : "text-slate-600 hover:text-slate-900"
                 }`
               }
             >
@@ -51,7 +57,9 @@ const Header = () => {
                   {item.label}
                   <span
                     className={`absolute inset-x-0 bottom-0 z-10 h-1 rounded-full bg-[#336DFE] transition duration-200 ${
-                      isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                      isActive
+                        ? "opacity-100"
+                        : "opacity-0 group-hover:opacity-100"
                     }`}
                   />
                 </>
@@ -83,17 +91,16 @@ const Header = () => {
                 onClick={() => setShowDropdown(!showDropdown)}
                 onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
                 className="flex cursor-pointer items-center gap-3 rounded-2xl bg-slate-100 px-4 py-3 text-left transition hover:bg-slate-200"
-
               >
                 <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#DDE5FF] text-lg font-black text-[#336DFE]">
-                  {(currentUser?.name ?? "강석진").slice(0, 1)}
+                  {(currentUser?.userNickname ?? "강석진").slice(0, 1)}
                 </span>
                 <span className="hidden md:block">
                   <span className="block text-sm font-black text-slate-900">
-                    {currentUser?.name ?? "강석진"}
+                    {currentUser?.userNickname ?? "강석진"}
                   </span>
                   <span className="block text-sm text-slate-400">
-                    {currentUser?.email ?? "asdf123@gmail.com"}
+                    {currentUser?.userEmail ?? "asdf123@gmail.com"}
                   </span>
                 </span>
                 <span

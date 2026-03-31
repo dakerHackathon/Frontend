@@ -1,52 +1,64 @@
+import React from "react";
+
 const MailListItem = ({ item, active, onClick, onToggleStar }) => {
-  const isUnread = item.isUnread;
-  const isStarred = item.isStarred;
+  const itemId = item.id || item.invitationId;
+  const senderName =
+    typeof item.sender === "object" ? item.sender.userName : item.sender;
+
+  // 날짜와 제목 대응
+  const displayDate = item.created_at || item.send_at || "";
+  const displayTitle =
+    item.title ||
+    item.subject ||
+    (item.type === 1 ? "[팀 초대] 합류 제안" : "[참가 신청] 지원");
 
   return (
     <div
-      role="button"
-      tabIndex={0}
-      onClick={() => onClick(item.id)}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onClick(item.id);
-        }
-      }}
-      className={`w-full rounded-xl border p-4 text-left transition ${
+      onClick={() => onClick(itemId)}
+      className={`relative cursor-pointer rounded-2xl border p-5 transition-all mb-3 ${
         active
-          ? "border-[#5A84FF] bg-[#F4F8FF] shadow-sm"
-          : "border-[#E4E9F2] bg-white hover:border-[#B5C8FF]"
+          ? "border-[#336DFE] bg-[#F6F9FF] shadow-md"
+          : "border-[#E4E9F2] bg-white hover:border-[#D7DEEA]"
       }`}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-2">
-          {isUnread ? <span className="h-2 w-2 rounded-full bg-[#336DFE]" aria-hidden="true" /> : null}
-          <p className={`text-[15px] text-[#384052] ${isUnread ? "font-black" : "font-bold"}`}>
-            {item.sender} <span className={`text-[#7B8497] ${isUnread ? "font-semibold" : "font-medium"}`}>({item.role})</span>
-          </p>
-        </div>
-        <span className="text-xs text-[#98A1B3]">{item.time}</span>
+      <div className="mb-1.5 flex items-center justify-between">
+        <span
+          className={`text-sm font-bold ${active ? "text-[#336DFE]" : "text-[#4C5568]"}`}
+        >
+          {senderName}
+        </span>
+        <span className="text-[11px] text-[#99A2B4]">{displayDate}</span>
       </div>
 
-      <p className={`mt-2 line-clamp-1 text-[20px] text-[#2B3141] ${isUnread ? "font-black" : "font-semibold"}`}>
-        {item.subject}
-      </p>
-      <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#6B7280]">{item.preview}</p>
+      <h4
+        className={`mb-2 truncate text-base ${!item.isRead && item.id ? "font-black text-[#2F3645]" : "font-semibold text-[#656D7E]"}`}
+      >
+        {displayTitle}
+      </h4>
 
-      <div className="mt-3 flex justify-end">
+      <p className="truncate text-[13px] text-[#94A3B8] pr-10">
+        {item.content
+          ? item.content.replace(/<[^>]*>?/gm, " ").trim()
+          : "내용 없음"}
+      </p>
+
+      {/* 쪽지 모드일 때만 별표 노출 */}
+      {item.id && (
         <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
+          onClick={(e) => {
+            e.stopPropagation();
             onToggleStar(item.id);
           }}
-          aria-label={isStarred ? "즐겨찾기 해제" : "즐겨찾기 추가"}
-          className={`text-lg leading-none ${isStarred ? "text-[#F5C542]" : "text-[#AAB2C5]"}`}
+          className={`absolute bottom-4 right-4 text-xl ${item.isStar ? "text-[#F5C542]" : "text-[#D7DEEA]"}`}
         >
-          {isStarred ? "★" : "☆"}
+          {item.isStar ? "★" : "☆"}
         </button>
-      </div>
+      )}
+
+      {/* 읽지 않음 표시 도트 */}
+      {item.id && item.isRead === false && (
+        <div className="absolute left-2 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-[#336DFE]" />
+      )}
     </div>
   );
 };
