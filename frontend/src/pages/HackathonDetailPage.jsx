@@ -230,7 +230,6 @@ const HackathonDetailPage = () => {
         name: primarySubmission.name.includes(".")
           ? `${primarySubmission.name.split(".")[0]}.zip`
           : `${primarySubmission.name}.zip`,
-        status: primarySubmission.status,
       }
     : {
         name: "최종 제출본.zip",
@@ -245,7 +244,6 @@ const HackathonDetailPage = () => {
       normalizedWeight: (item.weight / totalWeight) * 100,
       color: evaluationColors[index % evaluationColors.length],
     }));
-
     const roundedTotal = rawItems.reduce((sum, item) => sum + Math.round(item.normalizedWeight), 0);
     const diff = 100 - roundedTotal;
 
@@ -254,6 +252,8 @@ const HackathonDetailPage = () => {
       displayWeight: Math.round(item.normalizedWeight) + (index === 0 ? diff : 0),
     }));
   })();
+
+  const isLeaderboardVisible = hackathon.status === "closed";
 
   const handleMockDownload = () => {
     if (normalizedSubmission.status !== "제출완료") {
@@ -332,9 +332,7 @@ const HackathonDetailPage = () => {
             <div className="space-y-5">
               <BaseInfoCard className="rounded-[28px] p-6 sm:p-7">
                 <SectionTitle icon={iconOverview} title="대회 개요" />
-                <p className="text-sm leading-7 text-slate-600 sm:text-[15px]">
-                  {hackathon.summary}
-                </p>
+                <p className="text-sm leading-7 text-slate-600 sm:text-[15px]">{hackathon.summary}</p>
 
                 <div className="mt-6 grid gap-6 border-t border-dashed border-slate-200 pt-5 sm:grid-cols-2 sm:gap-20">
                   <InfoRow label="주최" value={hackathon.host} />
@@ -427,9 +425,7 @@ const HackathonDetailPage = () => {
                   <SectionTitle icon={iconTeam} title="팀 현황" />
                   <div className="rounded-2xl bg-[#F7F9FF] px-4 py-4">
                     <p className="text-sm font-medium text-slate-500">현재 등록 팀</p>
-                    <p className="mt-2 text-3xl font-black text-slate-900">
-                      {hackathon.teams.count}팀
-                    </p>
+                    <p className="mt-2 text-3xl font-black text-slate-900">{hackathon.teams.count}팀</p>
                   </div>
                   <div className="mt-4 space-y-3">
                     {hackathon.teams.items.map((team) => (
@@ -479,9 +475,7 @@ const HackathonDetailPage = () => {
                 <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-bold text-slate-900">
-                        {normalizedSubmission.name}
-                      </p>
+                      <p className="text-sm font-bold text-slate-900">{normalizedSubmission.name}</p>
                       <div className="mt-2 flex flex-wrap items-center gap-2">
                         <span className="rounded-full bg-[#EEF3FF] px-2.5 py-1 text-[11px] font-black uppercase text-[#336DFE]">
                           zip
@@ -508,11 +502,7 @@ const HackathonDetailPage = () => {
                           aria-label={`${normalizedSubmission.name} 다운로드`}
                           className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-[#D6E2FF] bg-[#F8FAFF] text-[#336DFE] transition hover:bg-[#EEF3FF]"
                         >
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            className="h-4.5 w-4.5 stroke-current"
-                          >
+                          <svg viewBox="0 0 24 24" fill="none" className="h-4.5 w-4.5 stroke-current">
                             <path d="M12 4.5V14.5" strokeWidth="1.8" strokeLinecap="round" />
                             <path
                               d="M8.5 11.5L12 15L15.5 11.5"
@@ -569,35 +559,46 @@ const HackathonDetailPage = () => {
               <BaseInfoCard className="rounded-[28px] p-6">
                 <SectionTitle icon={iconTeam} title="리더보드" />
                 <div className="rounded-2xl bg-[#F7F9FF] px-4 py-4">
-                  <div className="space-y-2.5">
-                    {hackathon.leaderboard.entries.map((entry) => (
-                      <div
-                        key={`${entry.rank}-${entry.team}`}
-                        className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span
-                            className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-xs font-black ${
-                              entry.rank === 1
-                                ? "bg-[#FFF4D4] text-[#C98A00]"
-                                : entry.rank === 2
-                                  ? "bg-[#EDF2FA] text-[#6B7D99]"
-                                  : entry.rank === 3
-                                    ? "bg-[#F8E9E0] text-[#A6653B]"
-                                    : "bg-[#EEF3FF] text-[#336DFE]"
-                            }`}
-                          >
-                            {entry.rank}
-                          </span>
-                          <div>
-                            <p className="text-sm font-bold text-slate-900">{entry.team}</p>
-                            <p className="text-xs text-slate-400">팀 점수</p>
+                  {isLeaderboardVisible ? (
+                    <div className="space-y-2.5">
+                      {hackathon.leaderboard.entries.map((entry) => (
+                        <div
+                          key={`${entry.rank}-${entry.team}`}
+                          className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span
+                              className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-xs font-black ${
+                                entry.rank === 1
+                                  ? "bg-[#FFF4D4] text-[#C98A00]"
+                                  : entry.rank === 2
+                                    ? "bg-[#EDF2FA] text-[#6B7D99]"
+                                    : entry.rank === 3
+                                      ? "bg-[#F8E9E0] text-[#A6653B]"
+                                      : "bg-[#EEF3FF] text-[#336DFE]"
+                              }`}
+                            >
+                              {entry.rank}
+                            </span>
+                            <div>
+                              <p className="text-sm font-bold text-slate-900">{entry.team}</p>
+                              <p className="text-xs text-slate-400">팀 점수</p>
+                            </div>
                           </div>
+                          <p className="text-sm font-black text-[#336DFE]">{entry.score}점</p>
                         </div>
-                        <p className="text-sm font-black text-[#336DFE]">{entry.score}점</p>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl bg-white px-5 py-6 text-center">
+                      <p className="text-base font-black text-slate-900">심사중입니다</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-500">
+                        현재 제출물 심사가 진행 중입니다.
+                        <br />
+                        심사가 완료되면 리더보드 순위가 공개됩니다.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </BaseInfoCard>
             </div>
