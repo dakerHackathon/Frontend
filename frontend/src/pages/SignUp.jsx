@@ -171,7 +171,7 @@ const SignUp = () => {
               type="text"
               value={formData.nickName}
               onChange={handleChange}
-              placeholder="비밀번호"
+              placeholder="닉네임"
               className="w-full px-4 py-3 rounded-md border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-300"
             />
           </div>

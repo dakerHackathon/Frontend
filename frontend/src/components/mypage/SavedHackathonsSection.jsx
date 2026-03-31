@@ -1,7 +1,7 @@
-﻿import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const BookmarkIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5 text-blue-600">
+  <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 text-blue-600">
     <path
       d="M7 4.5H17C17.6 4.5 18 4.9 18 5.5V19.5L12 15.7L6 19.5V5.5C6 4.9 6.4 4.5 7 4.5Z"
       stroke="currentColor"
@@ -11,7 +11,7 @@ const BookmarkIcon = () => (
   </svg>
 );
 
-const SavedHackathonsSection = ({ savedHackathons }) => {
+const SavedHackathonsSection = ({ savedHackathons, onRemove }) => {
   const [isScrolling, setIsScrolling] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const scrollTimeoutRef = useRef(null);
@@ -25,7 +25,9 @@ const SavedHackathonsSection = ({ savedHackathons }) => {
 
     const maxScroll = listEl.scrollHeight - listEl.clientHeight;
     const visible = maxScroll > 0;
-    const height = visible ? Math.max(24, (listEl.clientHeight * listEl.clientHeight) / listEl.scrollHeight) : 0;
+    const height = visible
+      ? Math.max(24, (listEl.clientHeight * listEl.clientHeight) / listEl.scrollHeight)
+      : 0;
     const trackHeight = Math.max(0, listEl.clientHeight - height);
     const top = maxScroll > 0 ? (listEl.scrollTop / maxScroll) * trackHeight : 0;
     setThumbStyle({ top, height, visible });
@@ -132,15 +134,28 @@ const SavedHackathonsSection = ({ savedHackathons }) => {
           ref={listRef}
           onMouseDown={handleListMouseDown}
           onScroll={handleListScroll}
-          className={`smart-scroll max-h-[220px] space-y-2 overflow-y-auto px-4 pb-3 ${isDragging ? "cursor-grabbing select-none" : "cursor-grab"}`}
+          className={`smart-scroll max-h-[220px] space-y-2 overflow-y-auto px-4 pb-3 ${
+            isDragging ? "cursor-grabbing select-none" : "cursor-grab"
+          }`}
         >
           {savedHackathons.map((saved) => (
-            <div key={saved.id} className="flex items-center justify-between rounded-lg border border-slate-200 p-3">
+            <div
+              key={saved.id}
+              className="flex items-center justify-between rounded-lg border border-slate-200 p-3"
+            >
               <div>
                 <p className="text-sm font-semibold">{saved.title}</p>
                 <p className="text-xs text-slate-500">{saved.org}</p>
               </div>
-              <BookmarkIcon />
+              <button
+                type="button"
+                onClick={() => onRemove(saved.id)}
+                className="rounded-lg p-1 text-blue-600 transition hover:bg-blue-50"
+                aria-label="북마크 해제"
+                title="북마크 해제"
+              >
+                <BookmarkIcon />
+              </button>
             </div>
           ))}
         </div>
