@@ -120,7 +120,7 @@ const positionOptions = [
   { value: "backend", label: "백엔드" },
   { value: "ai", label: "AI" },
   { value: "designer", label: "디자이너" },
-  { value: "data", label: "DB/데이터" },
+  { value: "data", label: "DB" },
 ];
 
 const tagColorMap = {
@@ -137,7 +137,7 @@ const getTotalCounts = (post) =>
       current: acc.current + (slot.current ?? 0),
       total: acc.total + (slot.total ?? 0),
     }),
-    { current: 0, total: 0 }
+    { current: 0, total: 0 },
   );
 
 const getPositionSlotEntries = (post) =>
@@ -199,7 +199,7 @@ const RecruitDetailModal = ({ post, onClose }) => {
   const availablePositions = useMemo(
     () =>
       getPositionSlotEntries(post).filter(([, slot]) => (slot.total ?? 0) > (slot.current ?? 0)),
-    [post]
+    [post],
   );
   const [selectedPosition, setSelectedPosition] = useState(availablePositions[0]?.[0] ?? "");
 
@@ -364,7 +364,7 @@ const RecruitCard = ({ post, onOpen }) => {
       }}
     >
       <div className="flex flex-1 flex-col">
-    <div className="space-y-3">
+        <div className="space-y-3">
           <span className="text-[10px] font-medium text-[#7C96FF]">{post.version}</span>
           <h2 className="truncate text-[1.2rem] font-black tracking-tight text-slate-950 transition duration-200 group-hover:text-[#2458E6] sm:text-[1.35rem]">
             {post.title}
