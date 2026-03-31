@@ -9,6 +9,7 @@ export const useApi = (apiFunction) => {
       setIsLoading(true);
       setError(null);
       try {
+        //axios가 아닌 함수도 사용 가능
         const response = await apiFunction(...params);
         return response;
       } catch (err) {

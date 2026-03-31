@@ -16,7 +16,7 @@ const ProfileEditModal = ({
     <Modal title="프로필 수정" onClose={onClose}>
       <div className="space-y-3 text-sm">
         <label className="block">
-          <span className="mb-1 block font-medium">닉네임(이름)</span>
+          <span className="mb-1 block font-medium">닉네임</span>
           <input
             value={editForm.name}
             onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}

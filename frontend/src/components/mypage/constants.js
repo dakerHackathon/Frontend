@@ -1,11 +1,13 @@
 export const initialProfile = {
   name: "강석진",
   email: "asdf123@gmail.com",
-  intro: "안녕하세요! 3년차 풀스택 개발자입니다. React와 Node.js를 주력으로 사용합니다.",
+  intro:
+    "안녕하세요. 3년차 웹 개발자입니다. React와 Node.js를 중심으로 서비스를 만들고 있습니다.",
   github: "https://github.com/seokjin-dev",
   portfolio: "https://seokjin.dev",
   skills: ["React", "TypeScript", "Node.js", "Spring"],
-  avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80&fit=crop",
+  avatar:
+    "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80&fit=crop",
 };
 
 export const skillPool = [
@@ -51,42 +53,135 @@ export const initialHackathons = [
     status: "완료",
     date: "2023.11.05 - 11.20",
     members: [
-      { id: "m5", name: "박준영" },
-      { id: "m6", name: "송하늘" },
+      { id: "m5", name: "박지우" },
+      { id: "m6", name: "정하늘" },
     ],
   },
 ];
+
+export const teamPartOptions = [
+  { value: "frontend", label: "프론트", shortLabel: "FE" },
+  { value: "backend", label: "백엔드", shortLabel: "BE" },
+  { value: "ai", label: "AI", shortLabel: "AI" },
+  { value: "designer", label: "디자인", shortLabel: "DES" },
+  { value: "planner", label: "기획", shortLabel: "PM" },
+];
+
+export const teamRoleOptions = ["팀장", "팀원"];
 
 export const teams = [
   {
     id: "t1",
     name: "Team Blooming",
     role: "팀장",
-    description: "해커톤 플랫폼 고도화",
+    leaderId: "tm1",
+    description:
+      "해커톤용 협업 플랫폼을 만드는 팀입니다. 빠르게 실험하고 피드백을 반복하는 걸 중요하게 생각합니다.",
+    linkedHackathonId: "h2",
     members: [
-      { id: "tm1", name: "강석진", email: "asdf123@gmail.com" },
-      { id: "tm2", name: "김현호", email: "hyeonho@mail.com" },
-      { id: "tm3", name: "이승제", email: "seungje@mail.com" },
+      {
+        id: "tm1",
+        name: "강석진",
+        nickname: "석진",
+        email: "asdf123@gmail.com",
+        role: "팀장",
+        part: "frontend",
+      },
+      {
+        id: "tm2",
+        name: "김현호",
+        nickname: "현호",
+        email: "hyeonho@mail.com",
+        role: "팀원",
+        part: "backend",
+      },
+      {
+        id: "tm3",
+        name: "이승제",
+        nickname: "승제",
+        email: "seungje@mail.com",
+        role: "팀원",
+        part: "designer",
+      },
     ],
   },
   {
     id: "t2",
     name: "AI Avengers",
     role: "팀원",
-    description: "LLM 기반 추천 서비스",
+    leaderId: "tm5",
+    description:
+      "LLM 기반 추천 서비스를 준비 중인 팀입니다. 데이터 실험과 제품 감각을 함께 챙기는 걸 목표로 하고 있습니다.",
+    linkedHackathonId: null,
     members: [
-      { id: "tm4", name: "강석진", email: "asdf123@gmail.com" },
-      { id: "tm5", name: "김유진", email: "yujin@mail.com" },
-      { id: "tm6", name: "최민석", email: "minseok@mail.com" },
+      {
+        id: "tm4",
+        name: "강석진",
+        nickname: "석진",
+        email: "asdf123@gmail.com",
+        role: "팀원",
+        part: "frontend",
+      },
+      {
+        id: "tm5",
+        name: "김유진",
+        nickname: "유진",
+        email: "yujin@mail.com",
+        role: "팀장",
+        part: "ai",
+      },
+      {
+        id: "tm6",
+        name: "최민석",
+        nickname: "민석",
+        email: "minseok@mail.com",
+        role: "팀원",
+        part: "backend",
+      },
     ],
   },
 ];
 
+export const inviteCandidatePool = [
+  {
+    id: "u1",
+    name: "한지훈",
+    nickname: "지훈",
+    email: "jihoon@mail.com",
+    parts: ["frontend", "ai"],
+    intro: "React와 TypeScript 기반 서비스 개발 경험이 있습니다.",
+  },
+  {
+    id: "u2",
+    name: "정다은",
+    nickname: "다은",
+    email: "daeun@mail.com",
+    parts: ["planner"],
+    intro: "기획 문서와 사용자 인터뷰 정리에 강점이 있습니다.",
+  },
+  {
+    id: "u3",
+    name: "오서윤",
+    nickname: "서윤",
+    email: "seoyoon@mail.com",
+    parts: ["designer"],
+    intro: "프로덕트 디자인과 프로토타이핑을 맡고 있습니다.",
+  },
+  {
+    id: "u4",
+    name: "박도윤",
+    nickname: "도윤",
+    email: "doyoon@mail.com",
+    parts: ["backend", "ai"],
+    intro: "Spring과 Python으로 API와 모델 서빙을 다룹니다.",
+  },
+];
+
 export const savedHackathons = [
-  { id: "s1", title: "Global Tech Meetup 2024", org: "블루밍" },
-  { id: "s2", title: "Campus Hack Challenge", org: "대학 연합" },
-  { id: "s3", title: "Bio Health Datathon", org: "헬스케어랩" },
-  { id: "s4", title: "Green Energy Sprint", org: "에너지넷" },
+  { id: "s1", title: "Global Tech Meetup 2024", org: "블루잡" },
+  { id: "s2", title: "Campus Hack Challenge", org: "대학생연합" },
+  { id: "s3", title: "Bio Health Datathon", org: "헬스케어진흥원" },
+  { id: "s4", title: "Green Energy Sprint", org: "에너지랩" },
 ];
 
 export const inboxSummary = [
