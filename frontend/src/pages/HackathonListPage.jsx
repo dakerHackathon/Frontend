@@ -4,7 +4,7 @@ import BaseInfoCard from "../components/common/BaseInfoCard";
 import MiniCalendar from "../components/common/MiniCalendar";
 import PageSectionHeader from "../components/common/PageSectionHeader";
 import PrimaryActionButton from "../components/common/PrimaryActionButton";
-import RankingSummaryCard from "../components/common/RankingSummaryCard";
+import RankingSidebarCard from "../components/common/RankingSidebarCard";
 import SearchFilterBar from "../components/common/SearchFilterBar";
 import StatusBadge from "../components/common/StatusBadge";
 import { hackathons } from "../data/hackathons";
@@ -12,33 +12,33 @@ import { hackathons } from "../data/hackathons";
 const sidebarRankings = [
   {
     title: "블루밍 온도",
-    label: "온도",
+    metric: "온도",
     entries: [
       { rank: 1, name: "강석진", value: "43.5" },
       { rank: 2, name: "김현호", value: "41.3" },
       { rank: 3, name: "김민준", value: "39.8" },
     ],
-    currentUser: { name: "My NickName - 18th", value: "36.5" },
+    currentUser: { name: "My NickName·18th", value: "36.5" },
   },
   {
     title: "최다 우승",
-    label: "우승",
+    metric: "우승",
     entries: [
       { rank: 1, name: "강석진", value: "8회" },
       { rank: 2, name: "김현호", value: "7회" },
       { rank: 3, name: "김민준", value: "6회" },
     ],
-    currentUser: { name: "My NickName - 18th", value: "0회" },
+    currentUser: { name: "My NickName·18th", value: "0회" },
   },
   {
     title: "최다 참여",
-    label: "참여",
+    metric: "참여",
     entries: [
       { rank: 1, name: "강석진", value: "15회" },
       { rank: 2, name: "김현호", value: "14회" },
       { rank: 3, name: "김민준", value: "11회" },
     ],
-    currentUser: { name: "My NickName - 18th", value: "2회" },
+    currentUser: { name: "My NickName·18th", value: "2회" },
   },
 ];
 
@@ -227,7 +227,7 @@ const HackathonListPage = () => {
         <aside className="w-full shrink-0 space-y-4 lg:sticky lg:top-28 lg:w-[294px] lg:self-start">
           <MiniCalendar />
           {sidebarRankings.map((ranking) => (
-            <RankingSummaryCard key={ranking.title} {...ranking} />
+            <RankingSidebarCard key={ranking.title} {...ranking} />
           ))}
         </aside>
 
@@ -243,7 +243,7 @@ const HackathonListPage = () => {
             onSearchCategoryChange={setSearchCategory}
             searchValue={searchValue}
             onSearchValueChange={setSearchValue}
-            searchPlaceholder="제목 또는 내용을 입력하세요."
+            searchPlaceholder="제목 또는 내용을 입력해 주세요."
             filters={[
               {
                 key: "status",
