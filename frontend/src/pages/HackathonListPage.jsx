@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { hackathonApi } from "../api/hackathon";
-import { useApi } from "../hooks/common/useApi";
+import { useHackathon } from "../hooks/useHackathon";
 import MiniCalendar from "../components/common/MiniCalendar";
 import PageSectionHeader from "../components/common/PageSectionHeader";
 import RankingSidebarCard from "../components/common/RankingSidebarCard";
@@ -24,35 +23,29 @@ const HackathonListPage = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [regionFilter, setRegionFilter] = useState("all");
   const [hackathonItems, setHackathonItems] = useState([]);
-  // useApi가 isLoading·error 상태를 관리하므로 별도 로컬 상태가 필요 없다.
-  const { isLoading, error: errorMessage, execute } = useApi(hackathonApi.getList);
+  const { fetchList, isLoading, error: errorMessage } = useHackathon();
 
   useEffect(() => {
     let isMounted = true;
 
     const loadHackathons = async () => {
-      try {
-        // axiosInstance 인터셉터가 response.data를 반환하므로
-        // result = { isSuccess, code, message, data: { hackathons: [...] } }
-        const result = await execute();
+      // fetchList는 isSuccess·data 구조의 응답을 반환한다.
+      const result = await fetchList();
 
-        const normalizedItems = (result?.data?.hackathons ?? []).map((item) => {
-          const statusMeta = getStatusMeta(item.start_at, item.end_at);
+      const normalizedItems = (result?.data?.hackathons ?? []).map((item) => {
+        const statusMeta = getStatusMeta(item.start_at, item.end_at);
 
-          return {
-            ...item,
-            ...statusMeta,
-            dDay: getDdayLabel(item.end_at, statusMeta.status),
-            period: formatPeriod(item.start_at, item.end_at),
-            region: getRegionValue(item.location),
-          };
-        });
+        return {
+          ...item,
+          ...statusMeta,
+          dDay: getDdayLabel(item.end_at, statusMeta.status),
+          period: formatPeriod(item.start_at, item.end_at),
+          region: getRegionValue(item.location),
+        };
+      });
 
-        if (isMounted) {
-          setHackathonItems(normalizedItems);
-        }
-      } catch {
-        // 네트워크·HTTP 에러는 useApi가 errorMessage(error)로 자동 관리한다.
+      if (isMounted) {
+        setHackathonItems(normalizedItems);
       }
     };
 
@@ -61,7 +54,7 @@ const HackathonListPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [execute]);
+  }, [fetchList]);
 
   const filteredHackathons = useMemo(() => {
     const loweredSearch = searchValue.trim().toLowerCase();
