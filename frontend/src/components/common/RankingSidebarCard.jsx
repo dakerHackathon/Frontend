@@ -25,11 +25,10 @@ const TrophyIcon = ({ className = "" }) => (
   </svg>
 );
 
-const RankingSidebarCard = ({ title, metric, entries, currentUser }) => (
+const RankingSidebarCard = ({ title, entries, currentUser }) => (
   <section className="rounded-[24px] border border-slate-300 bg-white px-5 py-5 shadow-[0_16px_36px_rgba(15,23,42,0.08)]">
     <div className="flex items-center justify-between border-b border-slate-200 pb-4">
       <h2 className="text-[1.2rem] font-black text-[#336DFE]">{title}</h2>
-      <span className="text-sm font-black text-slate-900">{metric}</span>
     </div>
 
     <div className="space-y-3 py-4">
