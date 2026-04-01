@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
+import { Cell, Pie, PieChart } from "recharts";
 import BaseInfoCard from "../components/common/BaseInfoCard";
 import PrimaryActionButton from "../components/common/PrimaryActionButton";
 import StatusBadge from "../components/common/StatusBadge";
@@ -35,9 +35,7 @@ const getPositionToneClass = (position) => {
 };
 
 const extractTeamPositions = (team) =>
-  (team.positions ?? team.role.split("/"))
-    .map((item) => item.trim())
-    .filter(Boolean);
+  (team.positions ?? team.role.split("/")).map((item) => item.trim()).filter(Boolean);
 
 const formatPositionLabel = (position) => {
   const normalized = position.trim().toLowerCase();
@@ -393,29 +391,27 @@ const HackathonDetailPage = () => {
                 <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-center">
                   <div className="mx-auto flex w-full max-w-[240px] justify-center">
                     <div className="relative h-[220px] w-[220px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={normalizedEvaluation}
-                            dataKey="displayWeight"
-                            nameKey="label"
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={64}
-                            outerRadius={98}
-                            paddingAngle={3}
-                            startAngle={90}
-                            endAngle={-270}
-                            isAnimationActive
-                            animationDuration={700}
-                            stroke="none"
-                          >
-                            {normalizedEvaluation.map((item) => (
-                              <Cell key={item.label} fill={item.color} />
-                            ))}
-                          </Pie>
-                        </PieChart>
-                      </ResponsiveContainer>
+                      <PieChart width={220} height={220}>
+                        <Pie
+                          data={normalizedEvaluation}
+                          dataKey="displayWeight"
+                          nameKey="label"
+                          cx={110}
+                          cy={110}
+                          innerRadius={64}
+                          outerRadius={98}
+                          paddingAngle={3}
+                          startAngle={90}
+                          endAngle={-270}
+                          isAnimationActive
+                          animationDuration={700}
+                          stroke="none"
+                        >
+                          {normalizedEvaluation.map((item) => (
+                            <Cell key={item.label} fill={item.color} />
+                          ))}
+                        </Pie>
+                      </PieChart>
                       <div className="absolute inset-0 flex flex-col items-center justify-center">
                         <span className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">
                           Weight
