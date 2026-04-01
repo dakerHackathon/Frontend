@@ -5,13 +5,217 @@ import BaseInfoCard from "../components/common/BaseInfoCard";
 import PrimaryActionButton from "../components/common/PrimaryActionButton";
 import StatusBadge from "../components/common/StatusBadge";
 import { getHackathonById } from "../mocks/data/hackathons";
-import { getPositionToneClass, extractTeamPositions, formatPositionLabel } from "./hackathonDetail.utils";
-import { evaluationColors, iconOverview, iconClock, iconScore, iconPrize, iconFile, iconTeam } from "../components/hackathon/hackathonDetail.constants.jsx";
-import HackathonDetailSectionTitle from "../components/hackathon/HackathonDetailSectionTitle";
-import HackathonDetailInfoRow from "../components/hackathon/HackathonDetailInfoRow";
-import HackathonDetailPrizeCard from "../components/hackathon/HackathonDetailPrizeCard";
-import HackathonDetailTimeline from "../components/hackathon/HackathonDetailTimeline";
-import HackathonDetailFavoriteButton from "../components/hackathon/HackathonDetailFavoriteButton";
+
+const sectionIconClass = "h-4.5 w-4.5 text-[#336DFE]";
+const evaluationColors = ["#4C6FFF", "#2EC5CE", "#FFB84D", "#FF6B8A"];
+
+const getPositionToneClass = (position) => {
+  const normalized = position.trim().toLowerCase();
+
+  if (["fe", "frontend", "프론트", "프론트엔드"].includes(normalized)) {
+    return "bg-[#2F46FF] text-white";
+  }
+  if (["be", "backend", "백엔드"].includes(normalized)) {
+    return "bg-[#5ACB35] text-white";
+  }
+  if (["ai", "ml", "머신러닝"].includes(normalized)) {
+    return "bg-[#6B7280] text-white";
+  }
+  if (["db", "data", "데이터"].includes(normalized)) {
+    return "bg-[#FFB84D] text-white";
+  }
+  if (["designer", "design", "디자인", "디자이너", "ux/ui"].includes(normalized)) {
+    return "bg-[#FF72B6] text-white";
+  }
+  if (["기획", "pm", "po", "planner"].includes(normalized)) {
+    return "bg-[#8B5CF6] text-white";
+  }
+
+  return "bg-slate-100 text-slate-600";
+};
+
+const extractTeamPositions = (team) =>
+  (team.positions ?? team.role.split("/")).map((item) => item.trim()).filter(Boolean);
+
+const formatPositionLabel = (position) => {
+  const normalized = position.trim().toLowerCase();
+
+  if (["frontend", "프론트", "프론트엔드"].includes(normalized)) return "FE";
+  if (["backend", "백엔드"].includes(normalized)) return "BE";
+  if (["ai", "ml", "머신러닝"].includes(normalized)) return "AI";
+  if (["db", "data", "데이터"].includes(normalized)) return "DB";
+  if (["designer", "design", "디자인", "디자이너", "ux/ui"].includes(normalized)) {
+    return "DESIGNER";
+  }
+  if (["기획", "pm", "po", "planner"].includes(normalized)) return "PM";
+
+  return position.toUpperCase();
+};
+
+const iconOverview = (
+  <svg viewBox="0 0 24 24" fill="none" className={sectionIconClass}>
+    <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" />
+    <path d="M12 11V16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    <circle cx="12" cy="8" r="1" fill="currentColor" />
+  </svg>
+);
+
+const iconClock = (
+  <svg viewBox="0 0 24 24" fill="none" className={sectionIconClass}>
+    <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" />
+    <path d="M12 7.8V12L15 13.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+);
+
+const iconScore = (
+  <svg viewBox="0 0 24 24" fill="none" className={sectionIconClass}>
+    <path d="M5 18.5H19" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    <path
+      d="M7 15L10 11L13 13L17 7.5"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <circle cx="17" cy="7.5" r="1.1" fill="currentColor" />
+  </svg>
+);
+
+const iconPrize = (
+  <svg viewBox="0 0 24 24" fill="none" className={sectionIconClass}>
+    <path
+      d="M8 4.5H16V8C16 10.2 14.2 12 12 12C9.8 12 8 10.2 8 8V4.5Z"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    />
+    <path d="M10 12.5V15.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    <path d="M14 12.5V15.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    <path d="M8 18.5H16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+);
+
+const iconFile = (
+  <svg viewBox="0 0 24 24" fill="none" className={sectionIconClass}>
+    <path
+      d="M8 4.5H14L18 8.5V18.5C18 19.6 17.1 20.5 16 20.5H8C6.9 20.5 6 19.6 6 18.5V6.5C6 5.4 6.9 4.5 8 4.5Z"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    />
+    <path d="M14 4.5V8.5H18" stroke="currentColor" strokeWidth="1.8" />
+  </svg>
+);
+
+const iconTeam = (
+  <svg viewBox="0 0 24 24" fill="none" className={sectionIconClass}>
+    <circle cx="9" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.8" />
+    <circle cx="16" cy="10.5" r="2.1" stroke="currentColor" strokeWidth="1.8" />
+    <path
+      d="M4.5 18.5C5.1 15.9 7 14.5 9.5 14.5C12 14.5 13.9 15.9 14.5 18.5"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    />
+    <path
+      d="M14.7 17.4C15.1 15.8 16.3 14.8 17.9 14.6"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+const SectionTitle = ({ icon, title, action }) => (
+  <div className="mb-5 flex items-center justify-between gap-4">
+    <div className="flex items-center gap-2 text-lg font-bold text-slate-900">
+      {icon}
+      <h2>{title}</h2>
+    </div>
+    {action}
+  </div>
+);
+
+const FavoriteButton = ({ active, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={`inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border transition ${
+      active
+        ? "border-[#F2C14E] bg-[#FFF8E4] text-[#D28A00]"
+        : "border-slate-200 bg-white text-slate-500 hover:border-[#F2C14E] hover:text-[#D28A00]"
+    }`}
+  >
+    <svg viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} className="h-5 w-5">
+      <path
+        d="M12 3.7L14.6 8.97L20.42 9.82L16.21 13.92L17.2 19.7L12 16.96L6.8 19.7L7.79 13.92L3.58 9.82L9.4 8.97L12 3.7Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+    </svg>
+  </button>
+);
+
+const InfoRow = ({ label, value }) => (
+  <div className="flex items-start justify-between gap-4 border-b border-slate-100 py-3 last:border-b-0">
+    <span className="text-sm font-medium text-slate-500">{label}</span>
+    <span className="text-right text-sm font-semibold text-slate-800">{value}</span>
+  </div>
+);
+
+const PrizeCard = ({ item }) => {
+  const toneMap = {
+    gold: {
+      shell: "border-[#F8D88B] bg-[linear-gradient(135deg,#FFF9E6_0%,#FFF1BE_100%)]",
+      badge: "bg-[#F5B23A] text-white",
+      amount: "text-[#9B6400]",
+    },
+    silver: {
+      shell: "border-[#D5DCEE] bg-[linear-gradient(135deg,#F9FBFF_0%,#E9EFFB_100%)]",
+      badge: "bg-[#AAB7D4] text-white",
+      amount: "text-[#54657F]",
+    },
+    bronze: {
+      shell: "border-[#E9D3C8] bg-[linear-gradient(135deg,#FFF7F3_0%,#F7E4DA_100%)]",
+      badge: "bg-[#C88B68] text-white",
+      amount: "text-[#8A5435]",
+    },
+  };
+
+  const tone = toneMap[item.tone] ?? toneMap.gold;
+
+  return (
+    <div className={`rounded-[24px] border p-4 ${tone.shell}`}>
+      <span className={`rounded-full px-3 py-1 text-xs font-black ${tone.badge}`}>{item.tier}</span>
+      <p className={`mt-5 text-2xl font-black ${tone.amount}`}>{item.amount}</p>
+      <p className="mt-2 text-sm leading-6 text-slate-600">{item.description}</p>
+    </div>
+  );
+};
+
+const Timeline = ({ items }) => (
+  <div className="space-y-0">
+    {items.map((item, index) => (
+      <div key={`${item.title}-${item.period}`} className="relative flex gap-4 pb-5 last:pb-0">
+        <div className="relative flex w-5 shrink-0 justify-center">
+          <span
+            className={`relative z-10 mt-1.5 h-3 w-3 rounded-full ${
+              item.active ? "bg-[#336DFE]" : "bg-slate-300"
+            }`}
+          />
+          {index !== items.length - 1 ? (
+            <span className="absolute top-5 h-[calc(100%-0.25rem)] w-[2px] rounded-full bg-slate-200" />
+          ) : null}
+        </div>
+        <div className="pb-0.5">
+          <p className={`text-sm font-bold ${item.active ? "text-[#336DFE]" : "text-slate-700"}`}>
+            {item.title}
+          </p>
+          <p className="mt-1 text-sm text-slate-500">{item.period}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+);
 
 const HackathonDetailPage = () => {
   const { slug } = useParams();
@@ -161,7 +365,7 @@ const HackathonDetailPage = () => {
                   <path d="M17 7L7 17" strokeWidth="1.8" strokeLinecap="round" />
                 </svg>
               </button>
-              <HackathonDetailFavoriteButton active={isFavorite} onClick={() => setIsFavorite((prev) => !prev)} />
+              <FavoriteButton active={isFavorite} onClick={() => setIsFavorite((prev) => !prev)} />
             </div>
           </div>
         </div>
@@ -170,19 +374,19 @@ const HackathonDetailPage = () => {
           <div className="grid gap-5 xl:grid-cols-[1.65fr_0.85fr]">
             <div className="space-y-5">
               <BaseInfoCard className="rounded-[28px] p-6 sm:p-7">
-                <HackathonDetailSectionTitle icon={iconOverview} title="대회 개요" />
+                <SectionTitle icon={iconOverview} title="대회 개요" />
                 <p className="text-sm leading-7 text-slate-600 sm:text-[15px]">
                   {hackathon.summary}
                 </p>
 
                 <div className="mt-6 grid gap-6 border-t border-dashed border-slate-200 pt-5 sm:grid-cols-2 sm:gap-20">
-                  <HackathonDetailInfoRow label="주최" value={hackathon.host} />
-                  <HackathonDetailInfoRow label="장소" value={hackathon.location} />
+                  <InfoRow label="주최" value={hackathon.host} />
+                  <InfoRow label="장소" value={hackathon.location} />
                 </div>
               </BaseInfoCard>
 
               <BaseInfoCard className="rounded-[28px] p-6 sm:p-7">
-                <HackathonDetailSectionTitle icon={iconScore} title="평가 기준" />
+                <SectionTitle icon={iconScore} title="평가 기준" />
 
                 <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-center">
                   <div className="mx-auto flex w-full max-w-[240px] justify-center">
@@ -251,17 +455,17 @@ const HackathonDetailPage = () => {
 
               <div className="grid gap-5 lg:grid-cols-2">
                 <BaseInfoCard className="flex h-full flex-col rounded-[28px] p-6">
-                  <HackathonDetailSectionTitle icon={iconPrize} title="상금" />
+                  <SectionTitle icon={iconPrize} title="상금" />
                   <p className="text-xl font-black text-slate-900">{hackathon.prize.total}</p>
                   <div className="mt-4 grid gap-3">
                     {hackathon.prize.items.map((item) => (
-                      <HackathonDetailPrizeCard key={item.tier} item={item} />
+                      <PrizeCard key={item.tier} item={item} />
                     ))}
                   </div>
                 </BaseInfoCard>
 
                 <BaseInfoCard className="flex min-h-[500px] flex-col rounded-[28px] p-6">
-                  <HackathonDetailSectionTitle icon={iconTeam} title="팀 현황" />
+                  <SectionTitle icon={iconTeam} title="팀 현황" />
                   <div className="rounded-2xl bg-[#F7F9FF] px-4 py-4">
                     <p className="text-sm font-medium text-slate-500">현재 등록 팀</p>
                     <p className="mt-2 text-3xl font-black text-slate-900">
@@ -311,12 +515,12 @@ const HackathonDetailPage = () => {
 
             <div className="space-y-5">
               <BaseInfoCard className="rounded-[28px] p-6">
-                <HackathonDetailSectionTitle icon={iconClock} title="주요 일정" />
-                <HackathonDetailTimeline items={hackathon.schedule} />
+                <SectionTitle icon={iconClock} title="주요 일정" />
+                <Timeline items={hackathon.schedule} />
               </BaseInfoCard>
 
               <BaseInfoCard className="rounded-[28px] p-6">
-                <HackathonDetailSectionTitle
+                <SectionTitle
                   icon={iconFile}
                   title="제출물"
                   action={
@@ -422,7 +626,7 @@ const HackathonDetailPage = () => {
               </BaseInfoCard>
 
               <BaseInfoCard className="rounded-[28px] p-6">
-                <HackathonDetailSectionTitle icon={iconTeam} title="리더보드" />
+                <SectionTitle icon={iconTeam} title="리더보드" />
                 <div className="rounded-2xl bg-[#F7F9FF] px-4 py-4">
                   {isLeaderboardVisible ? (
                     <div className="space-y-2.5">
