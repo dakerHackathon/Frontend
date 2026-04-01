@@ -34,17 +34,17 @@ const MailViewer = ({ message, mode, onToggleStar, onDelete }) => {
   const isTeamsMode = mode === "teams";
   const currentId = message.id || message.invitationId;
 
-  // 1. 이름 처리 (객체 우선 체크)
+  // 1. 이름 처리
   const senderName =
     message.sender?.userName || message.sender || "알 수 없는 사용자";
 
-  // 2. 제목 처리 (백엔드 추가 필드 'title' 최우선 반영)
+  // 2. 제목 처리
   const displayTitle =
     message.title ||
     message.subject ||
     (message.type === 1 ? "[팀 초대] 합류 제안" : "[참가 신청] 팀 지원 알림");
 
-  // 3. 날짜 처리 (백엔드 추가 필드 'created_at' 최우선 반영)
+  // 3. 날짜 처리
   const displayDate = message.created_at || message.send_at || "날짜 정보 없음";
 
   // 4. 포지션 매핑
@@ -100,8 +100,8 @@ const MailViewer = ({ message, mode, onToggleStar, onDelete }) => {
             <span className="text-sm font-bold w-16 shrink-0 text-[#656D7E]">
               보낸날짜
             </span>
-            <div className="text-[13px] text-[#656D7E] font-medium pl-1">
-              {displayDate}
+            <div className="inline-flex items-center rounded-full bg-[#E8F2FF] px-4 py-1.5 text-sm">
+              <span className="font-semibold">{displayDate}</span>
             </div>
           </div>
         </div>
@@ -128,7 +128,7 @@ const MailViewer = ({ message, mode, onToggleStar, onDelete }) => {
         </div>
       </div>
 
-      {/* 제목 영역 (message.subject -> displayTitle로 교체) */}
+      {/* 제목 영역 */}
       <div className="mt-12 mb-8">
         <h1 className="text-5xl font-black leading-tight tracking-tight text-[#2F3645]">
           {displayTitle}
@@ -146,7 +146,9 @@ const MailViewer = ({ message, mode, onToggleStar, onDelete }) => {
         {isDecisionMessage ? (
           <div className="mt-12 rounded-2xl border-2 border-[#D7E2FF] bg-[#F6F9FF] p-8">
             <p className="mb-4 text-lg font-bold text-[#336DFE]">
-              {isTeamInvite ? "팀 초대 응답" : "합류 요청 검토"}
+              {isTeamInvite
+                ? `팀 초대 응답[${"팀명"}] - ${positionName}`
+                : `합류 요청 검토[${"팀명"}] - ${positionName}`}
             </p>
             {inviteDecision ? (
               <div
@@ -162,7 +164,6 @@ const MailViewer = ({ message, mode, onToggleStar, onDelete }) => {
                 <button
                   type="button"
                   onClick={() => decideInvite("accept")}
-                  // w-32 또는 w-40 정도로 너비를 제한하고 py(높이)를 줄였습니다.
                   className="w-36 rounded-xl bg-emerald-600 py-2.5 text-base font-bold text-white shadow-sm transition hover:bg-emerald-700 active:scale-95"
                 >
                   수락하기
@@ -188,18 +189,9 @@ const MailViewer = ({ message, mode, onToggleStar, onDelete }) => {
             </ul>
           </div>
         )}
-
-        <div className="mt-12 text-[#99A2B4]">
-          <p>감사합니다.</p>
-          <p className="font-bold text-[#656D7E]">{senderName} 드림.</p>
-        </div>
       </article>
 
       <div className="mt-12 flex items-end justify-between border-t border-[#F1F4F9] pt-6">
-        <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#B0B8C8]">
-          <p className="font-black text-[#64748B]">System Verified</p>
-          <p>Ref: {isTeamsMode ? `INV-${currentId}` : `MSG-${currentId}`}</p>
-        </div>
         <div className="text-[10px] text-[#D1D9E6]">
           © 2026 Hackathon Management System
         </div>
