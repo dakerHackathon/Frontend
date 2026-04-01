@@ -4,7 +4,7 @@ import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 import BaseInfoCard from "../components/common/BaseInfoCard";
 import PrimaryActionButton from "../components/common/PrimaryActionButton";
 import StatusBadge from "../components/common/StatusBadge";
-import { getHackathonBySlug } from "../data/hackathons";
+import { getHackathonById } from "../mocks/data/hackathons";
 
 const sectionIconClass = "h-4.5 w-4.5 text-[#336DFE]";
 const evaluationColors = ["#4C6FFF", "#2EC5CE", "#FFB84D", "#FF6B8A"];
@@ -223,7 +223,7 @@ const HackathonDetailPage = () => {
   const { slug } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const hackathon = useMemo(() => getHackathonBySlug(slug), [slug]);
+  const hackathon = useMemo(() => getHackathonById(slug), [slug]);
   const [isFavorite, setIsFavorite] = useState(false);
   const backgroundLocation = location.state?.backgroundLocation;
 

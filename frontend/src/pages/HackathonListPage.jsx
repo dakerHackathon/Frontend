@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import BaseInfoCard from "../components/common/BaseInfoCard";
 import MiniCalendar from "../components/common/MiniCalendar";
@@ -7,7 +7,6 @@ import PrimaryActionButton from "../components/common/PrimaryActionButton";
 import RankingSidebarCard from "../components/common/RankingSidebarCard";
 import SearchFilterBar from "../components/common/SearchFilterBar";
 import StatusBadge from "../components/common/StatusBadge";
-import { hackathons } from "../data/hackathons";
 
 const sidebarRankings = [
   {
@@ -41,7 +40,7 @@ const sidebarRankings = [
 
 const searchOptions = [
   { value: "title", label: "제목" },
-  { value: "titleAndLocation", label: "제목 + 내용" },
+  { value: "titleAndContent", label: "제목 + 내용" },
 ];
 
 const statusOptions = [
@@ -55,11 +54,77 @@ const regionOptions = [
   { value: "all", label: "전체(지역)" },
   { value: "online", label: "온라인" },
   { value: "seoul", label: "서울" },
-  { value: "pangyo", label: "판교" },
+  { value: "gyeongbuk", label: "경북" },
   { value: "busan", label: "부산" },
   { value: "daejeon", label: "대전" },
   { value: "etc", label: "기타" },
 ];
+
+const detailsIcons = {
+  period: (
+    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 stroke-current">
+      <rect x="3.5" y="5.5" width="17" height="15" rx="2.5" strokeWidth="1.8" />
+      <path d="M7 3.5V7.5" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M17 3.5V7.5" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M3.5 9.5H20.5" strokeWidth="1.8" />
+    </svg>
+  ),
+  location: (
+    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 stroke-current">
+      <path
+        d="M12 20C15.5 16.4 18 13.7 18 10.5C18 6.9 15.3 4.5 12 4.5C8.7 4.5 6 6.9 6 10.5C6 13.7 8.5 16.4 12 20Z"
+        strokeWidth="1.8"
+      />
+      <circle cx="12" cy="10.5" r="2.3" strokeWidth="1.8" />
+    </svg>
+  ),
+};
+
+const parseApiDate = (value) => new Date(value.replace(" ", "T"));
+
+const formatDateDot = (value) => value.slice(0, 10).replaceAll("-", ".");
+
+const formatPeriod = (startAt, endAt) => `${formatDateDot(startAt)} ~ ${formatDateDot(endAt)}`;
+
+const getStatusMeta = (startAt, endAt) => {
+  const now = new Date();
+  const startDate = parseApiDate(startAt);
+  const endDate = parseApiDate(endAt);
+
+  if (now < startDate) {
+    return { status: "upcoming", statusLabel: "예정" };
+  }
+
+  if (now > endDate) {
+    return { status: "closed", statusLabel: "마감" };
+  }
+
+  return { status: "active", statusLabel: "진행중" };
+};
+
+const getDdayLabel = (endAt, status) => {
+  if (status === "closed") {
+    return "D-0";
+  }
+
+  const now = new Date();
+  const target = parseApiDate(endAt);
+  const diffDays = Math.max(0, Math.ceil((target - now) / (1000 * 60 * 60 * 24)));
+
+  return `D-${diffDays}`;
+};
+
+const getRegionValue = (location) => {
+  const normalized = location.trim().toLowerCase();
+
+  if (normalized.includes("온라인")) return "online";
+  if (normalized.includes("서울")) return "seoul";
+  if (normalized.includes("경북")) return "gyeongbuk";
+  if (normalized.includes("부산")) return "busan";
+  if (normalized.includes("대전")) return "daejeon";
+
+  return "etc";
+};
 
 const FavoriteStarButton = ({ active, onToggle }) => (
   <button
@@ -80,38 +145,10 @@ const FavoriteStarButton = ({ active, onToggle }) => (
   </button>
 );
 
-const detailsIcons = {
-  period: (
-    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 stroke-current">
-      <rect x="3.5" y="5.5" width="17" height="15" rx="2.5" strokeWidth="1.8" />
-      <path d="M7 3.5V7.5" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="M17 3.5V7.5" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="M3.5 9.5H20.5" strokeWidth="1.8" />
-    </svg>
-  ),
-  location: (
-    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 stroke-current">
-      <path
-        d="M12 20C15.5 16.4 18 13.7 18 10.5C18 6.9 15.3 4.5 12 4.5C8.7 4.5 6 6.9 6 10.5C6 13.7 8.5 16.4 12 20Z"
-        strokeWidth="1.8"
-      />
-      <circle cx="12" cy="10.5" r="2.3" strokeWidth="1.8" />
-    </svg>
-  ),
-  contact: (
-    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 stroke-current">
-      <circle cx="12" cy="12" r="8.5" strokeWidth="1.8" />
-      <path d="M12 10V16" strokeWidth="1.8" strokeLinecap="round" />
-      <circle cx="12" cy="7.5" r="1" fill="currentColor" stroke="none" />
-    </svg>
-  ),
-};
-
-const HackathonCard = ({ hackathon, isFavorite, onToggleFavorite, onOpenDetail }) => {
+const HackathonCard = ({ hackathon, onToggleFavorite, onOpenDetail }) => {
   const details = [
     { key: "period", text: hackathon.period },
     { key: "location", text: hackathon.location },
-    { key: "contact", text: `연락 조건: ${hackathon.contact}` },
   ];
 
   return (
@@ -142,7 +179,7 @@ const HackathonCard = ({ hackathon, isFavorite, onToggleFavorite, onOpenDetail }
           <div className="mt-16 h-24 rounded-xl bg-gradient-to-br from-white/60 to-white/0 transition duration-200 group-hover:from-white/80" />
           <div className="absolute bottom-3 right-3">
             <FavoriteStarButton
-              active={isFavorite}
+              active={hackathon.isStar}
               onToggle={(event) => {
                 event.stopPropagation();
                 onToggleFavorite();
@@ -189,34 +226,81 @@ const HackathonListPage = () => {
   const [searchValue, setSearchValue] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [regionFilter, setRegionFilter] = useState("all");
-  const [favoriteIds, setFavoriteIds] = useState([]);
+  const [hackathonItems, setHackathonItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const toggleFavorite = (hackathonId) => {
-    setFavoriteIds((prevIds) =>
-      prevIds.includes(hackathonId)
-        ? prevIds.filter((id) => id !== hackathonId)
-        : [...prevIds, hackathonId],
-    );
-  };
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadHackathons = async () => {
+      try {
+        setIsLoading(true);
+        setErrorMessage("");
+
+        const response = await fetch("/hackathons");
+        const result = await response.json();
+
+        if (!response.ok || !result?.isSuccess) {
+          throw new Error(result?.message || "해커톤 목록을 불러오지 못했습니다.");
+        }
+
+        const normalizedItems = result.data.hackathons.map((item) => {
+          const statusMeta = getStatusMeta(item.start_at, item.end_at);
+
+          return {
+            ...item,
+            ...statusMeta,
+            dDay: getDdayLabel(item.end_at, statusMeta.status),
+            period: formatPeriod(item.start_at, item.end_at),
+            region: getRegionValue(item.location),
+          };
+        });
+
+        if (isMounted) {
+          setHackathonItems(normalizedItems);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setErrorMessage(error.message || "해커톤 목록을 불러오지 못했습니다.");
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadHackathons();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const filteredHackathons = useMemo(() => {
     const loweredSearch = searchValue.trim().toLowerCase();
 
-    return hackathons.filter((hackathon) => {
+    return hackathonItems.filter((hackathon) => {
       const searchableText =
-        searchCategory === "title"
-          ? hackathon.title
-          : `${hackathon.title} ${hackathon.subtitle} ${hackathon.location}`;
+        searchCategory === "title" ? hackathon.title : `${hackathon.title} ${hackathon.location}`;
 
       const matchesSearch =
         loweredSearch.length === 0 || searchableText.toLowerCase().includes(loweredSearch);
-
       const matchesStatus = statusFilter === "all" || hackathon.status === statusFilter;
       const matchesRegion = regionFilter === "all" || hackathon.region === regionFilter;
 
       return matchesSearch && matchesStatus && matchesRegion;
     });
-  }, [regionFilter, searchCategory, searchValue, statusFilter]);
+  }, [hackathonItems, regionFilter, searchCategory, searchValue, statusFilter]);
+
+  const toggleFavorite = (hackathonId) => {
+    setHackathonItems((prev) =>
+      prev.map((hackathon) =>
+        hackathon.id === hackathonId ? { ...hackathon, isStar: !hackathon.isStar } : hackathon,
+      ),
+    );
+  };
 
   return (
     <div className="min-h-screen bg-[#F3F6FF]">
@@ -258,21 +342,34 @@ const HackathonListPage = () => {
             ]}
           />
 
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:gap-7">
-            {filteredHackathons.map((hackathon) => (
-              <HackathonCard
-                key={hackathon.id}
-                hackathon={hackathon}
-                isFavorite={favoriteIds.includes(hackathon.id)}
-                onToggleFavorite={() => toggleFavorite(hackathon.id)}
-                onOpenDetail={() =>
-                  navigate(`/hackathons/${hackathon.slug}`, {
-                    state: { backgroundLocation: location },
-                  })
-                }
-              />
-            ))}
-          </div>
+          {isLoading ? (
+            <BaseInfoCard className="rounded-[28px] p-10 text-center text-sm font-medium text-slate-500">
+              해커톤 목록을 불러오는 중입니다.
+            </BaseInfoCard>
+          ) : errorMessage ? (
+            <BaseInfoCard className="rounded-[28px] p-10 text-center text-sm font-medium text-red-500">
+              {errorMessage}
+            </BaseInfoCard>
+          ) : filteredHackathons.length === 0 ? (
+            <BaseInfoCard className="rounded-[28px] p-10 text-center text-sm font-medium text-slate-500">
+              조건에 맞는 해커톤이 없습니다.
+            </BaseInfoCard>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:gap-7">
+              {filteredHackathons.map((hackathon) => (
+                <HackathonCard
+                  key={hackathon.id}
+                  hackathon={hackathon}
+                  onToggleFavorite={() => toggleFavorite(hackathon.id)}
+                  onOpenDetail={() =>
+                    navigate(`/hackathons/${hackathon.id}`, {
+                      state: { backgroundLocation: location },
+                    })
+                  }
+                />
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </div>
