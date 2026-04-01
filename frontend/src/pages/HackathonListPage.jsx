@@ -12,7 +12,6 @@ import { hackathons } from "../data/hackathons";
 const sidebarRankings = [
   {
     title: "블루밍 온도",
-    metric: "온도",
     entries: [
       { rank: 1, name: "강석진", value: "43.5" },
       { rank: 2, name: "김현호", value: "41.3" },
@@ -22,7 +21,6 @@ const sidebarRankings = [
   },
   {
     title: "최다 우승",
-    metric: "우승",
     entries: [
       { rank: 1, name: "강석진", value: "8회" },
       { rank: 2, name: "김현호", value: "7회" },
@@ -32,7 +30,6 @@ const sidebarRankings = [
   },
   {
     title: "최다 참여",
-    metric: "참여",
     entries: [
       { rank: 1, name: "강석진", value: "15회" },
       { rank: 2, name: "김현호", value: "14회" },
