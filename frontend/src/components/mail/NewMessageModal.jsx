@@ -10,7 +10,6 @@ const NewMessageModal = ({ isOpen, onClose, initialReceiver = "", initialSubject
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    // TODO: 백엔드 연동 후 실제 발송 API 연결
     onClose();
     setReceiver("");
     setSubject("");
@@ -66,7 +65,7 @@ const NewMessageModal = ({ isOpen, onClose, initialReceiver = "", initialSubject
               id="message-subject"
               value={subject}
               onChange={(event) => setSubject(event.target.value)}
-              placeholder="제목을 입력하세요"
+              placeholder="제목을 입력해 주세요"
               className="h-11 w-full rounded-lg border border-[#DCE3EF] px-3 text-sm outline-none focus:border-[#336DFE]"
               required
             />
@@ -80,7 +79,7 @@ const NewMessageModal = ({ isOpen, onClose, initialReceiver = "", initialSubject
               id="message-content"
               value={content}
               onChange={(event) => setContent(event.target.value)}
-              placeholder="메시지 내용을 입력하세요"
+              placeholder="메시지 내용을 입력해 주세요"
               className="h-44 w-full resize-none rounded-lg border border-[#DCE3EF] px-3 py-2 text-sm outline-none focus:border-[#336DFE]"
               required
             />
