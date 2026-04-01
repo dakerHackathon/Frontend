@@ -241,9 +241,12 @@ const toApiDateTime = (dateText, hour = "12:00") => `${dateText} ${hour}`;
 
 const getDateRange = (period) => {
   const [startDate = "", endDate = ""] = period.split(" ~ ");
+  // 목업 데이터의 period는 점(.) 구분자를 사용하므로 ISO 형식(대시)으로 변환한다.
+  // parseApiDate가 "YYYY-MM-DD HH:mm" 형태를 기대하기 때문에 맞춰줘야 NaN이 발생하지 않는다.
+  const toDash = (d) => d.replaceAll(".", "-");
   return {
-    start_at: toApiDateTime(startDate),
-    end_at: toApiDateTime(endDate),
+    start_at: toApiDateTime(toDash(startDate)),
+    end_at: toApiDateTime(toDash(endDate)),
   };
 };
 
