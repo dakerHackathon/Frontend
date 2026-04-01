@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import MiniCalendar from "../components/common/MiniCalendar";
 import RankingSidebarCard from "../components/common/RankingSidebarCard";
 
@@ -257,39 +257,33 @@ const rankingByPeriod = {
   ],
 };
 
-const sideRankingSections = [
+const sidebarRankings = [
   {
-    key: "temperature",
     title: "블루밍 온도",
-    metric: "온도",
-    myScore: "36.5",
     entries: [
       { rank: 1, name: "강석진", value: "43.5" },
       { rank: 2, name: "김현호", value: "41.3" },
       { rank: 3, name: "김민준", value: "39.8" },
     ],
+    currentUser: { name: "My NickName - 18th", value: "36.5" },
   },
   {
-    key: "wins",
     title: "최다 우승",
-    metric: "우승",
-    myScore: "0회",
     entries: [
       { rank: 1, name: "강석진", value: "8회" },
       { rank: 2, name: "김현호", value: "7회" },
       { rank: 3, name: "김민준", value: "6회" },
     ],
+    currentUser: { name: "My NickName - 18th", value: "0회" },
   },
   {
-    key: "attendance",
     title: "최다 참여",
-    metric: "참여",
-    myScore: "2회",
     entries: [
       { rank: 1, name: "강석진", value: "15회" },
       { rank: 2, name: "김현호", value: "14회" },
       { rank: 3, name: "김민준", value: "11회" },
     ],
+    currentUser: { name: "My NickName - 18th", value: "2회" },
   },
 ];
 
@@ -320,12 +314,6 @@ const rankBadgeTones = {
   3: "bg-[#E2871A] text-white",
 };
 
-const GithubIcon = ({ className = "" }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M12 2C6.48 2 2 6.58 2 12.24C2 16.77 4.87 20.61 8.84 21.97C9.34 22.07 9.52 21.75 9.52 21.48C9.52 21.23 9.51 20.39 9.51 19.5C6.73 20.12 6.14 18.29 6.14 18.29C5.68 17.08 5.03 16.76 5.03 16.76C4.12 16.12 5.1 16.13 5.1 16.13C6.1 16.2 6.64 17.18 6.64 17.18C7.53 18.76 8.97 18.31 9.55 18.04C9.64 17.38 9.89 16.93 10.17 16.67C7.95 16.41 5.62 15.52 5.62 11.56C5.62 10.43 6.01 9.51 6.65 8.79C6.55 8.53 6.2 7.46 6.75 6.01C6.75 6.01 7.59 5.73 9.5 7.06C10.31 6.83 11.18 6.72 12.05 6.72C12.92 6.72 13.79 6.83 14.6 7.06C16.51 5.73 17.35 6.01 17.35 6.01C17.9 7.46 17.55 8.53 17.45 8.79C18.09 9.51 18.48 10.43 18.48 11.56C18.48 15.53 16.14 16.4 13.92 16.67C14.27 16.99 14.58 17.63 14.58 18.61C14.58 20 14.57 21.13 14.57 21.48C14.57 21.75 14.75 22.08 15.26 21.97C19.23 20.61 22.1 16.77 22.1 12.24C22.1 6.58 17.62 2 12 2Z" />
-  </svg>
-);
-
 const TrophyIcon = ({ className = "" }) => (
   <svg viewBox="0 0 24 24" fill="none" className={className}>
     <path
@@ -338,6 +326,12 @@ const TrophyIcon = ({ className = "" }) => (
     <path d="M16 6H18.5C18.5 8.5 17.5 10 15.2 10.5" stroke="currentColor" strokeWidth="1.8" />
     <path d="M12 12.5V16.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
     <path d="M9.5 19.5H14.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+);
+
+const GithubIcon = ({ className = "" }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 2C6.48 2 2 6.58 2 12.24C2 16.77 4.87 20.61 8.84 21.97C9.34 22.07 9.52 21.75 9.52 21.48C9.52 21.23 9.51 20.39 9.51 19.5C6.73 20.12 6.14 18.29 6.14 18.29C5.68 17.08 5.03 16.76 5.03 16.76C4.12 16.12 5.1 16.13 5.1 16.13C6.1 16.2 6.64 17.18 6.64 17.18C7.53 18.76 8.97 18.31 9.55 18.04C9.64 17.38 9.89 16.93 10.17 16.67C7.95 16.41 5.62 15.52 5.62 11.56C5.62 10.43 6.01 9.51 6.65 8.79C6.55 8.53 6.2 7.46 6.75 6.01C6.75 6.01 7.59 5.73 9.5 7.06C10.31 6.83 11.18 6.72 12.05 6.72C12.92 6.72 13.79 6.83 14.6 7.06C16.51 5.73 17.35 6.01 17.35 6.01C17.9 7.46 17.55 8.53 17.45 8.79C18.09 9.51 18.48 10.43 18.48 11.56C18.48 15.53 16.14 16.4 13.92 16.67C14.27 16.99 14.58 17.63 14.58 18.61C14.58 20 14.57 21.13 14.57 21.48C14.57 21.75 14.75 22.08 15.26 21.97C19.23 20.61 22.1 16.77 22.1 12.24C22.1 6.58 17.62 2 12 2Z" />
   </svg>
 );
 
@@ -356,30 +350,20 @@ const AvatarBadge = ({ player, large = false }) => (
   </div>
 );
 
-const TopThreeCard = ({
-  player,
-  highlighted = false,
-  visible = false,
-  delay = 0,
-  enterRotateY = 0,
-}) => {
+const TopThreeCard = ({ player, highlighted = false, delay = 0, enterRotateY = 0 }) => {
   const tone = medalTones[player.rank];
 
   return (
     <article
       className={`relative overflow-visible rounded-[30px] border border-slate-200 px-6 pb-8 pt-16 shadow-[0_18px_40px_rgba(15,23,42,0.06)] ${tone.card} ${
         highlighted ? "xl:translate-y-0" : ""
-      } transition-[transform,opacity,filter] duration-700 ease-out`}
+      }`}
       style={{
-        transitionDelay: `${delay}ms`,
-        opacity: visible ? 1 : 0,
-        transform: visible
-          ? "perspective(1200px) translateY(0) scale(1) rotateY(0deg)"
-          : `perspective(1200px) translateY(24px) scale(0.92) rotateY(${enterRotateY}deg)`,
+        animation: `rankingTopCardFlip 700ms cubic-bezier(0.22, 1, 0.36, 1) ${delay}ms both`,
+        "--ranking-enter-rotate-y": `${enterRotateY}deg`,
         transformStyle: "preserve-3d",
         transformOrigin: "center center",
         backfaceVisibility: "hidden",
-        filter: visible ? "blur(0px)" : "blur(3px)",
       }}
     >
       <div className={`absolute left-0 right-0 top-0 h-1 rounded-t-[30px] ${tone.line}`} />
@@ -486,9 +470,6 @@ const RankingTable = ({ rows }) => (
 
 const RankingPage = () => {
   const [activePeriod, setActivePeriod] = useState("weekly");
-  const [topCardsVisible, setTopCardsVisible] = useState(false);
-  const [animationSeed, setAnimationSeed] = useState(0);
-
   const activeRows = useMemo(
     () =>
       [...(rankingByPeriod[activePeriod] ?? rankingByPeriod.weekly)].sort(
@@ -498,38 +479,31 @@ const RankingPage = () => {
   );
 
   const topThree = activeRows.slice(0, 3);
-
-  useEffect(() => {
-    setTopCardsVisible(false);
-    setAnimationSeed((seed) => seed + 1);
-    let timeoutId;
-    const frame = window.requestAnimationFrame(() => {
-      timeoutId = window.setTimeout(() => {
-        setTopCardsVisible(true);
-      }, 40);
-    });
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      if (timeoutId) {
-        window.clearTimeout(timeoutId);
-      }
-    };
-  }, [activePeriod]);
+  const firstPlace = topThree[0] ?? null;
+  const secondPlace = topThree[1] ?? null;
+  const thirdPlace = topThree[2] ?? null;
 
   return (
     <div className="min-h-screen bg-[#F3F6FF]">
+      <style>{`
+        @keyframes rankingTopCardFlip {
+          0% {
+            opacity: 0;
+            transform: perspective(1200px) translateY(24px) scale(0.92) rotateY(var(--ranking-enter-rotate-y));
+            filter: blur(3px);
+          }
+          100% {
+            opacity: 1;
+            transform: perspective(1200px) translateY(0) scale(1) rotateY(0deg);
+            filter: blur(0);
+          }
+        }
+      `}</style>
       <div className="mx-auto flex max-w-[1640px] flex-col gap-8 px-4 py-8 lg:flex-row lg:gap-14 lg:px-8 lg:py-10">
         <aside className="w-full shrink-0 space-y-5 lg:sticky lg:top-28 lg:w-[294px] lg:self-start">
           <MiniCalendar />
-          {sideRankingSections.map((section) => (
-            <RankingSidebarCard
-              key={section.key}
-              title={section.title}
-              metric={section.metric}
-              entries={section.entries}
-              currentUser={{ name: "My NickName·18th", value: section.myScore }}
-            />
+          {sidebarRankings.map((ranking) => (
+            <RankingSidebarCard key={ranking.title} {...ranking} />
           ))}
         </aside>
 
@@ -560,30 +534,29 @@ const RankingPage = () => {
               </div>
             </div>
 
-            <div className="mt-14 grid gap-8 xl:grid-cols-[1fr_1.12fr_1fr]">
-              <TopThreeCard
-                key={`left-${activePeriod}-${animationSeed}-${topThree[1]?.rank ?? "x"}`}
-                player={topThree[1] ?? activeRows[1]}
-                visible={topCardsVisible}
-                delay={0}
-                enterRotateY={-120}
-              />
-              <TopThreeCard
-                key={`center-${activePeriod}-${animationSeed}-${topThree[0]?.rank ?? "x"}`}
-                player={topThree[0] ?? activeRows[0]}
-                highlighted
-                visible={topCardsVisible}
-                delay={90}
-                enterRotateY={90}
-              />
-              <TopThreeCard
-                key={`right-${activePeriod}-${animationSeed}-${topThree[2]?.rank ?? "x"}`}
-                player={topThree[2] ?? activeRows[2]}
-                visible={topCardsVisible}
-                delay={180}
-                enterRotateY={120}
-              />
-            </div>
+            {firstPlace && secondPlace && thirdPlace ? (
+              <div className="mt-14 grid gap-8 xl:grid-cols-[1fr_1.12fr_1fr]">
+                <TopThreeCard
+                  key={`left-${activePeriod}-${secondPlace.rank}`}
+                  player={secondPlace}
+                  delay={0}
+                  enterRotateY={-120}
+                />
+                <TopThreeCard
+                  key={`center-${activePeriod}-${firstPlace.rank}`}
+                  player={firstPlace}
+                  highlighted
+                  delay={90}
+                  enterRotateY={90}
+                />
+                <TopThreeCard
+                  key={`right-${activePeriod}-${thirdPlace.rank}`}
+                  player={thirdPlace}
+                  delay={180}
+                  enterRotateY={120}
+                />
+              </div>
+            ) : null}
           </section>
 
           <RankingTable rows={activeRows} />
