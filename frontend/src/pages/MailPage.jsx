@@ -7,7 +7,7 @@ import NewMessageModal from "../components/mail/NewMessageModal";
 const MailPage = () => {
   const [currentMode, setCurrentMode] = useState("messages");
   const [messages, setMessages] = useState(mockMessages);
-  const [invitations] = useState(mockInvitations);
+  const [invitations, setInvitations] = useState(mockInvitations);
   const [activeTab, setActiveTab] = useState("all");
   const [activeMessageId, setActiveMessageId] = useState(mockMessages[0]?.id);
   const [isComposeOpen, setIsComposeOpen] = useState(false);
@@ -74,10 +74,18 @@ const MailPage = () => {
   };
 
   const handleDeleteMessage = (id) => {
-    if (window.confirm("정말 삭제하시겠습니까?")) {
+    if (!window.confirm("정말 삭제하시겠습니까?")) return;
+
+    if (currentMode === "messages") {
       setMessages((prev) => prev.filter((message) => message.id !== id));
-      setActiveMessageId(null);
+    } else {
+      // Teams 모드일 때는 invitationId를 기준으로 필터링
+      setInvitations((prev) =>
+        prev.filter((invitation) => invitation.invitationId !== id),
+      );
     }
+
+    setActiveMessageId(null);
   };
 
   const handleModeChange = (mode) => {
