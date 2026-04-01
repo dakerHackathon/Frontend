@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ActivityTemperatureCard from "../components/mypage/ActivityTemperatureCard";
 import HackathonListSection from "../components/mypage/HackathonListSection";
@@ -15,13 +15,21 @@ import {
   skillPool,
   teams,
 } from "../components/mypage/constants";
+import { useMyPage } from "../hooks/useMyPage";
 import { useTeam } from "../hooks/useTeam";
 import { getCurrentUser } from "../utils/auth";
 
 const TEAMS_STORAGE_KEY = "mypageTeams";
 
+const skillLabelMap = {
+  1: "React",
+  2: "TypeScript",
+  3: "Node.js",
+};
+
 const MyPage = () => {
   const navigate = useNavigate();
+  const { getMyPage } = useMyPage();
   const { handleCreateTeam: requestCreateTeam, isLoading, createTeamError } =
     useTeam();
   const [profile, setProfile] = useState(initialProfile);
@@ -33,10 +41,77 @@ const MyPage = () => {
   const [temperature, setTemperature] = useState(43.5);
   const [voteLocks, setVoteLocks] = useState({});
   const [savedItems, setSavedItems] = useState(savedHackathons);
+  const [hackathonItems, setHackathonItems] = useState(initialHackathons);
+  const [unreadCount, setUnreadCount] = useState(3);
   const [teamItems, setTeamItems] = useState(() => {
     const storedTeams = localStorage.getItem(TEAMS_STORAGE_KEY);
     return storedTeams ? JSON.parse(storedTeams) : teams;
   });
+
+  useEffect(() => {
+    const fetchMyPage = async () => {
+      const currentUser = getCurrentUser();
+      const userId = currentUser?.userId;
+
+      if (!userId) return;
+
+      const result = await getMyPage(userId);
+
+      if (!result?.isSuccess || !result.data) return;
+
+      const { data } = result;
+
+      const nextProfile = {
+        ...initialProfile,
+        name: data.nickname || "",
+        email: data.email || "",
+        intro: data.description || "",
+        github: data.github || "",
+        portfolio: data.portfolio || "",
+        skills: Array.isArray(data.skills)
+          ? data.skills.map((skill) => skillLabelMap[skill] || `Skill ${skill}`)
+          : [],
+      };
+
+      setProfile(nextProfile);
+      setEditForm(nextProfile);
+      setTemperature(data.temperature ?? 43.5);
+      setHackathonItems(
+        data.part_hackathon?.map((hackathon) => ({
+          id: `h${hackathon.hackathonId}`,
+          title: hackathon.hackathonName,
+          status: "active",
+          date: `${hackathon.start} - ${hackathon.end}`,
+          members: [
+            {
+              id: `member-${hackathon.hackathonId}`,
+              name: data.nickname || "mock-user",
+            },
+          ],
+        })) || [],
+      );
+      setSavedItems(
+        data.save_hackathon?.map((hackathon) => ({
+          id: `s${hackathon.hackathonId}`,
+          title: hackathon.hackathonName,
+          org: `deadline ${hackathon.end}`,
+        })) || [],
+      );
+      setUnreadCount(data.unread ?? 0);
+      const nextTeams =
+        data.teams?.map((team) => ({
+          id: `t${team.teamId}`,
+          name: team.teamName,
+          description: team.description,
+        })) || [];
+
+      // 마이페이지 조회 결과가 보이도록 목록 기준값을 API 응답으로 다시 맞춥니다.
+      setTeamItems(nextTeams);
+      localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(nextTeams));
+    };
+
+    fetchMyPage();
+  }, [getMyPage]);
 
   const filteredSkills = useMemo(
     () =>
@@ -49,10 +124,10 @@ const MyPage = () => {
   );
 
   const stats = [
-    { label: "우승 횟수", value: "3회", icon: "wins" },
-    { label: "참여 횟수", value: "8회", icon: "join" },
-    { label: "관심 북마크", value: `${savedItems.length}개`, icon: "bookmark" },
-    { label: "종합 랭킹", value: "18위", icon: "rank" },
+    { label: "Teams", value: `${teamItems.length}`, icon: "wins" },
+    { label: "Joined", value: `${hackathonItems.length}`, icon: "join" },
+    { label: "Saved", value: `${savedItems.length}`, icon: "bookmark" },
+    { label: "Skills", value: `${profile.skills.length}`, icon: "rank" },
   ];
 
   const openEditModal = () => {
@@ -100,7 +175,7 @@ const MyPage = () => {
     if (!userId) {
       const result = {
         isSuccess: false,
-        message: "로그인 사용자 정보가 없어 팀을 생성할 수 없습니다.",
+        message: "No logged-in user was found.",
       };
       setTeamCreateErrorMessage(result.message);
       return result;
@@ -109,9 +184,7 @@ const MyPage = () => {
     const result = await requestCreateTeam(userId, teamData);
 
     if (!result?.isSuccess) {
-      setTeamCreateErrorMessage(
-        result?.message || "팀 생성에 실패했습니다.",
-      );
+      setTeamCreateErrorMessage(result?.message || "Team creation failed.");
       return result;
     }
 
@@ -125,7 +198,7 @@ const MyPage = () => {
         {
           id: newTeamId,
           name: teamData.name,
-          role: "팀장",
+          role: "leader",
           leaderId: newMemberId,
           description: teamData.description,
           linkedHackathonId: null,
@@ -138,7 +211,7 @@ const MyPage = () => {
                 currentUser?.userNickname ||
                 profile.name,
               email: currentUser?.email || currentUser?.userEmail || profile.email,
-              role: "팀장",
+              role: "leader",
               part: teamData.role,
             },
           ],
@@ -163,7 +236,7 @@ const MyPage = () => {
 
           <div className="grid gap-4 lg:grid-cols-2">
             <HackathonListSection
-              hackathons={initialHackathons}
+              hackathons={hackathonItems}
               voteLocks={voteLocks}
               onVote={handleVote}
             />
@@ -184,7 +257,7 @@ const MyPage = () => {
             onRemove={handleRemoveSavedHackathon}
           />
 
-          <InboxSection unreadCount={3} />
+          <InboxSection unreadCount={unreadCount} />
         </div>
       </div>
 
