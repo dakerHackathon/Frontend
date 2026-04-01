@@ -1,4 +1,3 @@
-import { useState } from "react";
 import deleteIcon from "../../assets/mailDeleteIcon.png";
 
 // 공통 버튼 컴포넌트
@@ -15,9 +14,7 @@ const ActionCircle = ({ children, color = "#B8C1D2", onClick, title }) => (
   </button>
 );
 
-const MailViewer = ({ message, mode, onToggleStar, onDelete }) => {
-  const [inviteDecisionById, setInviteDecisionById] = useState({});
-
+const MailViewer = ({ message, mode, onToggleStar, onDelete, onRespond }) => {
   if (!message) {
     return (
       <section className="flex min-h-[700px] flex-1 items-center justify-center rounded-3xl border-2 border-dashed border-[#E4E9F2] bg-white text-xl font-medium text-[#99A2B4]">
@@ -57,16 +54,27 @@ const MailViewer = ({ message, mode, onToggleStar, onDelete }) => {
   const positionName = positions[message.position] || null;
 
   const isStarred = message.isStar || false;
-  const isRead = message.isRead || false;
   const isTeamInvite = message.type === 1;
   const isJoinRequest = message.type === 2;
   const isDecisionMessage = isTeamsMode && (isTeamInvite || isJoinRequest);
 
-  const inviteDecision = inviteDecisionById[currentId] ?? null;
+  const handleDecision = async (accept) => {
+    // 1. 여기서 직접 확인
+    const confirmMsg = accept ? "수락하시겠습니까?" : "거절하시겠습니까?";
+    if (!window.confirm(confirmMsg)) return;
 
-  const decideInvite = (decision) => {
-    setInviteDecisionById((prev) => ({ ...prev, [currentId]: decision }));
-    alert(decision === "accept" ? "수락되었습니다." : "거절되었습니다.");
+    // 2. 부모로부터 받은 함수를 실행하고 결과를 '직접' 기다림
+    const res = await onRespond(currentId, accept);
+
+    console.log("MailViewer 최종 도달 데이터:", res);
+
+    // 3. 결과 처리
+    if (res && res.isSuccess) {
+      alert(accept ? "성공적으로 수락되었습니다." : "요청을 거절했습니다.");
+      // 목록에서 지워지는 건 useMail 내부의 setInvitations가 처리함
+    } else {
+      alert(res?.message || "처리에 실패했습니다. 다시 시도해주세요.");
+    }
   };
 
   // 5. 본문 내용 (content가 있으면 그것을, 없으면 템플릿 사용)
@@ -128,7 +136,7 @@ const MailViewer = ({ message, mode, onToggleStar, onDelete }) => {
         </div>
       </div>
 
-      {/* 제목 영역 (message.subject -> displayTitle로 교체) */}
+      {/* 제목 영역 */}
       <div className="mt-12 mb-8">
         <h1 className="text-5xl font-black leading-tight tracking-tight text-[#2F3645]">
           {displayTitle}
@@ -143,41 +151,38 @@ const MailViewer = ({ message, mode, onToggleStar, onDelete }) => {
           dangerouslySetInnerHTML={{ __html: displayContent }}
         />
 
+        {/* 팀 초대/신청 모드일 때 보여주는 액션 박스 */}
         {isDecisionMessage ? (
           <div className="mt-12 rounded-2xl border-2 border-[#D7E2FF] bg-[#F6F9FF] p-8">
             <p className="mb-4 text-lg font-bold text-[#336DFE]">
               {isTeamInvite ? "팀 초대 응답" : "합류 요청 검토"}
             </p>
-            {inviteDecision ? (
-              <div
-                className={`flex items-center gap-2 text-2xl font-bold ${inviteDecision === "accept" ? "text-emerald-600" : "text-rose-600"}`}
+
+            <div className="flex justify-start gap-3 mt-8">
+              <button
+                type="button"
+                onClick={() => handleDecision(true)}
+                className="w-36 rounded-xl bg-emerald-600 py-2.5 text-base font-bold text-white shadow-sm transition hover:bg-emerald-700 active:scale-95"
               >
-                <span>{inviteDecision === "accept" ? "✓" : "✕"}</span>
-                {inviteDecision === "accept"
-                  ? "수락을 완료했습니다."
-                  : "요청을 거절했습니다."}
-              </div>
-            ) : (
-              <div className="flex justify-start gap-3 mt-8">
-                <button
-                  type="button"
-                  onClick={() => decideInvite("accept")}
-                  // w-32 또는 w-40 정도로 너비를 제한하고 py(높이)를 줄였습니다.
-                  className="w-36 rounded-xl bg-emerald-600 py-2.5 text-base font-bold text-white shadow-sm transition hover:bg-emerald-700 active:scale-95"
-                >
-                  수락하기
-                </button>
-                <button
-                  type="button"
-                  onClick={() => decideInvite("reject")}
-                  className="w-36 rounded-xl border border-rose-200 bg-white py-2.5 text-base font-bold text-rose-600 transition hover:bg-rose-50 active:scale-95"
-                >
-                  거절하기
-                </button>
-              </div>
-            )}
+                수락하기
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDecision(false)}
+                className="w-36 rounded-xl border border-rose-200 bg-white py-2.5 text-base font-bold text-rose-600 transition hover:bg-rose-50 active:scale-95"
+              >
+                거절하기
+              </button>
+            </div>
+
+            {/* 하단에 작은 안내 문구를 추가해 영역 밸런스를 맞췄습니다 */}
+            <p className="mt-4 text-sm text-[#8B95A7]">
+              * 수락 또는 거절을 선택하면 해당 메시지는 자동으로 목록에서
+              제외됩니다.
+            </p>
           </div>
         ) : (
+          /* 일반 쪽지일 때 보여주는 안내 사항 */
           <div className="mt-12 rounded-2xl border border-[#E4E9F2] bg-[#F8FAFC] p-6">
             <p className="mb-2 font-bold text-[#64748B]">💡 안내 사항</p>
             <ul className="list-disc space-y-1 pl-5 text-base text-[#94A3B8]">

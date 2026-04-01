@@ -105,7 +105,7 @@ const MailSidebar = ({
         activeTab={activeTab}
         onTabChange={onTabChange}
         onOpenCompose={onOpenCompose}
-        isTeamsMode={currentMode === "teams"}
+        currentMode={currentMode}
       />
 
       {/* 3. 메시지 리스트 (무한 스크롤 스타일 적용) */}
