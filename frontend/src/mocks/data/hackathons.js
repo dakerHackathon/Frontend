@@ -286,9 +286,9 @@ export const getHackathonListResponse = () => ({
     hackathons: hackathons.map((hackathon) => {
       const { start_at, end_at } = getDateRange(hackathon.period);
 
+      // API 명세 기준 필드만 반환한다 (slug는 명세에 없으므로 제외).
       return {
         id: hackathon.id,
-        slug: hackathon.slug,
         title: hackathon.title,
         start_at,
         end_at,

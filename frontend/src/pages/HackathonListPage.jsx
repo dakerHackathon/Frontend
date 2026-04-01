@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { hackathonApi } from "../api/hackathon";
+import { useApi } from "../hooks/common/useApi";
 import MiniCalendar from "../components/common/MiniCalendar";
 import PageSectionHeader from "../components/common/PageSectionHeader";
 import RankingSidebarCard from "../components/common/RankingSidebarCard";
@@ -22,25 +24,19 @@ const HackathonListPage = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [regionFilter, setRegionFilter] = useState("all");
   const [hackathonItems, setHackathonItems] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
+  // useApi가 isLoading·error 상태를 관리하므로 별도 로컬 상태가 필요 없다.
+  const { isLoading, error: errorMessage, execute } = useApi(hackathonApi.getList);
 
   useEffect(() => {
     let isMounted = true;
 
     const loadHackathons = async () => {
       try {
-        setIsLoading(true);
-        setErrorMessage("");
+        // axiosInstance 인터셉터가 response.data를 반환하므로
+        // result = { isSuccess, code, message, data: { hackathons: [...] } }
+        const result = await execute();
 
-        const response = await fetch("/hackathons");
-        const result = await response.json();
-
-        if (!response.ok || !result?.isSuccess) {
-          throw new Error(result?.message || "해커톤 목록을 불러오지 못했습니다.");
-        }
-
-        const normalizedItems = result.data.hackathons.map((item) => {
+        const normalizedItems = (result?.data?.hackathons ?? []).map((item) => {
           const statusMeta = getStatusMeta(item.start_at, item.end_at);
 
           return {
@@ -55,14 +51,8 @@ const HackathonListPage = () => {
         if (isMounted) {
           setHackathonItems(normalizedItems);
         }
-      } catch (error) {
-        if (isMounted) {
-          setErrorMessage(error.message || "해커톤 목록을 불러오지 못했습니다.");
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+      } catch {
+        // 네트워크·HTTP 에러는 useApi가 errorMessage(error)로 자동 관리한다.
       }
     };
 
@@ -71,7 +61,7 @@ const HackathonListPage = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [execute]);
 
   const filteredHackathons = useMemo(() => {
     const loweredSearch = searchValue.trim().toLowerCase();

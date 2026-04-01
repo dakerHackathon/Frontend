@@ -1,12 +1,30 @@
 import { http, HttpResponse } from "msw";
 import { getHackathonDetailResponse, getHackathonListResponse } from "../data/hackathons";
 
+// axiosInstance의 baseURL과 일치시켜야 MSW가 요청을 가로챌 수 있다.
+const BASE_URL = "http://13.125.160.175:8080";
+
+// true로 바꾸면 500 응답을 반환해 에러 UI를 테스트할 수 있다.
+const shouldFail = false;
+
 export const hackathonHandlers = [
-  http.get("/hackathons", () => {
+  http.get(`${BASE_URL}/hackathons`, () => {
+    console.log("✅ MSW intercepted: GET /hackathons");
+
+    if (shouldFail) {
+      return HttpResponse.json(
+        { isSuccess: false, code: "500", message: "서버 오류가 발생했습니다.", data: null },
+        { status: 500 },
+      );
+    }
+
     return HttpResponse.json(getHackathonListResponse());
   }),
-  http.get("/hackathons/:slug", ({ params }) => {
-    const response = getHackathonDetailResponse(params.slug);
+
+  http.get(`${BASE_URL}/hackathons/:id`, ({ params }) => {
+    console.log(`✅ MSW intercepted: GET /hackathons/${params.id}`);
+
+    const response = getHackathonDetailResponse(params.id);
 
     if (!response) {
       return HttpResponse.json(
