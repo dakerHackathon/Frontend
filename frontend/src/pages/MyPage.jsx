@@ -15,14 +15,19 @@ import {
   skillPool,
   teams,
 } from "../components/mypage/constants";
+import { useTeam } from "../hooks/useTeam";
+import { getCurrentUser } from "../utils/auth";
 
 const TEAMS_STORAGE_KEY = "mypageTeams";
 
 const MyPage = () => {
   const navigate = useNavigate();
+  const { handleCreateTeam: requestCreateTeam, isLoading, createTeamError } =
+    useTeam();
   const [profile, setProfile] = useState(initialProfile);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isTeamCreateOpen, setIsTeamCreateOpen] = useState(false);
+  const [teamCreateErrorMessage, setTeamCreateErrorMessage] = useState("");
   const [editForm, setEditForm] = useState(initialProfile);
   const [skillQuery, setSkillQuery] = useState("");
   const [temperature, setTemperature] = useState(43.5);
@@ -78,8 +83,41 @@ const MyPage = () => {
     setSavedItems((prev) => prev.filter((item) => item.id !== hackathonId));
   };
 
-  const handleCreateTeam = (teamData) => {
-    const newTeamId = `t${Date.now()}`;
+  const handleOpenTeamCreateModal = () => {
+    setTeamCreateErrorMessage("");
+    setIsTeamCreateOpen(true);
+  };
+
+  const handleCloseTeamCreateModal = () => {
+    setTeamCreateErrorMessage("");
+    setIsTeamCreateOpen(false);
+  };
+
+  const handleCreateTeam = async (teamData) => {
+    const currentUser = getCurrentUser();
+    const userId = currentUser?.userId;
+
+    if (!userId) {
+      const result = {
+        isSuccess: false,
+        message: "로그인 사용자 정보가 없어 팀을 생성할 수 없습니다.",
+      };
+      setTeamCreateErrorMessage(result.message);
+      return result;
+    }
+
+    const result = await requestCreateTeam(userId, teamData);
+
+    if (!result?.isSuccess) {
+      setTeamCreateErrorMessage(
+        result?.message || "팀 생성에 실패했습니다.",
+      );
+      return result;
+    }
+
+    const newTeamId = result.data?.teamId
+      ? `t${result.data.teamId}`
+      : `t${Date.now()}`;
     const newMemberId = `tm${Date.now()}`;
 
     setTeamItems((prev) => {
@@ -94,9 +132,12 @@ const MyPage = () => {
           members: [
             {
               id: newMemberId,
-              name: profile.name,
-              nickname: profile.name,
-              email: profile.email,
+              name: currentUser?.name || profile.name,
+              nickname:
+                currentUser?.nickName ||
+                currentUser?.userNickname ||
+                profile.name,
+              email: currentUser?.email || currentUser?.userEmail || profile.email,
               role: "팀장",
               part: teamData.role,
             },
@@ -109,7 +150,9 @@ const MyPage = () => {
       return nextTeams;
     });
 
+    setTeamCreateErrorMessage("");
     setIsTeamCreateOpen(false);
+    return result;
   };
 
   return (
@@ -128,7 +171,7 @@ const MyPage = () => {
             <TeamStatusSection
               teams={teamItems}
               onOpenTeam={(teamId) => navigate(`/mypage/teams/${teamId}`)}
-              onAddTeam={() => setIsTeamCreateOpen(true)}
+              onAddTeam={handleOpenTeamCreateModal}
             />
           </div>
         </div>
@@ -158,9 +201,10 @@ const MyPage = () => {
 
       <TeamCreateModal
         isOpen={isTeamCreateOpen}
-        profile={profile}
-        onClose={() => setIsTeamCreateOpen(false)}
+        onClose={handleCloseTeamCreateModal}
         onCreate={handleCreateTeam}
+        isCreating={isLoading}
+        createError={teamCreateErrorMessage || createTeamError || ""}
       />
     </div>
   );
