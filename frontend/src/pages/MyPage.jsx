@@ -26,10 +26,15 @@ const skillLabelMap = {
   2: "TypeScript",
   3: "Node.js",
 };
+const skillValueMap = {
+  React: 1,
+  TypeScript: 2,
+  "Node.js": 3,
+};
 
 const MyPage = () => {
   const navigate = useNavigate();
-  const { getMyPage } = useMyPage();
+  const { getMyPage, updateMyPage } = useMyPage();
   const { handleCreateTeam: requestCreateTeam, isLoading, createTeamError } =
     useTeam();
   const [profile, setProfile] = useState(initialProfile);
@@ -149,7 +154,31 @@ const MyPage = () => {
 
   const closeEditModal = () => setIsEditOpen(false);
 
-  const saveProfile = () => {
+  const saveProfile = async () => {
+    const currentUser = getCurrentUser();
+    const userId = currentUser?.userId;
+
+    if (!userId) {
+      alert("No logged-in user was found.");
+      return;
+    }
+
+    const result = await updateMyPage(userId, {
+      nickname: editForm.name,
+      description: editForm.intro,
+      portfolio: editForm.portfolio,
+      github: editForm.github,
+      // 수정 API 명세가 숫자 배열을 요구해서 화면용 스킬 라벨을 요청 값으로 다시 매핑합니다.
+      skills: editForm.skills
+        .map((skill) => skillValueMap[skill])
+        .filter((skill) => typeof skill === "number"),
+    });
+
+    if (!result?.isSuccess) {
+      alert(result?.message || "Profile update failed.");
+      return;
+    }
+
     setProfile(editForm);
     setIsEditOpen(false);
   };
