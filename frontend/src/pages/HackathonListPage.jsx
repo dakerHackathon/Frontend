@@ -4,7 +4,7 @@ import BaseInfoCard from "../components/common/BaseInfoCard";
 import MiniCalendar from "../components/common/MiniCalendar";
 import PageSectionHeader from "../components/common/PageSectionHeader";
 import PrimaryActionButton from "../components/common/PrimaryActionButton";
-import RankingSummaryCard from "../components/common/RankingSummaryCard";
+import RankingSidebarCard from "../components/common/RankingSidebarCard";
 import SearchFilterBar from "../components/common/SearchFilterBar";
 import StatusBadge from "../components/common/StatusBadge";
 import { hackathons } from "../data/hackathons";
@@ -12,7 +12,6 @@ import { hackathons } from "../data/hackathons";
 const sidebarRankings = [
   {
     title: "블루밍 온도",
-    label: "온도",
     entries: [
       { rank: 1, name: "강석진", value: "43.5" },
       { rank: 2, name: "김현호", value: "41.3" },
@@ -22,7 +21,6 @@ const sidebarRankings = [
   },
   {
     title: "최다 우승",
-    label: "우승",
     entries: [
       { rank: 1, name: "강석진", value: "8회" },
       { rank: 2, name: "김현호", value: "7회" },
@@ -32,7 +30,6 @@ const sidebarRankings = [
   },
   {
     title: "최다 참여",
-    label: "참여",
     entries: [
       { rank: 1, name: "강석진", value: "15회" },
       { rank: 2, name: "김현호", value: "14회" },
@@ -62,12 +59,6 @@ const regionOptions = [
   { value: "busan", label: "부산" },
   { value: "daejeon", label: "대전" },
   { value: "etc", label: "기타" },
-];
-
-const sortOptions = [
-  { value: "latest", label: "최신순" },
-  { value: "deadline", label: "마감임박순" },
-  { value: "title", label: "이름순" },
 ];
 
 const FavoriteStarButton = ({ active, onToggle }) => (
@@ -198,7 +189,6 @@ const HackathonListPage = () => {
   const [searchValue, setSearchValue] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [regionFilter, setRegionFilter] = useState("all");
-  const [sortFilter, setSortFilter] = useState("latest");
   const [favoriteIds, setFavoriteIds] = useState([]);
 
   const toggleFavorite = (hackathonId) => {
@@ -227,16 +217,8 @@ const HackathonListPage = () => {
       return matchesSearch && matchesStatus && matchesRegion;
     });
 
-    if (sortFilter === "title") {
-      return [...result].sort((left, right) => left.title.localeCompare(right.title));
-    }
-
-    if (sortFilter === "deadline") {
-      return [...result].sort((left, right) => left.dDay.localeCompare(right.dDay));
-    }
-
     return result;
-  }, [regionFilter, searchCategory, searchValue, sortFilter, statusFilter]);
+  }, [regionFilter, searchCategory, searchValue, statusFilter]);
 
   return (
     <div className="min-h-screen bg-[#F3F6FF]">
@@ -244,7 +226,7 @@ const HackathonListPage = () => {
         <aside className="w-full shrink-0 space-y-4 lg:sticky lg:top-28 lg:w-[294px] lg:self-start">
           <MiniCalendar />
           {sidebarRankings.map((ranking) => (
-            <RankingSummaryCard key={ranking.title} {...ranking} />
+            <RankingSidebarCard key={ranking.title} {...ranking} />
           ))}
         </aside>
 
@@ -274,12 +256,6 @@ const HackathonListPage = () => {
                 value: regionFilter,
                 onChange: setRegionFilter,
                 options: regionOptions,
-              },
-              {
-                key: "sort",
-                value: sortFilter,
-                onChange: setSortFilter,
-                options: sortOptions,
               },
             ]}
           />

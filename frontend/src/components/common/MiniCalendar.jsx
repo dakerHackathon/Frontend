@@ -77,8 +77,8 @@ const MiniCalendar = () => {
       </div>
 
       <div className="grid grid-cols-7 gap-y-3 px-5 py-5 text-center">
-        {DAYS.map((day) => (
-          <span key={day} className="text-sm font-medium text-slate-400">
+        {DAYS.map((day, index) => (
+          <span key={`${day}-${index}`} className="text-sm font-medium text-slate-400">
             {day}
           </span>
         ))}

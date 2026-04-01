@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import MiniCalendar from "../components/common/MiniCalendar";
+import RankingSidebarCard from "../components/common/RankingSidebarCard";
 
 const periodTabs = [
   { key: "weekly", label: "주간" },
@@ -256,39 +257,33 @@ const rankingByPeriod = {
   ],
 };
 
-const sideRankingSections = [
+const sidebarRankings = [
   {
-    key: "temperature",
     title: "블루밍 온도",
-    metric: "온도",
-    myScore: "36.5",
     entries: [
       { rank: 1, name: "강석진", value: "43.5" },
       { rank: 2, name: "김현호", value: "41.3" },
       { rank: 3, name: "김민준", value: "39.8" },
     ],
+    currentUser: { name: "My NickName - 18th", value: "36.5" },
   },
   {
-    key: "wins",
     title: "최다 우승",
-    metric: "우승",
-    myScore: "0회",
     entries: [
       { rank: 1, name: "강석진", value: "8회" },
       { rank: 2, name: "김현호", value: "7회" },
       { rank: 3, name: "김민준", value: "6회" },
     ],
+    currentUser: { name: "My NickName - 18th", value: "0회" },
   },
   {
-    key: "attendance",
     title: "최다 참여",
-    metric: "참여",
-    myScore: "2회",
     entries: [
       { rank: 1, name: "강석진", value: "15회" },
       { rank: 2, name: "김현호", value: "14회" },
       { rank: 3, name: "김민준", value: "11회" },
     ],
+    currentUser: { name: "My NickName - 18th", value: "2회" },
   },
 ];
 
@@ -319,18 +314,6 @@ const rankBadgeTones = {
   3: "bg-[#E2871A] text-white",
 };
 
-const UserIcon = ({ className = "" }) => (
-  <svg viewBox="0 0 24 24" fill="none" className={className}>
-    <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.8" />
-    <path
-      d="M4.5 19C5.6 15.7 8.4 14 12 14C15.6 14 18.4 15.7 19.5 19"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-    />
-  </svg>
-);
-
 const TrophyIcon = ({ className = "" }) => (
   <svg viewBox="0 0 24 24" fill="none" className={className}>
     <path
@@ -352,43 +335,6 @@ const GithubIcon = ({ className = "" }) => (
   </svg>
 );
 
-const SidebarRankingCard = ({ title, entries, myScore }) => (
-  <section className="rounded-[24px] border border-slate-300 bg-white px-5 py-5 shadow-[0_16px_36px_rgba(15,23,42,0.08)]">
-    <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-      <h2 className="text-[1.2rem] font-black text-[#336DFE]">{title}</h2>
-    </div>
-
-    <div className="space-y-3 py-4">
-      {entries.map((entry) => (
-        <div
-          key={entry.rank}
-          className="flex items-center justify-between gap-3 text-xs font-semibold sm:text-sm"
-        >
-          <div className="flex items-center gap-2.5">
-            <span className="inline-flex items-center gap-1 leading-none text-slate-800">
-              <TrophyIcon className="h-4 w-4 shrink-0" />
-              <span className="font-black leading-none">{entry.rank}위</span>
-            </span>
-            <div className="flex h-4 items-center gap-1.5">
-              <UserIcon className="h-[13px] w-[13px] shrink-0 text-[#9CB3FF]" />
-              <span className="font-black leading-none text-[#336DFE]">{entry.name}</span>
-            </div>
-          </div>
-          <span className="font-black leading-none text-[#F59E0B]">{entry.value}</span>
-        </div>
-      ))}
-    </div>
-
-    <div className="flex items-center justify-between rounded-2xl bg-[#DDE5FF] px-4 py-3 text-xs font-bold text-[#336DFE] sm:text-sm">
-      <div className="flex h-4 items-center gap-1.5">
-        <UserIcon className="h-[13px] w-[13px] shrink-0" />
-        <span className="leading-none">My NickName·18th</span>
-      </div>
-      <span className="leading-none">{myScore}</span>
-    </div>
-  </section>
-);
-
 const AvatarBadge = ({ player, large = false }) => (
   <div
     className={`relative inline-flex items-center justify-center rounded-full bg-gradient-to-br text-white ring-4 ${player.avatar.ring ?? "ring-white"} ${
@@ -404,30 +350,20 @@ const AvatarBadge = ({ player, large = false }) => (
   </div>
 );
 
-const TopThreeCard = ({
-  player,
-  highlighted = false,
-  visible = false,
-  delay = 0,
-  enterRotateY = 0,
-}) => {
+const TopThreeCard = ({ player, highlighted = false, delay = 0, enterRotateY = 0 }) => {
   const tone = medalTones[player.rank];
 
   return (
     <article
       className={`relative overflow-visible rounded-[30px] border border-slate-200 px-6 pb-8 pt-16 shadow-[0_18px_40px_rgba(15,23,42,0.06)] ${tone.card} ${
         highlighted ? "xl:translate-y-0" : ""
-      } transition-[transform,opacity,filter] duration-700 ease-out`}
+      }`}
       style={{
-        transitionDelay: `${delay}ms`,
-        opacity: visible ? 1 : 0,
-        transform: visible
-          ? "perspective(1200px) translateY(0) scale(1) rotateY(0deg)"
-          : `perspective(1200px) translateY(24px) scale(0.92) rotateY(${enterRotateY}deg)`,
+        animation: `rankingTopCardFlip 700ms cubic-bezier(0.22, 1, 0.36, 1) ${delay}ms both`,
+        "--ranking-enter-rotate-y": `${enterRotateY}deg`,
         transformStyle: "preserve-3d",
         transformOrigin: "center center",
         backfaceVisibility: "hidden",
-        filter: visible ? "blur(0px)" : "blur(3px)",
       }}
     >
       <div className={`absolute left-0 right-0 top-0 h-1 rounded-t-[30px] ${tone.line}`} />
@@ -537,8 +473,6 @@ const RankingTable = ({ rows }) => (
 
 const RankingPage = () => {
   const [activePeriod, setActivePeriod] = useState("weekly");
-  const [topCardsVisible, setTopCardsVisible] = useState(false);
-  const [animationSeed, setAnimationSeed] = useState(0);
   const activeRows = useMemo(
     () =>
       [...(rankingByPeriod[activePeriod] ?? rankingByPeriod.weekly)].sort(
@@ -547,32 +481,31 @@ const RankingPage = () => {
     [activePeriod],
   );
   const topThree = activeRows.slice(0, 3);
-
-  useEffect(() => {
-    setTopCardsVisible(false);
-    setAnimationSeed((seed) => seed + 1);
-    let timeoutId;
-    const frame = window.requestAnimationFrame(() => {
-      timeoutId = window.setTimeout(() => {
-        setTopCardsVisible(true);
-      }, 40);
-    });
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      if (timeoutId) {
-        window.clearTimeout(timeoutId);
-      }
-    };
-  }, [activePeriod]);
+  const firstPlace = topThree[0] ?? null;
+  const secondPlace = topThree[1] ?? null;
+  const thirdPlace = topThree[2] ?? null;
 
   return (
     <div className="min-h-screen bg-[#F3F6FF]">
+      <style>{`
+        @keyframes rankingTopCardFlip {
+          0% {
+            opacity: 0;
+            transform: perspective(1200px) translateY(24px) scale(0.92) rotateY(var(--ranking-enter-rotate-y));
+            filter: blur(3px);
+          }
+          100% {
+            opacity: 1;
+            transform: perspective(1200px) translateY(0) scale(1) rotateY(0deg);
+            filter: blur(0);
+          }
+        }
+      `}</style>
       <div className="mx-auto flex max-w-[1640px] flex-col gap-8 px-4 py-8 lg:flex-row lg:gap-14 lg:px-8 lg:py-10">
         <aside className="w-full shrink-0 space-y-5 lg:sticky lg:top-28 lg:w-[294px] lg:self-start">
           <MiniCalendar />
-          {sideRankingSections.map((section) => (
-            <SidebarRankingCard key={section.key} {...section} />
+          {sidebarRankings.map((ranking) => (
+            <RankingSidebarCard key={ranking.title} {...ranking} />
           ))}
         </aside>
 
@@ -603,30 +536,29 @@ const RankingPage = () => {
               </div>
             </div>
 
-            <div className="mt-14 grid gap-8 xl:grid-cols-[1fr_1.12fr_1fr]">
-              <TopThreeCard
-                key={`left-${activePeriod}-${animationSeed}-${topThree[1].rank}`}
-                player={topThree[1]}
-                visible={topCardsVisible}
-                delay={0}
-                enterRotateY={-120}
-              />
-              <TopThreeCard
-                key={`center-${activePeriod}-${animationSeed}-${topThree[0].rank}`}
-                player={topThree[0]}
-                highlighted
-                visible={topCardsVisible}
-                delay={90}
-                enterRotateY={90}
-              />
-              <TopThreeCard
-                key={`right-${activePeriod}-${animationSeed}-${topThree[2].rank}`}
-                player={topThree[2]}
-                visible={topCardsVisible}
-                delay={180}
-                enterRotateY={120}
-              />
-            </div>
+            {firstPlace && secondPlace && thirdPlace ? (
+              <div className="mt-14 grid gap-8 xl:grid-cols-[1fr_1.12fr_1fr]">
+                <TopThreeCard
+                  key={`left-${activePeriod}-${secondPlace.rank}`}
+                  player={secondPlace}
+                  delay={0}
+                  enterRotateY={-120}
+                />
+                <TopThreeCard
+                  key={`center-${activePeriod}-${firstPlace.rank}`}
+                  player={firstPlace}
+                  highlighted
+                  delay={90}
+                  enterRotateY={90}
+                />
+                <TopThreeCard
+                  key={`right-${activePeriod}-${thirdPlace.rank}`}
+                  player={thirdPlace}
+                  delay={180}
+                  enterRotateY={120}
+                />
+              </div>
+            ) : null}
           </section>
 
           <RankingTable rows={activeRows} />
