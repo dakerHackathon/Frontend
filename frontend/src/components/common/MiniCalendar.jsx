@@ -19,12 +19,18 @@ const buildCalendar = (baseDate) => {
     });
   }
 
+  // 오늘 날짜를 기준으로 isToday 여부를 판단한다.
+  const today = new Date();
+  const todayYear = today.getFullYear();
+  const todayMonth = today.getMonth();
+  const todayDate = today.getDate();
+
   for (let date = 1; date <= lastDay.getDate(); date += 1) {
     days.push({
       key: `current-${date}`,
       date,
       muted: false,
-      isToday: year === 2026 && month === 2 && date === 24,
+      isToday: year === todayYear && month === todayMonth && date === todayDate,
     });
   }
 
@@ -42,7 +48,9 @@ const buildCalendar = (baseDate) => {
 };
 
 const MiniCalendar = () => {
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 2, 1));
+  // 초기 달을 오늘 날짜 기준으로 설정해 캘린더가 현재 월을 먼저 보여주도록 한다.
+  const today = new Date();
+  const [currentDate, setCurrentDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const monthLabel = `${currentDate.getMonth() + 1}월`;
   const calendarDays = useMemo(() => buildCalendar(currentDate), [currentDate]);
 
