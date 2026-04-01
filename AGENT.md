@@ -200,6 +200,41 @@
   - 동일 패턴이 여러 화면에 반복된다.
 - 한 번에 모든 화면을 정리하지 말고, 변경 요청이 들어온 도메인부터 점진적으로 정리한다.
 
+## API 연동 규칙
+
+- API 호출 함수는 반드시 `src/api/도메인명.js`에 작성한다.
+- 로그인 API 연동 방식과 동일한 패턴을 유지한다. (네이밍, 에러 처리, 응답 구조 처리 포함)
+- 명세 없이 endpoint, request, response를 추측해서 만들지 않는다.
+- 명세 받은 내용만 그대로 반영한다.
+- `axiosInstance`와 `useApi`는 수정하지 않는다.
+- 커스텀 훅은 `src/hooks/`에 작성하고, 페이지는 조합 역할만 담당한다.
+
+## MSW 사용 규칙
+
+API 연동 전에는 반드시 MSW로 mocking 환경을 구성한다.
+
+- `mocks/browser.js`, `mocks/handlers/` 구조를 유지한다.
+- 개발 환경에서만 worker를 실행한다.
+- MSW가 정상 동작하는지 반드시 확인 가능한 구조로 구현한다.
+
+### MSW 동작 확인 필수 요소
+
+1. **콘솔 로그**: API 요청 시 로그 출력. 예: `"✅ MSW intercepted: /api/..."`
+2. **눈에 띄는 목업 데이터**: 실제 데이터와 구분 가능한 값. 예: `"msw-test-user"`, `"mock-data"`
+3. **onUnhandledRequest 설정**: 처리되지 않은 요청은 경고 출력
+
+```js
+worker.start({
+  onUnhandledRequest: "warn",
+});
+```
+
+4. **에러 테스트 가능 구조**: 200 / 401 / 500 응답을 쉽게 전환할 수 있도록 플래그 변수로 구성
+
+```js
+const shouldFail = false;
+```
+
 ## 금지 사항
 
 - 확인하지 않은 가정으로 API 스키마를 단정하지 않는다.
