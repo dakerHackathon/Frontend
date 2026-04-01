@@ -5,16 +5,16 @@ export const userHandlers = [
   // <로그인 API>
   http.post("/user/login", async ({ request }) => {
     // 1. 파라미터를 loginId 대신 email로 받습니다.
-    const { email, password } = await request.json();
+    const { loginId, password } = await request.json();
 
     // 2. 로컬스토리지에서 유저 목록을 가져옵니다.
     const storedUsers = JSON.parse(
       localStorage.getItem("users") || JSON.stringify(mockUsers),
     );
 
-    // 3. email과 password가 일치하는 유저를 찾습니다.
+    // 3. loginId와 password가 일치하는 유저를 찾습니다.
     const user = storedUsers.find(
-      (u) => u.email === email && u.password === password,
+      (u) => u.loginId === loginId && u.password === password,
     );
 
     if (user) {

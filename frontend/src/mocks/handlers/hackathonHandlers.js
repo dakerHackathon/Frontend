@@ -2,7 +2,7 @@ import { http, HttpResponse } from "msw";
 import { getHackathonDetailResponse, getHackathonListResponse } from "../data/hackathons";
 
 // axiosInstance의 baseURL과 일치시켜야 MSW가 요청을 가로챌 수 있다.
-const BASE_URL = "http://13.125.160.175:8080";
+const BASE_URL = "http://localhost:5173";
 
 // true로 바꾸면 500 응답을 반환해 에러 UI를 테스트할 수 있다.
 const shouldFail = false;
