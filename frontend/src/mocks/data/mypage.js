@@ -1,7 +1,7 @@
 export const myPageMockResponse = {
   isSuccess: true,
   code: "200",
-  message: "요청이 성공적입니다.",
+  message: "?붿껌???깃났?곸엯?덈떎.",
   data: {
     email: "msw-test-user@email.com",
     nickname: "msw-mypage-user",

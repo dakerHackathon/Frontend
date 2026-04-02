@@ -26,11 +26,15 @@ const ProfileEditModal = ({
 
         <label className="block">
           <span className="mb-1 block font-medium">이메일 (수정 불가)</span>
-          <input value={editForm.email} disabled className="w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2" />
+          <input
+            value={editForm.email}
+            disabled
+            className="w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2"
+          />
         </label>
 
         <label className="block">
-          <span className="mb-1 block font-medium">한줄 소개</span>
+          <span className="mb-1 block font-medium">자기 소개</span>
           <textarea
             rows={3}
             value={editForm.intro}
@@ -100,17 +104,25 @@ const ProfileEditModal = ({
                 className="group rounded-full bg-blue-50 px-3 py-1 text-xs text-blue-700"
               >
                 #{skill}
-                <span className="ml-1 hidden group-hover:inline">✕</span>
+                <span className="ml-1 hidden group-hover:inline">x</span>
               </button>
             ))}
           </div>
         </div>
 
         <div className="flex justify-end gap-2 pt-2">
-          <button type="button" onClick={onClose} className="rounded-lg border border-slate-300 px-3 py-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg border border-slate-300 px-3 py-2"
+          >
             취소
           </button>
-          <button type="button" onClick={onSave} className="rounded-lg bg-blue-600 px-3 py-2 font-semibold text-white">
+          <button
+            type="button"
+            onClick={onSave}
+            className="rounded-lg bg-blue-600 px-3 py-2 font-semibold text-white"
+          >
             저장
           </button>
         </div>
