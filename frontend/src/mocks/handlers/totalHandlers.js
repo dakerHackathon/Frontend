@@ -1,4 +1,4 @@
 import { userHandlers } from "./userHandlers";
 
-// 도메인별 핸들러들을 하나로 합칩니다.
+// ?꾨찓?몃퀎 ?몃뱾?щ뱾???섎굹濡??⑹묩?덈떎.
 export const totalHandlers = [...userHandlers];
