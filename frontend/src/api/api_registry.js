@@ -4,6 +4,7 @@ import { hackathonApi } from "./hackathon";
 import { mypageApi } from "./mypage";
 import { teamApi } from "./team";
 import { mailApi } from "./mail";
+import { recruitApi } from "./recruit";
 
 export const API = {
   auth: authApi,
@@ -11,4 +12,5 @@ export const API = {
   mypage: mypageApi,
   team: teamApi,
   mail: mailApi,
+  recruit: recruitApi,
 };

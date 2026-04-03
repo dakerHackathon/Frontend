@@ -3,8 +3,9 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import BaseInfoCard from "../components/common/BaseInfoCard";
 import PrimaryActionButton from "../components/common/PrimaryActionButton";
 import SearchFilterBar from "../components/common/SearchFilterBar";
+import { useRecruit } from "../hooks/useRecruit";
 
-const recruitPosts = [
+const initialRecruitPosts = [
   {
     id: 1,
     version: "1분전",
@@ -419,6 +420,7 @@ const RecruitCard = ({ post, onOpen }) => {
 const RecruitMemberPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { fetchList, isLoading, error: errorMessage } = useRecruit();
   const initialSearchCategory =
     searchParams.get("searchCategory") === "hackathon" ? "hackathon" : "titleAndContent";
   const initialSearchValue = searchParams.get("search") ?? "";
@@ -427,6 +429,7 @@ const RecruitMemberPage = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [positionFilter, setPositionFilter] = useState("all");
   const [selectedPost, setSelectedPost] = useState(null);
+  const [recruitItems, setRecruitItems] = useState(initialRecruitPosts);
 
   useEffect(() => {
     const nextParams = new URLSearchParams(searchParams);
@@ -451,10 +454,30 @@ const RecruitMemberPage = () => {
     }
   }, [searchCategory, searchParams, searchValue, setSearchParams]);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadRecruitPosts = async () => {
+      const result = await fetchList();
+
+      if (!isMounted || !result?.isSuccess) {
+        return;
+      }
+
+      setRecruitItems(result.data?.posts ?? []);
+    };
+
+    loadRecruitPosts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchList]);
+
   const filteredPosts = useMemo(() => {
     const loweredSearch = searchValue.trim().toLowerCase();
 
-    return recruitPosts.filter((post) => {
+    return recruitItems.filter((post) => {
       const searchableText =
         searchCategory === "hackathon" ? post.hackathonName : `${post.title} ${post.description}`;
 
@@ -476,7 +499,7 @@ const RecruitMemberPage = () => {
 
       return matchesSearch && matchesStatus && matchesPosition;
     });
-  }, [positionFilter, searchCategory, searchValue, statusFilter]);
+  }, [positionFilter, recruitItems, searchCategory, searchValue, statusFilter]);
 
   return (
     <div className="min-h-screen bg-[#F3F6FF]">
@@ -521,11 +544,25 @@ const RecruitMemberPage = () => {
             />
           </div>
 
-          <div className="grid gap-6 sm:gap-7 md:grid-cols-2 xl:grid-cols-3">
-            {filteredPosts.map((post) => (
-              <RecruitCard key={post.id} post={post} onOpen={setSelectedPost} />
-            ))}
-          </div>
+          {isLoading ? (
+            <BaseInfoCard className="rounded-[28px] p-10 text-center text-sm font-medium text-slate-500">
+              팀원 모집 목록을 불러오는 중입니다.
+            </BaseInfoCard>
+          ) : errorMessage ? (
+            <BaseInfoCard className="rounded-[28px] p-10 text-center text-sm font-medium text-red-500">
+              {errorMessage}
+            </BaseInfoCard>
+          ) : filteredPosts.length === 0 ? (
+            <BaseInfoCard className="rounded-[28px] p-10 text-center text-sm font-medium text-slate-500">
+              조건에 맞는 팀원 모집 글이 없습니다.
+            </BaseInfoCard>
+          ) : (
+            <div className="grid gap-6 sm:gap-7 md:grid-cols-2 xl:grid-cols-3">
+              {filteredPosts.map((post) => (
+                <RecruitCard key={post.id} post={post} onOpen={setSelectedPost} />
+              ))}
+            </div>
+          )}
         </section>
       </div>
 
