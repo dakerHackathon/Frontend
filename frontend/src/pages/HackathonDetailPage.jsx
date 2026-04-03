@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Cell, Pie, PieChart } from "recharts";
@@ -10,6 +10,7 @@ import HackathonDetailInfoRow from "../components/hackathon/HackathonDetailInfoR
 import HackathonDetailPrizeCard from "../components/hackathon/HackathonDetailPrizeCard";
 import HackathonDetailSectionTitle from "../components/hackathon/HackathonDetailSectionTitle";
 import HackathonDetailTimeline from "../components/hackathon/HackathonDetailTimeline";
+import { useHackathon } from "../hooks/useHackathon";
 import { useTeam } from "../hooks/useTeam";
 import {
   evaluationColors,
@@ -20,24 +21,27 @@ import {
   iconScore,
   iconTeam,
 } from "../components/hackathon/hackathonDetail.constants.jsx";
-import { getHackathonById } from "../mocks/data/hackathons";
-import { getCurrentUser } from "../utils/auth";
+import {
+  getHackathonUserId,
+  notifyHackathonSaveUpdated,
+} from "../utils/hackathon";
 
 const HackathonDetailPage = () => {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const hackathon = useMemo(() => getHackathonById(id), [id]);
-  const currentUser = useMemo(() => getCurrentUser(), []);
-  const currentUserId = currentUser?.userId ?? null;
+  const backgroundLocation = location.state?.backgroundLocation;
+  const summaryFromLocation = location.state?.hackathonSummary ?? null;
+  const currentUserId = getHackathonUserId();
+  const { fetchList, fetchDetail, toggleSave, isLoading, isSaveLoading } = useHackathon();
   const { getLeaderTeams, registerHackathonTeam, isLoading: isTeamActionLoading } = useTeam();
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [hackathon, setHackathon] = useState(null);
   const [leaderTeams, setLeaderTeams] = useState([]);
   const [isLeaderTeamsLoading, setIsLeaderTeamsLoading] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState("");
   const [registerFeedback, setRegisterFeedback] = useState(null);
-  const backgroundLocation = location.state?.backgroundLocation;
+  const [detailError, setDetailError] = useState("");
 
   const closeDetail = () => {
     if (backgroundLocation) {
@@ -66,6 +70,42 @@ const HackathonDetailPage = () => {
       document.body.style.paddingRight = previousBodyPaddingRight;
     };
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadHackathonDetail = async () => {
+      let summaryItem = summaryFromLocation;
+
+      // 직접 URL로 들어온 경우에도 목록 응답을 한 번 읽어와 상태/기간/즐겨찾기 정보를 함께 맞춥니다.
+      if (!summaryItem) {
+        const listResult = await fetchList();
+        summaryItem =
+          listResult?.data?.items?.find((item) => String(item.id) === String(id)) ?? null;
+      }
+
+      const detailResult = await fetchDetail(id, summaryItem);
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (detailResult?.isSuccess) {
+        setHackathon(detailResult.data?.detailView ?? null);
+        setDetailError("");
+        return;
+      }
+
+      setHackathon(null);
+      setDetailError(detailResult?.message || "해커톤 상세 정보를 불러오지 못했습니다.");
+    };
+
+    loadHackathonDetail();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchDetail, fetchList, id, summaryFromLocation]);
 
   useEffect(() => {
     let isMounted = true;
@@ -109,12 +149,25 @@ const HackathonDetailPage = () => {
     };
   }, [currentUserId, getLeaderTeams]);
 
+  if (isLoading && !hackathon) {
+    return (
+      <div className="fixed inset-0 z-50 overflow-y-auto bg-[rgba(10,16,32,0.42)] px-4 py-10">
+        <div className="mx-auto max-w-3xl rounded-[32px] bg-white p-10 text-center shadow-[0_24px_80px_rgba(15,23,42,0.22)]">
+          <h1 className="text-3xl font-black text-slate-900">해커톤 정보를 불러오는 중입니다.</h1>
+          <p className="mt-4 text-slate-500">잠시만 기다려 주세요.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!hackathon) {
     return (
       <div className="fixed inset-0 z-50 overflow-y-auto bg-[rgba(10,16,32,0.42)] px-4 py-10">
         <div className="mx-auto max-w-3xl rounded-[32px] bg-white p-10 text-center shadow-[0_24px_80px_rgba(15,23,42,0.22)]">
           <h1 className="text-3xl font-black text-slate-900">해커톤 정보를 찾을 수 없습니다.</h1>
-          <p className="mt-4 text-slate-500">목록으로 돌아가 다른 해커톤을 확인해 주세요.</p>
+          <p className="mt-4 text-slate-500">
+            {detailError || "목록으로 돌아가 다른 해커톤을 확인해 주세요."}
+          </p>
           <div className="mt-8">
             <PrimaryActionButton onClick={closeDetail}>목록으로 돌아가기</PrimaryActionButton>
           </div>
@@ -229,6 +282,26 @@ const HackathonDetailPage = () => {
 
   const moveToTeamRecruit = () => {
     navigate(`/teams?searchCategory=hackathon&search=${encodeURIComponent(hackathon.title)}`);
+  };
+
+  const handleToggleFavorite = async () => {
+    const result = await toggleSave(hackathon.id, currentUserId);
+
+    if (!result?.isSuccess) {
+      setRegisterFeedback({
+        type: "error",
+        message: result?.message || "해커톤 저장 상태를 변경하지 못했습니다.",
+      });
+      return;
+    }
+
+    const nextIsStar = !hackathon.isStar;
+
+    setHackathon((prev) => (prev ? { ...prev, isStar: nextIsStar } : prev));
+    notifyHackathonSaveUpdated({
+      hackathonId: hackathon.id,
+      isStar: nextIsStar,
+    });
   };
 
   const registerModal = isRegisterModalOpen
@@ -377,8 +450,8 @@ const HackathonDetailPage = () => {
                 </svg>
               </button>
               <HackathonDetailFavoriteButton
-                active={isFavorite}
-                onClick={() => setIsFavorite((prev) => !prev)}
+                active={hackathon.isStar}
+                onClick={handleToggleFavorite}
               />
             </div>
           </div>
@@ -453,7 +526,7 @@ const HackathonDetailPage = () => {
                             <div>
                               <p className="text-sm font-bold text-slate-900">{item.label}</p>
                               <p className="mt-1 text-xs font-medium text-slate-400">
-                                비중 {item.displayWeight}% · 점수 {item.score}점
+                                비중 {item.displayWeight}% · 기준 {item.score}점
                               </p>
                             </div>
                           </div>
@@ -667,7 +740,9 @@ const HackathonDetailPage = () => {
                               <p className="text-xs text-slate-400">팀 점수</p>
                             </div>
                           </div>
-                          <p className="text-sm font-black text-[#336DFE]">{entry.score}점</p>
+                          <p className="text-sm font-black text-[#336DFE]">
+                            {entry.score === null ? `${entry.rank}위` : `${entry.score}점`}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -734,9 +809,9 @@ const HackathonDetailPage = () => {
               <button
                 type="button"
                 onClick={openRegisterModal}
-                disabled={registerButtonDisabled}
+                disabled={registerButtonDisabled || isSaveLoading}
                 className={`inline-flex h-12 items-center justify-center rounded-2xl px-5 text-sm font-bold transition ${
-                  registerButtonDisabled
+                  registerButtonDisabled || isSaveLoading
                     ? "cursor-not-allowed bg-slate-200 text-slate-500"
                     : "cursor-pointer bg-[#336DFE] text-white hover:-translate-y-0.5 hover:bg-[#2458E6] hover:shadow-[0_14px_30px_rgba(51,109,254,0.25)]"
                 }`}

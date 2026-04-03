@@ -1,5 +1,11 @@
 import { http, HttpResponse } from "msw";
-import { getHackathonById, hackathons } from "../data/hackathons";
+import {
+  getHackathonById,
+  getHackathonBySlug,
+  getSavedHackathonIdsByUserId,
+  hackathons,
+  toggleSavedHackathon,
+} from "../data/hackathons";
 
 // 현재는 해커톤 목록/상세를 MSW로 내려 주고, 실제 API 연동 시 같은 응답 shape를 유지한다.
 // true로 바꾸면 500 응답을 반환해서 에러 UI를 테스트할 수 있다.
@@ -8,7 +14,7 @@ const shouldFail = false;
 const createSuccessResponse = (data) => ({
   isSuccess: true,
   code: "200",
-  message: "요청이 성공적으로 처리되었습니다.",
+  message: "요청이 성공적입니다.",
   data,
 });
 
@@ -104,30 +110,57 @@ const mapHackathonDetail = (hackathon) => ({
 
 export const hackathonHandlers = [
   // 1. 해커톤 목록 조회
-  http.get("/hackathons", () => {
+  http.get("*/hackathons", ({ request }) => {
     console.log("MSW intercepted: GET /hackathons");
 
     if (shouldFail) {
       return createErrorResponse("500", "서버 오류가 발생했습니다.", 500);
     }
 
+    const userId = new URL(request.url).searchParams.get("userId") ?? "1";
+    const savedIds = new Set(getSavedHackathonIdsByUserId(userId));
+
     return HttpResponse.json(
       createSuccessResponse({
-        hackathons: hackathons.map(mapHackathonListItem),
+        hackathons: hackathons.map((hackathon) => ({
+          ...mapHackathonListItem(hackathon),
+          isStar: savedIds.has(hackathon.id),
+        })),
       }),
     );
   }),
 
   // 2. 해커톤 상세 조회
-  http.get("/hackathons/:id", ({ params }) => {
+  http.get("*/hackathons/:id", ({ params }) => {
     console.log(`MSW intercepted: GET /hackathons/${params.id}`);
 
-    const hackathon = getHackathonById(params.id);
+    const hackathon = getHackathonById(params.id) ?? getHackathonBySlug(params.id);
 
     if (!hackathon) {
       return createErrorResponse("404", "해커톤을 찾을 수 없습니다.", 404);
     }
 
     return HttpResponse.json(createSuccessResponse(mapHackathonDetail(hackathon)));
+  }),
+  http.post("*/hackathons/:userId/save", async ({ params, request }) => {
+    console.log(`MSW intercepted: POST /hackathons/${params.userId}/save`);
+
+    const body = await request.json();
+    const hackathonId = Number(body.hackathonId);
+
+    if (!hackathonId) {
+      return createErrorResponse("400", "해커톤 ID가 필요합니다.", 400);
+    }
+
+    toggleSavedHackathon({
+      userId: params.userId,
+      hackathonId,
+    });
+
+    return HttpResponse.json({
+      isSuccess: true,
+      code: "200",
+      message: "요청이 성공적입니다.",
+    });
   }),
 ];
