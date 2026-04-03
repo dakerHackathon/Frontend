@@ -1,20 +1,31 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
+import React, { StrictMode } from "react";
+import ReactDOM, { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.jsx";
 
-if (import.meta.env.DEV) {
-  const { worker } = await import("./mocks/browser.js");
+async function enableMocking() {
+  if (!import.meta.env.DEV) {
+    return;
+  }
 
-  // worker.start()가 완료된 뒤 앱을 렌더링해야 첫 API 요청을 MSW가 가로챌 수 있다.
-  // await 없이 렌더링하면 서비스 워커 등록 전에 요청이 나가 HTML 응답을 받게 된다.
-  await worker.start({
-    onUnhandledRequest: "bypass", // 정적 파일(JS, CSS)은 무시하고 통과
+  // 가로채기 설정을 담은 browser.js 파일을 가져옵니다.
+  const { worker } = await import("./mocks/browser");
+
+  return worker.start({
+    onUnhandledRequest: "bypass",
   });
 }
 
-createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+enableMocking().then(() => {
+  ReactDOM.createRoot(document.getElementById("root")).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+  );
+});
+
+// createRoot(document.getElementById("root")).render(
+//   <StrictMode>
+//     <App />
+//   </StrictMode>,
+// );

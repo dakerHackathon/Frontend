@@ -2,7 +2,13 @@ import { useState } from "react";
 import Modal from "./Modal";
 import { teamPartOptions } from "./constants";
 
-const TeamCreateModal = ({ isOpen, profile, onClose, onCreate }) => {
+const TeamCreateModal = ({
+  isOpen,
+  onClose,
+  onCreate,
+  isCreating = false,
+  createError = "",
+}) => {
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -15,19 +21,22 @@ const TeamCreateModal = ({ isOpen, profile, onClose, onCreate }) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (!form.name.trim() || !form.description.trim()) {
       return;
     }
 
-    onCreate(form);
-    setForm({
-      name: "",
-      description: "",
-      role: teamPartOptions[0].value,
-    });
+    const result = await onCreate(form);
+
+    if (result?.isSuccess) {
+      setForm({
+        name: "",
+        description: "",
+        role: teamPartOptions[0].value,
+      });
+    }
   };
 
   return (
@@ -38,7 +47,7 @@ const TeamCreateModal = ({ isOpen, profile, onClose, onCreate }) => {
           <input
             value={form.name}
             onChange={(event) => handleChange("name", event.target.value)}
-            placeholder="팀 이름을 입력하세요"
+            placeholder="팀 이름을 입력하세요."
             className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-[#AFC5FF] focus:ring-4 focus:ring-[#EEF3FF]"
             required
           />
@@ -50,7 +59,7 @@ const TeamCreateModal = ({ isOpen, profile, onClose, onCreate }) => {
             rows={4}
             value={form.description}
             onChange={(event) => handleChange("description", event.target.value)}
-            placeholder="팀 소개를 입력하세요"
+            placeholder="팀 소개를 입력하세요."
             className="w-full resize-none rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-[#AFC5FF] focus:ring-4 focus:ring-[#EEF3FF]"
             required
           />
@@ -71,6 +80,10 @@ const TeamCreateModal = ({ isOpen, profile, onClose, onCreate }) => {
           </select>
         </label>
 
+        {createError ? (
+          <p className="text-sm font-semibold text-rose-500">{createError}</p>
+        ) : null}
+
         <div className="flex justify-end gap-2 pt-2">
           <button
             type="button"
@@ -81,9 +94,10 @@ const TeamCreateModal = ({ isOpen, profile, onClose, onCreate }) => {
           </button>
           <button
             type="submit"
-            className="rounded-xl bg-[#336DFE] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#2458E6]"
+            disabled={isCreating}
+            className="rounded-xl bg-[#336DFE] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#2458E6] disabled:cursor-not-allowed disabled:bg-slate-300"
           >
-            팀 추가
+            {isCreating ? "생성 중..." : "팀 추가"}
           </button>
         </div>
       </form>
