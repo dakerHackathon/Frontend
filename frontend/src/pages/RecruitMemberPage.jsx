@@ -51,6 +51,11 @@ const getTotalCounts = (post) =>
     { current: 0, total: 0 },
   );
 
+const getRecruitDisplayCount = (post) => {
+  const totalCounts = getTotalCounts(post);
+  return Math.max(0, totalCounts.total - totalCounts.current);
+};
+
 const getPositionSlotEntries = (post) =>
   Object.entries(post.positionSlots ?? {}).filter(([, slot]) => (slot?.total ?? 0) > 0);
 
@@ -106,7 +111,7 @@ const PositionSlotList = ({ post, compact = false, titled = false }) => (
 );
 
 const RecruitDetailModal = ({ post, onClose }) => {
-  const totalCounts = getTotalCounts(post);
+  const recruitDisplayCount = getRecruitDisplayCount(post);
   const availablePositions = useMemo(
     () =>
       getPositionSlotEntries(post).filter(([, slot]) => (slot.total ?? 0) > (slot.current ?? 0)),
@@ -300,7 +305,7 @@ const RecruitDetailModal = ({ post, onClose }) => {
                   모집 인원
                 </span>
                 <span className="mt-1 block text-lg font-black text-slate-900">
-                  {totalCounts.current}/{totalCounts.total}
+                  {recruitDisplayCount}명
                 </span>
               </div>
             </div>
@@ -329,7 +334,7 @@ const RecruitDetailModal = ({ post, onClose }) => {
 };
 
 const RecruitCard = ({ post, onOpen }) => {
-  const totalCounts = getTotalCounts(post);
+  const recruitDisplayCount = getRecruitDisplayCount(post);
   const handleOpen = () => onOpen(post);
 
   return (
@@ -381,7 +386,7 @@ const RecruitCard = ({ post, onOpen }) => {
                   모집 인원
                 </span>
                 <span className="mt-1 block text-lg font-black text-slate-900">
-                  {totalCounts.current}/{totalCounts.total}
+                  {recruitDisplayCount}명
                 </span>
               </div>
             </div>

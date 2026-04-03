@@ -198,7 +198,6 @@ const PreviewPositionChoice = ({ tag, recruit, active }) => (
 const RecruitPreviewCard = ({ form, selectedTeam }) => {
   const selectedTags = form.tags.length > 0 ? form.tags : ["FE"];
   const recruitTotal = getSelectedRecruitTotal(selectedTags, form.positionSlots);
-  const remainingSlots = Math.max(0, TEAM_MAX_MEMBERS - recruitTotal);
 
   return (
     <BaseInfoCard className="p-6 transition duration-200 hover:-translate-y-1 hover:border-[#C9D7FF] hover:shadow-[0_24px_50px_rgba(51,109,254,0.12)]">
@@ -256,7 +255,7 @@ const RecruitPreviewCard = ({ form, selectedTeam }) => {
                 모집 인원
               </span>
               <span className="mt-1 block text-lg font-black text-slate-900">
-                {remainingSlots}/{TEAM_MAX_MEMBERS}
+                {recruitTotal}명
               </span>
             </div>
           </div>
