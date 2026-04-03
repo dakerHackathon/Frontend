@@ -1,6 +1,7 @@
 import { getCurrentUser } from "./auth";
 
 export const HACKATHON_SAVE_UPDATED_EVENT = "hackathon-save-updated";
+export const HACKATHON_LIST_REFRESH_EVENT = "hackathon-list-refresh";
 
 const parseApiDate = (value) => new Date(String(value).replace(" ", "T"));
 
@@ -121,6 +122,10 @@ export const notifyHackathonSaveUpdated = ({ hackathonId, isStar }) => {
       },
     }),
   );
+};
+
+export const notifyHackathonListRefresh = () => {
+  window.dispatchEvent(new CustomEvent(HACKATHON_LIST_REFRESH_EVENT));
 };
 
 export const mapHackathonListItem = (item) => {

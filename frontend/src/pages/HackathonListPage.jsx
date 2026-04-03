@@ -16,6 +16,7 @@ import {
 import { getRegionValue } from "./hackathonList.utils";
 import {
   getHackathonUserId,
+  HACKATHON_LIST_REFRESH_EVENT,
   HACKATHON_SAVE_UPDATED_EVENT,
 } from "../utils/hackathon";
 
@@ -28,6 +29,7 @@ const HackathonListPage = () => {
   const [regionFilter, setRegionFilter] = useState("all");
   const [hackathonItems, setHackathonItems] = useState([]);
   const [favoriteMessage, setFavoriteMessage] = useState("");
+  const [refreshTick, setRefreshTick] = useState(0);
   const { fetchList, toggleSave, isLoading, isSaveLoading, error: errorMessage } = useHackathon();
   const currentUserId = getHackathonUserId();
 
@@ -53,7 +55,7 @@ const HackathonListPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [fetchList]);
+  }, [fetchList, refreshTick]);
 
   useEffect(() => {
     const handleSaveUpdated = (event) => {
@@ -75,6 +77,20 @@ const HackathonListPage = () => {
 
     return () => {
       window.removeEventListener(HACKATHON_SAVE_UPDATED_EVENT, handleSaveUpdated);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleListRefresh = () => {
+      // 같은 경로에서 헤더 메뉴를 다시 눌렀을 때 목록을 즉시 다시 조회합니다.
+      setFavoriteMessage("");
+      setRefreshTick((prev) => prev + 1);
+    };
+
+    window.addEventListener(HACKATHON_LIST_REFRESH_EVENT, handleListRefresh);
+
+    return () => {
+      window.removeEventListener(HACKATHON_LIST_REFRESH_EVENT, handleListRefresh);
     };
   }, []);
 
