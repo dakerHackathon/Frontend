@@ -19,11 +19,6 @@ import {
   iconTeam,
 } from "../components/hackathon/hackathonDetail.constants.jsx";
 import { getHackathonById } from "../mocks/data/hackathons";
-import {
-  extractTeamPositions,
-  formatPositionLabel,
-  getPositionToneClass,
-} from "./hackathonDetail.utils";
 
 const HackathonDetailPage = () => {
   const { id } = useParams();
@@ -293,16 +288,6 @@ const HackathonDetailPage = () => {
                         <div className="flex items-center justify-between gap-3">
                           <div>
                             <p className="text-sm font-black text-slate-900">{team.name}</p>
-                            <div className="mt-2 flex flex-wrap gap-1.5">
-                              {extractTeamPositions(team).map((position) => (
-                                <span
-                                  key={`${team.name}-${position}`}
-                                  className={`rounded-md px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.03em] ${getPositionToneClass(position)}`}
-                                >
-                                  {formatPositionLabel(position)}
-                                </span>
-                              ))}
-                            </div>
                           </div>
                           <span className="text-sm font-bold text-[#336DFE]">{team.members}</span>
                         </div>
