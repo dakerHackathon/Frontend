@@ -42,6 +42,7 @@ const HackathonDetailPage = () => {
   const [selectedTeamId, setSelectedTeamId] = useState("");
   const [registerFeedback, setRegisterFeedback] = useState(null);
   const [detailError, setDetailError] = useState("");
+  const [teamActionHint, setTeamActionHint] = useState("");
 
   const closeDetail = () => {
     if (backgroundLocation) {
@@ -579,6 +580,14 @@ const HackathonDetailPage = () => {
                       <button
                         type="button"
                         onClick={() => navigate("/mypage")}
+                        onMouseEnter={() =>
+                          setTeamActionHint("팀 생성을 위해 마이페이지로 이동합니다.")
+                        }
+                        onMouseLeave={() => setTeamActionHint("")}
+                        onFocus={() =>
+                          setTeamActionHint("팀 생성을 위해 마이페이지로 이동합니다.")
+                        }
+                        onBlur={() => setTeamActionHint("")}
                         className="inline-flex h-12 cursor-pointer items-center justify-center rounded-2xl border border-[#D8E4FF] bg-[#F8FAFF] px-4 text-sm font-bold text-[#336DFE] transition hover:border-[#BDD2FF] hover:bg-[#EEF4FF]"
                       >
                         팀 만들기
@@ -586,13 +595,25 @@ const HackathonDetailPage = () => {
                       <button
                         type="button"
                         onClick={moveToTeamRecruit}
+                        onMouseEnter={() =>
+                          setTeamActionHint(
+                            "해당 해커톤 팀원 모집 글만 바로 볼 수 있도록 팀원 모집 페이지로 이동합니다.",
+                          )
+                        }
+                        onMouseLeave={() => setTeamActionHint("")}
+                        onFocus={() =>
+                          setTeamActionHint(
+                            "해당 해커톤 팀원 모집 글만 바로 볼 수 있도록 팀원 모집 페이지로 이동합니다.",
+                          )
+                        }
+                        onBlur={() => setTeamActionHint("")}
                         className="inline-flex h-12 cursor-pointer items-center justify-center rounded-2xl bg-[#336DFE] px-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#2458E6] hover:shadow-[0_14px_30px_rgba(51,109,254,0.25)]"
                       >
                         팀 참가요청
                       </button>
                     </div>
-                    <p className="mt-3 text-xs font-medium text-slate-400">
-                      해당 해커톤 팀원 모집 글만 바로 볼 수 있도록 팀원 모집 페이지로 이동합니다.
+                    <p className="mt-3 min-h-[40px] text-xs font-medium leading-5 text-slate-400">
+                      {teamActionHint}
                     </p>
                   </div>
                 </BaseInfoCard>
