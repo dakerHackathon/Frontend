@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ActivityTemperatureCard from "../components/mypage/ActivityTemperatureCard";
 import HackathonListSection from "../components/mypage/HackathonListSection";
@@ -15,23 +15,108 @@ import {
   skillPool,
   teams,
 } from "../components/mypage/constants";
+import { useMyPage } from "../hooks/useMyPage";
+import { useTeam } from "../hooks/useTeam";
+import { getCurrentUser } from "../utils/auth";
 
 const TEAMS_STORAGE_KEY = "mypageTeams";
 
+const skillLabelMap = {
+  1: "React",
+  2: "TypeScript",
+  3: "Node.js",
+};
+const skillValueMap = {
+  React: 1,
+  TypeScript: 2,
+  "Node.js": 3,
+};
+
 const MyPage = () => {
   const navigate = useNavigate();
+  const { getMyPage, updateMyPage } = useMyPage();
+  const { handleCreateTeam: requestCreateTeam, isLoading, createTeamError } =
+    useTeam();
   const [profile, setProfile] = useState(initialProfile);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isTeamCreateOpen, setIsTeamCreateOpen] = useState(false);
+  const [teamCreateErrorMessage, setTeamCreateErrorMessage] = useState("");
   const [editForm, setEditForm] = useState(initialProfile);
   const [skillQuery, setSkillQuery] = useState("");
   const [temperature, setTemperature] = useState(43.5);
   const [voteLocks, setVoteLocks] = useState({});
   const [savedItems, setSavedItems] = useState(savedHackathons);
+  const [hackathonItems, setHackathonItems] = useState(initialHackathons);
+  const [unreadCount, setUnreadCount] = useState(3);
   const [teamItems, setTeamItems] = useState(() => {
     const storedTeams = localStorage.getItem(TEAMS_STORAGE_KEY);
     return storedTeams ? JSON.parse(storedTeams) : teams;
   });
+
+  useEffect(() => {
+    const fetchMyPage = async () => {
+      const currentUser = getCurrentUser();
+      const userId = currentUser?.userId;
+
+      if (!userId) return;
+
+      const result = await getMyPage(userId);
+
+      if (!result?.isSuccess || !result.data) return;
+
+      const { data } = result;
+
+      const nextProfile = {
+        ...initialProfile,
+        name: data.nickname || "",
+        email: data.email || "",
+        intro: data.description || "",
+        github: data.github || "",
+        portfolio: data.portfolio || "",
+        skills: Array.isArray(data.skills)
+          ? data.skills.map((skill) => skillLabelMap[skill] || `Skill ${skill}`)
+          : [],
+      };
+
+      setProfile(nextProfile);
+      setEditForm(nextProfile);
+      setTemperature(data.temperature ?? 43.5);
+      setHackathonItems(
+        data.part_hackathon?.map((hackathon) => ({
+          id: `h${hackathon.hackathonId}`,
+          title: hackathon.hackathonName,
+          status: "active",
+          date: `${hackathon.start} - ${hackathon.end}`,
+          members: [
+            {
+              id: `member-${hackathon.hackathonId}`,
+              name: data.nickname || "mock-user",
+            },
+          ],
+        })) || [],
+      );
+      setSavedItems(
+        data.save_hackathon?.map((hackathon) => ({
+          id: `s${hackathon.hackathonId}`,
+          title: hackathon.hackathonName,
+          org: `deadline ${hackathon.end}`,
+        })) || [],
+      );
+      setUnreadCount(data.unread ?? 0);
+      const nextTeams =
+        data.teams?.map((team) => ({
+          id: `t${team.teamId}`,
+          name: team.teamName,
+          description: team.description,
+        })) || [];
+
+      // 마이페이지 조회 결과가 보이도록 목록 기준값을 API 응답으로 다시 맞춥니다.
+      setTeamItems(nextTeams);
+      localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(nextTeams));
+    };
+
+    fetchMyPage();
+  }, [getMyPage]);
 
   const filteredSkills = useMemo(
     () =>
@@ -44,10 +129,10 @@ const MyPage = () => {
   );
 
   const stats = [
-    { label: "우승 횟수", value: "3회", icon: "wins" },
-    { label: "참여 횟수", value: "8회", icon: "join" },
-    { label: "관심 북마크", value: `${savedItems.length}개`, icon: "bookmark" },
-    { label: "종합 랭킹", value: "18위", icon: "rank" },
+    { label: "Teams", value: `${teamItems.length}`, icon: "wins" },
+    { label: "Joined", value: `${hackathonItems.length}`, icon: "join" },
+    { label: "Saved", value: `${savedItems.length}`, icon: "bookmark" },
+    { label: "Skills", value: `${profile.skills.length}`, icon: "rank" },
   ];
 
   const openEditModal = () => {
@@ -69,7 +154,31 @@ const MyPage = () => {
 
   const closeEditModal = () => setIsEditOpen(false);
 
-  const saveProfile = () => {
+  const saveProfile = async () => {
+    const currentUser = getCurrentUser();
+    const userId = currentUser?.userId;
+
+    if (!userId) {
+      alert("No logged-in user was found.");
+      return;
+    }
+
+    const result = await updateMyPage(userId, {
+      nickname: editForm.name,
+      description: editForm.intro,
+      portfolio: editForm.portfolio,
+      github: editForm.github,
+      // 수정 API 명세가 숫자 배열을 요구해서 화면용 스킬 라벨을 요청 값으로 다시 매핑합니다.
+      skills: editForm.skills
+        .map((skill) => skillValueMap[skill])
+        .filter((skill) => typeof skill === "number"),
+    });
+
+    if (!result?.isSuccess) {
+      alert(result?.message || "Profile update failed.");
+      return;
+    }
+
     setProfile(editForm);
     setIsEditOpen(false);
   };
@@ -78,8 +187,39 @@ const MyPage = () => {
     setSavedItems((prev) => prev.filter((item) => item.id !== hackathonId));
   };
 
-  const handleCreateTeam = (teamData) => {
-    const newTeamId = `t${Date.now()}`;
+  const handleOpenTeamCreateModal = () => {
+    setTeamCreateErrorMessage("");
+    setIsTeamCreateOpen(true);
+  };
+
+  const handleCloseTeamCreateModal = () => {
+    setTeamCreateErrorMessage("");
+    setIsTeamCreateOpen(false);
+  };
+
+  const handleCreateTeam = async (teamData) => {
+    const currentUser = getCurrentUser();
+    const userId = currentUser?.userId;
+
+    if (!userId) {
+      const result = {
+        isSuccess: false,
+        message: "No logged-in user was found.",
+      };
+      setTeamCreateErrorMessage(result.message);
+      return result;
+    }
+
+    const result = await requestCreateTeam(userId, teamData);
+
+    if (!result?.isSuccess) {
+      setTeamCreateErrorMessage(result?.message || "Team creation failed.");
+      return result;
+    }
+
+    const newTeamId = result.data?.teamId
+      ? `t${result.data.teamId}`
+      : `t${Date.now()}`;
     const newMemberId = `tm${Date.now()}`;
 
     setTeamItems((prev) => {
@@ -87,17 +227,20 @@ const MyPage = () => {
         {
           id: newTeamId,
           name: teamData.name,
-          role: "팀장",
+          role: "leader",
           leaderId: newMemberId,
           description: teamData.description,
           linkedHackathonId: null,
           members: [
             {
               id: newMemberId,
-              name: profile.name,
-              nickname: profile.name,
-              email: profile.email,
-              role: "팀장",
+              name: currentUser?.name || profile.name,
+              nickname:
+                currentUser?.nickName ||
+                currentUser?.userNickname ||
+                profile.name,
+              email: currentUser?.email || currentUser?.userEmail || profile.email,
+              role: "leader",
               part: teamData.role,
             },
           ],
@@ -109,7 +252,9 @@ const MyPage = () => {
       return nextTeams;
     });
 
+    setTeamCreateErrorMessage("");
     setIsTeamCreateOpen(false);
+    return result;
   };
 
   return (
@@ -120,7 +265,7 @@ const MyPage = () => {
 
           <div className="grid gap-4 lg:grid-cols-2">
             <HackathonListSection
-              hackathons={initialHackathons}
+              hackathons={hackathonItems}
               voteLocks={voteLocks}
               onVote={handleVote}
             />
@@ -128,7 +273,7 @@ const MyPage = () => {
             <TeamStatusSection
               teams={teamItems}
               onOpenTeam={(teamId) => navigate(`/mypage/teams/${teamId}`)}
-              onAddTeam={() => setIsTeamCreateOpen(true)}
+              onAddTeam={handleOpenTeamCreateModal}
             />
           </div>
         </div>
@@ -141,7 +286,7 @@ const MyPage = () => {
             onRemove={handleRemoveSavedHackathon}
           />
 
-          <InboxSection unreadCount={3} />
+          <InboxSection unreadCount={unreadCount} />
         </div>
       </div>
 
@@ -158,9 +303,10 @@ const MyPage = () => {
 
       <TeamCreateModal
         isOpen={isTeamCreateOpen}
-        profile={profile}
-        onClose={() => setIsTeamCreateOpen(false)}
+        onClose={handleCloseTeamCreateModal}
         onCreate={handleCreateTeam}
+        isCreating={isLoading}
+        createError={teamCreateErrorMessage || createTeamError || ""}
       />
     </div>
   );

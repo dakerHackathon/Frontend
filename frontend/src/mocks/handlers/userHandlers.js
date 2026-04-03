@@ -1,9 +1,11 @@
 import { http, HttpResponse } from "msw";
 import { mockUsers } from "../data/user";
 
+const BASE_URL = "http://13.125.160.175:8080";
+
 export const userHandlers = [
   // <로그인 API>
-  http.post("/user/login", async ({ request }) => {
+  http.post(`${BASE_URL}/user/login`, async ({ request }) => {
     // 1. 파라미터를 loginId 대신 email로 받습니다.
     const { email, password } = await request.json();
 
@@ -42,7 +44,7 @@ export const userHandlers = [
   }),
 
   // <회원가입 API>
-  http.post("/user/signup", async ({ request }) => {
+  http.post(`${BASE_URL}/user/signup`, async ({ request }) => {
     const userData = await request.json();
     const { email, loginId, password, name, nickName } = userData;
 

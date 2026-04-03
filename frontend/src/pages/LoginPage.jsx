@@ -59,8 +59,8 @@ const LoginPage = () => {
 
             <div className="space-y-4">
               <div>
-                <label htmlFor="login-id" className="mb-2 block text-sm font-semibold text-gray-700">
-                  이메일
+                <label htmlFor="id" className="block text-sm font-semibold text-gray-700 mb-2">
+                  아이디
                 </label>
                 <input
                   id="login-id"
@@ -73,7 +73,10 @@ const LoginPage = () => {
               </div>
 
               <div>
-                <label htmlFor="password" className="mb-2 block text-sm font-semibold text-gray-700">
+                <label
+                  htmlFor="password"
+                  className="mb-2 block text-sm font-semibold text-gray-700"
+                >
                   비밀번호
                 </label>
                 <input

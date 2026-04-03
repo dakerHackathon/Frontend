@@ -75,7 +75,9 @@ const MailSidebar = ({
           type="button"
           onClick={() => onModeChange("messages")}
           className={`flex-1 rounded-xl py-2.5 text-[13px] font-bold transition-all ${
-            currentMode === "messages" ? "bg-[#336DFE] text-white shadow-md" : "text-[#99A2B4] hover:bg-[#F8F9FB]"
+            currentMode === "messages"
+              ? "bg-[#336DFE] text-white shadow-md"
+              : "text-[#99A2B4] hover:bg-[#F8F9FB]"
           }`}
         >
           Messages
@@ -84,7 +86,9 @@ const MailSidebar = ({
           type="button"
           onClick={() => onModeChange("teams")}
           className={`flex-1 rounded-xl py-2.5 text-[13px] font-bold transition-all ${
-            currentMode === "teams" ? "bg-[#336DFE] text-white shadow-md" : "text-[#99A2B4] hover:bg-[#F8F9FB]"
+            currentMode === "teams"
+              ? "bg-[#336DFE] text-white shadow-md"
+              : "text-[#99A2B4] hover:bg-[#F8F9FB]"
           }`}
         >
           Teams
@@ -96,6 +100,7 @@ const MailSidebar = ({
         activeTab={activeTab}
         onTabChange={onTabChange}
         onOpenCompose={onOpenCompose}
+        currentMode={currentMode}
       />
 
       <div
