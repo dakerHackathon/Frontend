@@ -765,7 +765,6 @@ const HackathonDetailPage = () => {
                             </span>
                             <div>
                               <p className="text-sm font-bold text-slate-900">{entry.team}</p>
-                              <p className="text-xs text-slate-400">팀 점수</p>
                             </div>
                           </div>
                           <p className="text-sm font-black text-[#336DFE]">
