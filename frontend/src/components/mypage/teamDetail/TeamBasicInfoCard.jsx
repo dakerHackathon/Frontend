@@ -1,6 +1,6 @@
 import { useState } from "react";
 import PrimaryActionButton from "../../common/PrimaryActionButton";
-import { baseInputClass, pageCardClass } from "./shared.jsx";
+import { baseInputClass, pageCardClass } from "./shared";
 
 const TeamBasicInfoCard = ({ isLeader, teamForm, onSave, saveNotice }) => {
   const [isEditing, setIsEditing] = useState(false);

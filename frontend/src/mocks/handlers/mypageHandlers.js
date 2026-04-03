@@ -35,10 +35,16 @@ export const mypageHandlers = [
       );
     }
 
-    // 실서버 응답이 가능하면 그대로 사용하고, 네트워크 오류일 때만 mock 데이터로 대체합니다.
+    // 실서버 응답이 가능하면 그대로 사용하고, 실패하거나 JSON이 아닐 때 mock으로 대체합니다.
+    // baseURL이 localhost:5173이면 Vite가 HTML을 반환해 fetch가 성공해도 JSON이 아닌 경우가 있습니다.
     if (myPageMockMode === "fallback") {
       try {
-        return await fetch(bypass(request));
+        const res = await fetch(bypass(request));
+        const contentType = res.headers.get("content-type") || "";
+        if (res.ok && contentType.includes("application/json")) {
+          return res;
+        }
+        console.warn(`MSW fallback to mock for /user/${userId}/mypage: 실서버 응답이 JSON이 아닙니다.`);
       } catch (error) {
         console.warn(`MSW fallback to mock for /user/${userId}/mypage:`, error);
       }
@@ -79,10 +85,15 @@ export const mypageHandlers = [
       );
     }
 
-    // 수정 API도 실서버를 우선 사용하고, 실패할 때만 mock 성공 응답으로 돌립니다.
+    // 수정 API도 실서버를 우선 사용하고, 실패하거나 JSON이 아닐 때 mock으로 대체합니다.
     if (myPageMockMode === "fallback") {
       try {
-        return await fetch(bypass(request.clone()));
+        const res = await fetch(bypass(request.clone()));
+        const contentType = res.headers.get("content-type") || "";
+        if (res.ok && contentType.includes("application/json")) {
+          return res;
+        }
+        console.warn(`MSW fallback to mock for PATCH /user/${userId}/mypage: 실서버 응답이 JSON이 아닙니다.`);
       } catch (error) {
         console.warn(`MSW fallback to mock for PATCH /user/${userId}/mypage:`, error);
       }
