@@ -76,7 +76,7 @@ const NewMessageModal = ({
               id="message-receiver"
               value={receiver}
               onChange={(event) => setReceiver(event.target.value)}
-              placeholder="받는 사람 이메일 또는 이름"
+              placeholder="받는 사람 이메일"
               className="h-11 w-full rounded-lg border border-[#DCE3EF] px-3 text-sm outline-none focus:border-[#336DFE]"
               required
             />
