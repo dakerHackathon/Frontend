@@ -347,8 +347,8 @@ const HackathonDetailPage = () => {
                     onClick={() => setSelectedTeamId(String(team.teamId))}
                     className={`flex w-full items-center justify-between rounded-2xl border px-4 py-4 text-left transition ${
                       isSelected
-                        ? "border-[#336DFE] bg-[#EEF4FF]"
-                        : "border-slate-200 bg-white hover:border-[#D6E2FF] hover:bg-[#FBFCFF]"
+                        ? "border-[#336DFE] bg-[#EEF4FF] shadow-[0_12px_28px_rgba(51,109,254,0.14)]"
+                        : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-[#D6E2FF] hover:bg-[#FBFCFF] hover:shadow-[0_12px_28px_rgba(15,23,42,0.08)] active:translate-y-0"
                     }`}
                   >
                     <div>
@@ -358,7 +358,7 @@ const HackathonDetailPage = () => {
                       </p>
                     </div>
                     <span
-                      className={`inline-flex h-5 w-5 rounded-full border ${
+                      className={`inline-flex h-5 w-5 rounded-full border transition ${
                         isSelected
                           ? "border-[#336DFE] bg-[#336DFE]"
                           : "border-slate-300 bg-white"
@@ -383,7 +383,7 @@ const HackathonDetailPage = () => {
               <button
                 type="button"
                 onClick={closeRegisterModal}
-                className="inline-flex h-12 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:bg-slate-50"
+                className="inline-flex h-12 cursor-pointer items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_12px_24px_rgba(15,23,42,0.08)] active:translate-y-0 focus:outline-none focus:ring-4 focus:ring-slate-200"
               >
                 취소
               </button>
@@ -394,7 +394,7 @@ const HackathonDetailPage = () => {
                 className={`inline-flex h-12 items-center justify-center rounded-2xl px-4 text-sm font-bold transition ${
                   !selectedTeamId || isTeamActionLoading
                     ? "cursor-not-allowed bg-slate-200 text-slate-500"
-                    : "cursor-pointer bg-[#336DFE] text-white hover:-translate-y-0.5 hover:bg-[#2458E6] hover:shadow-[0_14px_30px_rgba(51,109,254,0.25)]"
+                    : "cursor-pointer bg-[#336DFE] text-white hover:-translate-y-0.5 hover:bg-[#2458E6] hover:shadow-[0_14px_30px_rgba(51,109,254,0.25)] active:translate-y-0 focus:outline-none focus:ring-4 focus:ring-[#D9E5FF]"
                 }`}
               >
                 {isTeamActionLoading ? "신청 중..." : "참가 신청"}
