@@ -30,7 +30,6 @@ export const sidebarRankings = [
 
 export const searchOptions = [
   { value: "title", label: "제목" },
-  { value: "titleAndContent", label: "제목 + 내용" },
 ];
 
 export const statusOptions = [

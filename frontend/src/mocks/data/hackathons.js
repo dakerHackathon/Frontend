@@ -7,6 +7,8 @@ const createPrize = (grandTotal, amounts, descriptions) => ({
   ],
 });
 
+export const HACKATHON_SAVE_STORAGE_KEY = "mockSavedHackathonsByUserId";
+
 export const hackathons = [
   {
     id: 1,
@@ -240,8 +242,52 @@ export const hackathons = [
   },
 ];
 
+const createDefaultSavedState = () => ({
+  "1": [3],
+});
+
 export const getHackathonById = (id) =>
   hackathons.find((hackathon) => String(hackathon.id) === String(id));
 
 export const getHackathonBySlug = (slug) =>
   hackathons.find((hackathon) => hackathon.slug === slug);
+
+const getSavedHackathonState = () => {
+  const stored = localStorage.getItem(HACKATHON_SAVE_STORAGE_KEY);
+
+  if (!stored) {
+    const defaultState = createDefaultSavedState();
+    localStorage.setItem(HACKATHON_SAVE_STORAGE_KEY, JSON.stringify(defaultState));
+    return defaultState;
+  }
+
+  return JSON.parse(stored);
+};
+
+const saveSavedHackathonState = (savedState) => {
+  localStorage.setItem(HACKATHON_SAVE_STORAGE_KEY, JSON.stringify(savedState));
+};
+
+export const getSavedHackathonIdsByUserId = (userId) =>
+  getSavedHackathonState()[String(userId)] ?? [];
+
+export const toggleSavedHackathon = ({ userId, hackathonId }) => {
+  const savedState = getSavedHackathonState();
+  const normalizedUserId = String(userId);
+  const currentIds = new Set(savedState[normalizedUserId] ?? []);
+
+  if (currentIds.has(Number(hackathonId))) {
+    currentIds.delete(Number(hackathonId));
+  } else {
+    currentIds.add(Number(hackathonId));
+  }
+
+  const nextState = {
+    ...savedState,
+    [normalizedUserId]: Array.from(currentIds),
+  };
+
+  saveSavedHackathonState(nextState);
+
+  return nextState[normalizedUserId];
+};

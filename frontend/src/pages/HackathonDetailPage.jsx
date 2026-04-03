@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Cell, Pie, PieChart } from "recharts";
@@ -10,6 +10,7 @@ import HackathonDetailInfoRow from "../components/hackathon/HackathonDetailInfoR
 import HackathonDetailPrizeCard from "../components/hackathon/HackathonDetailPrizeCard";
 import HackathonDetailSectionTitle from "../components/hackathon/HackathonDetailSectionTitle";
 import HackathonDetailTimeline from "../components/hackathon/HackathonDetailTimeline";
+import { useHackathon } from "../hooks/useHackathon";
 import { useTeam } from "../hooks/useTeam";
 import {
   evaluationColors,
@@ -20,24 +21,28 @@ import {
   iconScore,
   iconTeam,
 } from "../components/hackathon/hackathonDetail.constants.jsx";
-import { getHackathonById } from "../mocks/data/hackathons";
-import { getCurrentUser } from "../utils/auth";
+import {
+  getHackathonUserId,
+  notifyHackathonSaveUpdated,
+} from "../utils/hackathon";
 
 const HackathonDetailPage = () => {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const hackathon = useMemo(() => getHackathonById(id), [id]);
-  const currentUser = useMemo(() => getCurrentUser(), []);
-  const currentUserId = currentUser?.userId ?? null;
+  const backgroundLocation = location.state?.backgroundLocation;
+  const summaryFromLocation = location.state?.hackathonSummary ?? null;
+  const currentUserId = getHackathonUserId();
+  const { fetchList, fetchDetail, toggleSave, isLoading, isSaveLoading } = useHackathon();
   const { getLeaderTeams, registerHackathonTeam, isLoading: isTeamActionLoading } = useTeam();
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [hackathon, setHackathon] = useState(null);
   const [leaderTeams, setLeaderTeams] = useState([]);
   const [isLeaderTeamsLoading, setIsLeaderTeamsLoading] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState("");
   const [registerFeedback, setRegisterFeedback] = useState(null);
-  const backgroundLocation = location.state?.backgroundLocation;
+  const [detailError, setDetailError] = useState("");
+  const [teamActionHint, setTeamActionHint] = useState("");
 
   const closeDetail = () => {
     if (backgroundLocation) {
@@ -66,6 +71,42 @@ const HackathonDetailPage = () => {
       document.body.style.paddingRight = previousBodyPaddingRight;
     };
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadHackathonDetail = async () => {
+      let summaryItem = summaryFromLocation;
+
+      // 직접 URL로 들어온 경우에도 목록 응답을 한 번 읽어와 상태/기간/즐겨찾기 정보를 함께 맞춥니다.
+      if (!summaryItem) {
+        const listResult = await fetchList();
+        summaryItem =
+          listResult?.data?.items?.find((item) => String(item.id) === String(id)) ?? null;
+      }
+
+      const detailResult = await fetchDetail(id, summaryItem);
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (detailResult?.isSuccess) {
+        setHackathon(detailResult.data?.detailView ?? null);
+        setDetailError("");
+        return;
+      }
+
+      setHackathon(null);
+      setDetailError(detailResult?.message || "해커톤 상세 정보를 불러오지 못했습니다.");
+    };
+
+    loadHackathonDetail();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchDetail, fetchList, id, summaryFromLocation]);
 
   useEffect(() => {
     let isMounted = true;
@@ -109,12 +150,25 @@ const HackathonDetailPage = () => {
     };
   }, [currentUserId, getLeaderTeams]);
 
+  if (isLoading && !hackathon) {
+    return (
+      <div className="fixed inset-0 z-50 overflow-y-auto bg-[rgba(10,16,32,0.42)] px-4 py-10">
+        <div className="mx-auto max-w-3xl rounded-[32px] bg-white p-10 text-center shadow-[0_24px_80px_rgba(15,23,42,0.22)]">
+          <h1 className="text-3xl font-black text-slate-900">해커톤 정보를 불러오는 중입니다.</h1>
+          <p className="mt-4 text-slate-500">잠시만 기다려 주세요.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!hackathon) {
     return (
       <div className="fixed inset-0 z-50 overflow-y-auto bg-[rgba(10,16,32,0.42)] px-4 py-10">
         <div className="mx-auto max-w-3xl rounded-[32px] bg-white p-10 text-center shadow-[0_24px_80px_rgba(15,23,42,0.22)]">
           <h1 className="text-3xl font-black text-slate-900">해커톤 정보를 찾을 수 없습니다.</h1>
-          <p className="mt-4 text-slate-500">목록으로 돌아가 다른 해커톤을 확인해 주세요.</p>
+          <p className="mt-4 text-slate-500">
+            {detailError || "목록으로 돌아가 다른 해커톤을 확인해 주세요."}
+          </p>
           <div className="mt-8">
             <PrimaryActionButton onClick={closeDetail}>목록으로 돌아가기</PrimaryActionButton>
           </div>
@@ -153,7 +207,8 @@ const HackathonDetailPage = () => {
     }));
   })();
 
-  const isLeaderboardVisible = hackathon.status === "closed";
+  const isLeaderboardVisible =
+    hackathon.status === "closed" && hackathon.leaderboard.entries.length > 0;
   const isLeaderUser = leaderTeams.length > 0;
   const registerButtonDisabled = !currentUserId || !isLeaderUser || isLeaderTeamsLoading;
   const registerButtonLabel = !currentUserId
@@ -231,6 +286,26 @@ const HackathonDetailPage = () => {
     navigate(`/teams?searchCategory=hackathon&search=${encodeURIComponent(hackathon.title)}`);
   };
 
+  const handleToggleFavorite = async () => {
+    const result = await toggleSave(hackathon.id, currentUserId);
+
+    if (!result?.isSuccess) {
+      setRegisterFeedback({
+        type: "error",
+        message: result?.message || "해커톤 저장 상태를 변경하지 못했습니다.",
+      });
+      return;
+    }
+
+    const nextIsStar = !hackathon.isStar;
+
+    setHackathon((prev) => (prev ? { ...prev, isStar: nextIsStar } : prev));
+    notifyHackathonSaveUpdated({
+      hackathonId: hackathon.id,
+      isStar: nextIsStar,
+    });
+  };
+
   const registerModal = isRegisterModalOpen
     ? createPortal(
         <div
@@ -272,8 +347,8 @@ const HackathonDetailPage = () => {
                     onClick={() => setSelectedTeamId(String(team.teamId))}
                     className={`flex w-full items-center justify-between rounded-2xl border px-4 py-4 text-left transition ${
                       isSelected
-                        ? "border-[#336DFE] bg-[#EEF4FF]"
-                        : "border-slate-200 bg-white hover:border-[#D6E2FF] hover:bg-[#FBFCFF]"
+                        ? "border-[#336DFE] bg-[#EEF4FF] shadow-[0_12px_28px_rgba(51,109,254,0.14)]"
+                        : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-[#D6E2FF] hover:bg-[#FBFCFF] hover:shadow-[0_12px_28px_rgba(15,23,42,0.08)] active:translate-y-0"
                     }`}
                   >
                     <div>
@@ -283,7 +358,7 @@ const HackathonDetailPage = () => {
                       </p>
                     </div>
                     <span
-                      className={`inline-flex h-5 w-5 rounded-full border ${
+                      className={`inline-flex h-5 w-5 rounded-full border transition ${
                         isSelected
                           ? "border-[#336DFE] bg-[#336DFE]"
                           : "border-slate-300 bg-white"
@@ -308,7 +383,7 @@ const HackathonDetailPage = () => {
               <button
                 type="button"
                 onClick={closeRegisterModal}
-                className="inline-flex h-12 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:bg-slate-50"
+                className="inline-flex h-12 cursor-pointer items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_12px_24px_rgba(15,23,42,0.08)] active:translate-y-0 focus:outline-none focus:ring-4 focus:ring-slate-200"
               >
                 취소
               </button>
@@ -319,7 +394,7 @@ const HackathonDetailPage = () => {
                 className={`inline-flex h-12 items-center justify-center rounded-2xl px-4 text-sm font-bold transition ${
                   !selectedTeamId || isTeamActionLoading
                     ? "cursor-not-allowed bg-slate-200 text-slate-500"
-                    : "cursor-pointer bg-[#336DFE] text-white hover:-translate-y-0.5 hover:bg-[#2458E6] hover:shadow-[0_14px_30px_rgba(51,109,254,0.25)]"
+                    : "cursor-pointer bg-[#336DFE] text-white hover:-translate-y-0.5 hover:bg-[#2458E6] hover:shadow-[0_14px_30px_rgba(51,109,254,0.25)] active:translate-y-0 focus:outline-none focus:ring-4 focus:ring-[#D9E5FF]"
                 }`}
               >
                 {isTeamActionLoading ? "신청 중..." : "참가 신청"}
@@ -377,8 +452,8 @@ const HackathonDetailPage = () => {
                 </svg>
               </button>
               <HackathonDetailFavoriteButton
-                active={isFavorite}
-                onClick={() => setIsFavorite((prev) => !prev)}
+                active={hackathon.isStar}
+                onClick={handleToggleFavorite}
               />
             </div>
           </div>
@@ -453,7 +528,7 @@ const HackathonDetailPage = () => {
                             <div>
                               <p className="text-sm font-bold text-slate-900">{item.label}</p>
                               <p className="mt-1 text-xs font-medium text-slate-400">
-                                비중 {item.displayWeight}% · 점수 {item.score}점
+                                비중 {item.displayWeight}% · 기준 {item.score}점
                               </p>
                             </div>
                           </div>
@@ -505,7 +580,21 @@ const HackathonDetailPage = () => {
                     <div className="grid gap-3 sm:grid-cols-[0.9fr_1.1fr]">
                       <button
                         type="button"
-                        onClick={() => navigate("/mypage")}
+                        onClick={() =>
+                          navigate("/mypage", {
+                            state: {
+                              showTeamCreateGuide: true,
+                            },
+                          })
+                        }
+                        onMouseEnter={() =>
+                          setTeamActionHint("팀 생성을 위해 마이페이지로 이동합니다.")
+                        }
+                        onMouseLeave={() => setTeamActionHint("")}
+                        onFocus={() =>
+                          setTeamActionHint("팀 생성을 위해 마이페이지로 이동합니다.")
+                        }
+                        onBlur={() => setTeamActionHint("")}
                         className="inline-flex h-12 cursor-pointer items-center justify-center rounded-2xl border border-[#D8E4FF] bg-[#F8FAFF] px-4 text-sm font-bold text-[#336DFE] transition hover:border-[#BDD2FF] hover:bg-[#EEF4FF]"
                       >
                         팀 만들기
@@ -513,13 +602,25 @@ const HackathonDetailPage = () => {
                       <button
                         type="button"
                         onClick={moveToTeamRecruit}
+                        onMouseEnter={() =>
+                          setTeamActionHint(
+                            "해당 해커톤 팀원 모집 글만 바로 볼 수 있도록 팀원 모집 페이지로 이동합니다.",
+                          )
+                        }
+                        onMouseLeave={() => setTeamActionHint("")}
+                        onFocus={() =>
+                          setTeamActionHint(
+                            "해당 해커톤 팀원 모집 글만 바로 볼 수 있도록 팀원 모집 페이지로 이동합니다.",
+                          )
+                        }
+                        onBlur={() => setTeamActionHint("")}
                         className="inline-flex h-12 cursor-pointer items-center justify-center rounded-2xl bg-[#336DFE] px-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#2458E6] hover:shadow-[0_14px_30px_rgba(51,109,254,0.25)]"
                       >
                         팀 참가요청
                       </button>
                     </div>
-                    <p className="mt-3 text-xs font-medium text-slate-400">
-                      해당 해커톤 팀원 모집 글만 바로 볼 수 있도록 팀원 모집 페이지로 이동합니다.
+                    <p className="mt-3 min-h-[40px] text-xs font-medium leading-5 text-slate-400">
+                      {teamActionHint}
                     </p>
                   </div>
                 </BaseInfoCard>
@@ -664,20 +765,35 @@ const HackathonDetailPage = () => {
                             </span>
                             <div>
                               <p className="text-sm font-bold text-slate-900">{entry.team}</p>
-                              <p className="text-xs text-slate-400">팀 점수</p>
                             </div>
                           </div>
-                          <p className="text-sm font-black text-[#336DFE]">{entry.score}점</p>
+                          <p className="text-sm font-black text-[#336DFE]">
+                            {entry.score === null ? `${entry.rank}위` : `${entry.score}점`}
+                          </p>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="rounded-2xl bg-white px-5 py-6 text-center">
-                      <p className="text-base font-black text-slate-900">심사중입니다</p>
+                      <p className="text-base font-black text-slate-900">
+                        {hackathon.leaderboard.isPending
+                          ? "해커톤이 종료되면 발표됩니다"
+                          : "심사중입니다"}
+                      </p>
                       <p className="mt-2 text-sm leading-6 text-slate-500">
-                        현재 제출물 심사가 진행 중입니다.
-                        <br />
-                        심사가 완료되면 리더보드 순위가 공개됩니다.
+                        {hackathon.leaderboard.isPending ? (
+                          <>
+                            아직 리더보드가 공개되지 않았습니다.
+                            <br />
+                            해커톤 종료 후 순위가 발표됩니다.
+                          </>
+                        ) : (
+                          <>
+                            현재 제출물 심사가 진행 중입니다.
+                            <br />
+                            심사가 완료되면 리더보드 순위가 공개됩니다.
+                          </>
+                        )}
                       </p>
                     </div>
                   )}
@@ -734,9 +850,9 @@ const HackathonDetailPage = () => {
               <button
                 type="button"
                 onClick={openRegisterModal}
-                disabled={registerButtonDisabled}
+                disabled={registerButtonDisabled || isSaveLoading}
                 className={`inline-flex h-12 items-center justify-center rounded-2xl px-5 text-sm font-bold transition ${
-                  registerButtonDisabled
+                  registerButtonDisabled || isSaveLoading
                     ? "cursor-not-allowed bg-slate-200 text-slate-500"
                     : "cursor-pointer bg-[#336DFE] text-white hover:-translate-y-0.5 hover:bg-[#2458E6] hover:shadow-[0_14px_30px_rgba(51,109,254,0.25)]"
                 }`}
