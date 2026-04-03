@@ -326,17 +326,35 @@ const RecruitWritePage = () => {
         return prev;
       }
 
+      if (!hasTag) {
+        const currentRecruitTotal = getSelectedRecruitTotal(prev.tags, prev.positionSlots);
+
+        // 새 포지션을 추가할 때도 최소 1명은 모집하도록 기본값을 맞춥니다.
+        if (currentRecruitTotal >= TEAM_MAX_MEMBERS) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          tags: nextTags,
+          positionSlots: {
+            ...prev.positionSlots,
+            [tag]: { recruit: Math.max(1, prev.positionSlots[tag]?.recruit ?? 1) },
+          },
+        };
+      }
+
       return { ...prev, tags: nextTags };
     });
   };
 
   const updatePositionSlot = (tag, value) => {
-    const parsed = Math.max(0, Number(value || 0));
+    const parsed = Math.max(1, Number(value || 1));
 
     setForm((prev) => {
       const otherTags = prev.tags.filter((item) => item !== tag);
       const otherRecruitTotal = getSelectedRecruitTotal(otherTags, prev.positionSlots);
-      const maxAllowed = Math.max(0, TEAM_MAX_MEMBERS - otherRecruitTotal);
+      const maxAllowed = Math.max(1, TEAM_MAX_MEMBERS - otherRecruitTotal);
       const nextRecruit = Math.min(parsed, maxAllowed);
 
       return {
@@ -530,7 +548,7 @@ const RecruitWritePage = () => {
 
                           <input
                             type="number"
-                            min="0"
+                            min="1"
                             max={TEAM_MAX_MEMBERS}
                             value={slot.recruit}
                             onChange={(event) => updatePositionSlot(tag, event.target.value)}
