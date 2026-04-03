@@ -1,18 +1,13 @@
 import deleteIcon from "../../assets/mailDeleteIcon.png";
 
-const POSITION_LABELS = {
-  1: "기획",
-  2: "프론트엔드",
-  3: "백엔드",
-  4: "디자이너",
-};
-
-const ActionCircle = ({ children, color = "#B8C1D2", onClick, title, className = "" }) => (
+// 공통 버튼 컴포넌트
+const ActionCircle = ({ children, color = "#B8C1D2", onClick, title }) => (
   <button
     type="button"
     onClick={onClick}
     title={title}
-    className={`flex h-10 w-10 items-center justify-center rounded-full border border-[#D7DEEA] bg-white text-lg font-bold leading-none shadow-sm transition hover:bg-gray-50 active:scale-95 ${className}`}
+    // leading-none 추가: 텍스트의 상하 여백을 제거해 정중앙에 배치되도록 도움
+    className="flex h-10 w-10 items-center justify-center rounded-full border border-[#D7DEEA] bg-white text-lg font-bold shadow-sm transition hover:-translate-y-0.5 hover:bg-gray-50 active:scale-95 leading-none"
     style={{ color }}
   >
     {children}
@@ -24,13 +19,14 @@ const MailViewer = ({ message, mode, onToggleStar, onDelete, onRespond }) => {
     return (
       <section className="flex min-h-[700px] flex-1 items-center justify-center rounded-3xl border-2 border-dashed border-[#E4E9F2] bg-white text-xl font-medium text-[#99A2B4]">
         <div className="text-center">
-          <p className="mb-2 text-4xl">✉</p>
+          <p className="mb-2 text-4xl">📬</p>
           <p>내용을 확인하려면 목록에서 항목을 선택해 주세요.</p>
         </div>
       </section>
     );
   }
 
+  // [데이터 파싱 핵심 수정]
   const isMessageMode = mode === "messages";
   const isTeamsMode = mode === "teams";
   const currentId = message.id || message.invitationId;
@@ -87,58 +83,27 @@ const MailViewer = ({ message, mode, onToggleStar, onDelete, onRespond }) => {
   const displayContent =
     message.content ||
     (isTeamInvite
-      ? `안녕하세요. 우리 팀은 <strong>${positionName || "개발자"}</strong> 포지션으로 합류해 주실 분을 찾고 있습니다.`
-      : `${senderName} 님이 <strong>${positionName || "개발자"}</strong> 포지션으로 팀에 지원했습니다.`);
-
-  const handleDecision = (decision) => {
-    setInviteDecisionById((prev) => ({ ...prev, [currentId]: decision }));
-    setDecisionNotice(
-      decision === "accept" ? "초대 요청을 수락했습니다." : "초대 요청을 거절했습니다.",
-    );
-  };
+      ? `안녕하세요! 저희 팀의 <strong>${positionName || "개발자"}</strong> 파트로 당신을 초대하고 싶습니다.`
+      : `${senderName} 님이 귀하의 팀에 <strong>${positionName || "개발자"}</strong> 파트로 합류하기를 신청했습니다.`);
 
   return (
     <section className="flex min-h-[700px] flex-1 flex-col rounded-3xl border border-[#E4E9F2] bg-white p-10 shadow-sm transition-all">
-      {feedbackMessage ? (
-        <div className="mb-6 flex items-start justify-between rounded-2xl border border-[#D8E4FF] bg-[#F5F8FF] px-5 py-4 text-sm font-semibold text-[#336DFE]">
-          <span>{feedbackMessage}</span>
-          <button
-            type="button"
-            onClick={onDismissFeedback}
-            className="ml-4 shrink-0 text-[#7A96E8] hover:text-[#336DFE]"
-          >
-            닫기
-          </button>
-        </div>
-      ) : null}
-
-      {decisionNotice ? (
-        <div className="mb-6 flex items-start justify-between rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-semibold text-emerald-700">
-          <span>{decisionNotice}</span>
-          <button
-            type="button"
-            onClick={() => setDecisionNotice("")}
-            className="ml-4 shrink-0 text-emerald-500 hover:text-emerald-700"
-          >
-            닫기
-          </button>
-        </div>
-      ) : null}
-
       <div className="flex items-start justify-between">
         <div className="space-y-3 text-[#2F3645]">
+          {/* 보낸 사람 */}
           <div className="flex items-center gap-3">
-            <span className="w-16 shrink-0 text-sm font-bold text-[#656D7E]">보낸 사람</span>
+            <span className="text-sm font-bold w-16 shrink-0 text-[#656D7E]">보낸사람</span>
             <div className="inline-flex items-center rounded-full bg-[#E8F2FF] px-4 py-1.5 text-sm">
               <span className="font-semibold">{senderName}</span>
-              {positionName ? (
-                <span className="ml-2 text-xs font-normal text-[#656D7E]">
+              {positionName && (
+                <span className="ml-2 text-[#656D7E] text-xs font-normal">
                   &lt;{positionName}&gt;
                 </span>
-              ) : null}
+              )}
             </div>
           </div>
 
+          {/* 보낸 날짜 */}
           <div className="flex items-center gap-3">
             <span className="text-sm font-bold w-16 shrink-0 text-[#656D7E]">보낸날짜</span>
             <div className="inline-flex items-center rounded-full bg-[#E8F2FF] px-4 py-1.5 text-sm">
@@ -148,21 +113,17 @@ const MailViewer = ({ message, mode, onToggleStar, onDelete, onRespond }) => {
         </div>
 
         <div className="flex gap-3">
-          {isMessageMode ? (
+          {isMessageMode && (
             <ActionCircle
               title="중요 표시"
               color={isStarred ? "#F5C542" : "#B8C1D2"}
               onClick={() => onToggleStar(currentId)}
             >
-              <span className="-translate-y-[1px] text-xl">{isStarred ? "★" : "☆"}</span>
+              <span className="-translate-y-[2px] text-xl">{isStarred ? "★" : "☆"}</span>
             </ActionCircle>
-          ) : null}
-          <ActionCircle
-            title="삭제하기"
-            color="#F16A6A"
-            onClick={() => setPendingDeleteId(currentId)}
-          >
-            <img src={deleteIcon} alt="삭제" />
+          )}
+          <ActionCircle title="삭제하기" color="#F16A6A" onClick={() => onDelete(currentId)}>
+            <img src={deleteIcon} alt="delete" />
           </ActionCircle>
         </div>
       </div>
@@ -175,6 +136,7 @@ const MailViewer = ({ message, mode, onToggleStar, onDelete, onRespond }) => {
         <div className="mt-8 h-[2px] w-full bg-[#F1F4F9]" />
       </div>
 
+      {/* 본문 내용 */}
       <article className="flex-1 text-xl leading-[2] text-[#4C5568]">
         {/* 팀 초대/신청 모드일 때 보여주는 액션 박스 */}
         {isDecisionMessage ? (
