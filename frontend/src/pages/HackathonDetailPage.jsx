@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Cell, Pie, PieChart } from "recharts";
 import BaseInfoCard from "../components/common/BaseInfoCard";
@@ -9,6 +10,7 @@ import HackathonDetailInfoRow from "../components/hackathon/HackathonDetailInfoR
 import HackathonDetailPrizeCard from "../components/hackathon/HackathonDetailPrizeCard";
 import HackathonDetailSectionTitle from "../components/hackathon/HackathonDetailSectionTitle";
 import HackathonDetailTimeline from "../components/hackathon/HackathonDetailTimeline";
+import { useTeam } from "../hooks/useTeam";
 import {
   evaluationColors,
   iconClock,
@@ -19,18 +21,22 @@ import {
   iconTeam,
 } from "../components/hackathon/hackathonDetail.constants.jsx";
 import { getHackathonById } from "../mocks/data/hackathons";
-import {
-  extractTeamPositions,
-  formatPositionLabel,
-  getPositionToneClass,
-} from "./hackathonDetail.utils";
+import { getCurrentUser } from "../utils/auth";
 
 const HackathonDetailPage = () => {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const hackathon = useMemo(() => getHackathonById(id), [id]);
+  const currentUser = useMemo(() => getCurrentUser(), []);
+  const currentUserId = currentUser?.userId ?? null;
+  const { getLeaderTeams, registerHackathonTeam, isLoading: isTeamActionLoading } = useTeam();
   const [isFavorite, setIsFavorite] = useState(false);
+  const [leaderTeams, setLeaderTeams] = useState([]);
+  const [isLeaderTeamsLoading, setIsLeaderTeamsLoading] = useState(false);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [selectedTeamId, setSelectedTeamId] = useState("");
+  const [registerFeedback, setRegisterFeedback] = useState(null);
   const backgroundLocation = location.state?.backgroundLocation;
 
   const closeDetail = () => {
@@ -60,6 +66,48 @@ const HackathonDetailPage = () => {
       document.body.style.paddingRight = previousBodyPaddingRight;
     };
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadLeaderTeams = async () => {
+      if (!currentUserId) {
+        if (isMounted) {
+          setLeaderTeams([]);
+          setSelectedTeamId("");
+        }
+        return;
+      }
+
+      setIsLeaderTeamsLoading(true);
+      const result = await getLeaderTeams(currentUserId);
+
+      if (!isMounted) {
+        return;
+      }
+
+      const teams = result?.data?.teams ?? [];
+      if (result?.isSuccess) {
+        setLeaderTeams(teams);
+        setSelectedTeamId((prev) =>
+          prev && teams.some((team) => String(team.teamId) === String(prev))
+            ? prev
+            : String(teams[0]?.teamId ?? ""),
+        );
+      } else {
+        setLeaderTeams([]);
+        setSelectedTeamId("");
+      }
+
+      setIsLeaderTeamsLoading(false);
+    };
+
+    loadLeaderTeams();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentUserId, getLeaderTeams]);
 
   if (!hackathon) {
     return (
@@ -106,6 +154,15 @@ const HackathonDetailPage = () => {
   })();
 
   const isLeaderboardVisible = hackathon.status === "closed";
+  const isLeaderUser = leaderTeams.length > 0;
+  const registerButtonDisabled = !currentUserId || !isLeaderUser || isLeaderTeamsLoading;
+  const registerButtonLabel = !currentUserId
+    ? "로그인 후 참가 가능"
+    : isLeaderTeamsLoading
+      ? "팀 목록 불러오는 중..."
+      : !isLeaderUser
+        ? "팀장만 참가 가능"
+        : "참가 요청";
 
   const handleMockDownload = () => {
     if (normalizedSubmission.status !== "제출완료") {
@@ -129,6 +186,151 @@ const HackathonDetailPage = () => {
     document.body.removeChild(link);
     URL.revokeObjectURL(objectUrl);
   };
+
+  const openRegisterModal = () => {
+    if (registerButtonDisabled) {
+      return;
+    }
+
+    setRegisterFeedback(null);
+    setIsRegisterModalOpen(true);
+  };
+
+  const closeRegisterModal = () => {
+    setIsRegisterModalOpen(false);
+  };
+
+  const handleRegisterHackathon = async () => {
+    if (!currentUserId || !selectedTeamId) {
+      setRegisterFeedback({
+        type: "error",
+        message: "참가 신청할 팀을 선택해 주세요.",
+      });
+      return;
+    }
+
+    const result = await registerHackathonTeam(currentUserId, selectedTeamId, hackathon.id);
+    if (result?.isSuccess) {
+      setRegisterFeedback({
+        type: "success",
+        message: "해당 팀으로 해커톤 참가 신청을 완료했습니다.",
+      });
+      window.setTimeout(() => {
+        setIsRegisterModalOpen(false);
+      }, 1800);
+      return;
+    }
+
+    setRegisterFeedback({
+      type: "error",
+      message: result?.message || "해커톤 참가 신청 중 오류가 발생했습니다.",
+    });
+  };
+
+  const moveToTeamRecruit = () => {
+    navigate(`/teams?searchCategory=hackathon&search=${encodeURIComponent(hackathon.title)}`);
+  };
+
+  const registerModal = isRegisterModalOpen
+    ? createPortal(
+        <div
+          className="fixed inset-0 z-[100] flex min-h-screen items-center justify-center bg-[rgba(10,16,32,0.42)] px-4"
+          onClick={closeRegisterModal}
+        >
+          <div
+            className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.22)]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-black text-slate-950">해커톤 참가 신청</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  팀장을 맡고 있는 팀 중에서 참가 신청할 팀을 선택해 주세요.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeRegisterModal}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                aria-label="참가 신청 모달 닫기"
+              >
+                <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5 stroke-current">
+                  <path d="M7 7L17 17" strokeWidth="1.8" strokeLinecap="round" />
+                  <path d="M17 7L7 17" strokeWidth="1.8" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="mt-5 space-y-3">
+              {leaderTeams.map((team) => {
+                const isSelected = String(team.teamId) === String(selectedTeamId);
+
+                return (
+                  <button
+                    key={team.teamId}
+                    type="button"
+                    onClick={() => setSelectedTeamId(String(team.teamId))}
+                    className={`flex w-full items-center justify-between rounded-2xl border px-4 py-4 text-left transition ${
+                      isSelected
+                        ? "border-[#336DFE] bg-[#EEF4FF]"
+                        : "border-slate-200 bg-white hover:border-[#D6E2FF] hover:bg-[#FBFCFF]"
+                    }`}
+                  >
+                    <div>
+                      <p className="text-sm font-black text-slate-900">{team.teamName}</p>
+                      <p className="mt-1 text-xs font-medium text-slate-400">
+                        팀 ID: {team.teamId}
+                      </p>
+                    </div>
+                    <span
+                      className={`inline-flex h-5 w-5 rounded-full border ${
+                        isSelected
+                          ? "border-[#336DFE] bg-[#336DFE]"
+                          : "border-slate-300 bg-white"
+                      }`}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+
+            {registerFeedback ? (
+              <p
+                className={`mt-4 text-sm font-medium ${
+                  registerFeedback.type === "success" ? "text-[#336DFE]" : "text-[#D14343]"
+                }`}
+              >
+                {registerFeedback.message}
+              </p>
+            ) : null}
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={closeRegisterModal}
+                className="inline-flex h-12 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:bg-slate-50"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={handleRegisterHackathon}
+                disabled={!selectedTeamId || isTeamActionLoading}
+                className={`inline-flex h-12 items-center justify-center rounded-2xl px-4 text-sm font-bold transition ${
+                  !selectedTeamId || isTeamActionLoading
+                    ? "cursor-not-allowed bg-slate-200 text-slate-500"
+                    : "cursor-pointer bg-[#336DFE] text-white hover:-translate-y-0.5 hover:bg-[#2458E6] hover:shadow-[0_14px_30px_rgba(51,109,254,0.25)]"
+                }`}
+              >
+                {isTeamActionLoading ? "신청 중..." : "참가 신청"}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )
+    : null;
+  const shouldRenderLegacyRegisterModal = false;
 
   return (
     <div
@@ -293,16 +495,6 @@ const HackathonDetailPage = () => {
                         <div className="flex items-center justify-between gap-3">
                           <div>
                             <p className="text-sm font-black text-slate-900">{team.name}</p>
-                            <div className="mt-2 flex flex-wrap gap-1.5">
-                              {extractTeamPositions(team).map((position) => (
-                                <span
-                                  key={`${team.name}-${position}`}
-                                  className={`rounded-md px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.03em] ${getPositionToneClass(position)}`}
-                                >
-                                  {formatPositionLabel(position)}
-                                </span>
-                              ))}
-                            </div>
                           </div>
                           <span className="text-sm font-bold text-[#336DFE]">{team.members}</span>
                         </div>
@@ -318,8 +510,17 @@ const HackathonDetailPage = () => {
                       >
                         팀 만들기
                       </button>
-                      <PrimaryActionButton fullWidth>참가 요청</PrimaryActionButton>
+                      <button
+                        type="button"
+                        onClick={moveToTeamRecruit}
+                        className="inline-flex h-12 cursor-pointer items-center justify-center rounded-2xl bg-[#336DFE] px-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#2458E6] hover:shadow-[0_14px_30px_rgba(51,109,254,0.25)]"
+                      >
+                        팀 참가요청
+                      </button>
                     </div>
+                    <p className="mt-3 text-xs font-medium text-slate-400">
+                      해당 해커톤 팀원 모집 글만 바로 볼 수 있도록 팀원 모집 페이지로 이동합니다.
+                    </p>
                   </div>
                 </BaseInfoCard>
               </div>
@@ -530,11 +731,120 @@ const HackathonDetailPage = () => {
                 <p className="text-xs font-bold text-slate-400">참가 마감까지</p>
                 <p className="mt-1 text-sm font-black text-slate-900">{hackathon.dDay} 남음</p>
               </div>
-              <PrimaryActionButton onClick={() => {}}>참가 신청하기 -&gt;</PrimaryActionButton>
+              <button
+                type="button"
+                onClick={openRegisterModal}
+                disabled={registerButtonDisabled}
+                className={`inline-flex h-12 items-center justify-center rounded-2xl px-5 text-sm font-bold transition ${
+                  registerButtonDisabled
+                    ? "cursor-not-allowed bg-slate-200 text-slate-500"
+                    : "cursor-pointer bg-[#336DFE] text-white hover:-translate-y-0.5 hover:bg-[#2458E6] hover:shadow-[0_14px_30px_rgba(51,109,254,0.25)]"
+                }`}
+              >
+                {registerButtonLabel}
+              </button>
             </div>
           </div>
         </div>
       </div>
+
+      {shouldRenderLegacyRegisterModal ? (
+        <div
+          className="fixed inset-0 z-[100] flex min-h-screen items-center justify-center bg-[rgba(10,16,32,0.42)] px-4"
+          onClick={closeRegisterModal}
+        >
+          <div
+            className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.22)]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-black text-slate-950">해커톤 참가 신청</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  팀장을 맡고 있는 팀 중에서 참가 신청할 팀을 선택해 주세요.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeRegisterModal}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                aria-label="참가 신청 모달 닫기"
+              >
+                <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5 stroke-current">
+                  <path d="M7 7L17 17" strokeWidth="1.8" strokeLinecap="round" />
+                  <path d="M17 7L7 17" strokeWidth="1.8" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="mt-5 space-y-3">
+              {leaderTeams.map((team) => {
+                const isSelected = String(team.teamId) === String(selectedTeamId);
+
+                return (
+                  <button
+                    key={team.teamId}
+                    type="button"
+                    onClick={() => setSelectedTeamId(String(team.teamId))}
+                    className={`flex w-full items-center justify-between rounded-2xl border px-4 py-4 text-left transition ${
+                      isSelected
+                        ? "border-[#336DFE] bg-[#EEF4FF]"
+                        : "border-slate-200 bg-white hover:border-[#D6E2FF] hover:bg-[#FBFCFF]"
+                    }`}
+                  >
+                    <div>
+                      <p className="text-sm font-black text-slate-900">{team.teamName}</p>
+                      <p className="mt-1 text-xs font-medium text-slate-400">
+                        팀 ID: {team.teamId}
+                      </p>
+                    </div>
+                    <span
+                      className={`inline-flex h-5 w-5 rounded-full border ${
+                        isSelected
+                          ? "border-[#336DFE] bg-[#336DFE]"
+                          : "border-slate-300 bg-white"
+                      }`}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+
+            {registerFeedback ? (
+              <p
+                className={`mt-4 text-sm font-medium ${
+                  registerFeedback.type === "success" ? "text-[#336DFE]" : "text-[#D14343]"
+                }`}
+              >
+                {registerFeedback.message}
+              </p>
+            ) : null}
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={closeRegisterModal}
+                className="inline-flex h-12 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:bg-slate-50"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={handleRegisterHackathon}
+                disabled={!selectedTeamId || isTeamActionLoading}
+                className={`inline-flex h-12 items-center justify-center rounded-2xl px-4 text-sm font-bold transition ${
+                  !selectedTeamId || isTeamActionLoading
+                    ? "cursor-not-allowed bg-slate-200 text-slate-500"
+                    : "cursor-pointer bg-[#336DFE] text-white hover:-translate-y-0.5 hover:bg-[#2458E6] hover:shadow-[0_14px_30px_rgba(51,109,254,0.25)]"
+                }`}
+              >
+                {isTeamActionLoading ? "신청 중..." : "참가 신청"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {registerModal}
     </div>
   );
 };
