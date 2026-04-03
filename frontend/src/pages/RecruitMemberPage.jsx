@@ -26,6 +26,11 @@ const positionOptions = [
   { value: "data", label: "DB" },
 ];
 
+const ownershipOptions = [
+  { value: "all", label: "전체 글" },
+  { value: "mine", label: "내가 작성한 글" },
+];
+
 const tagColorMap = {
   FE: "bg-[#2A3FFF] text-white",
   BE: "bg-[#4CD137] text-white",
@@ -110,7 +115,7 @@ const PositionSlotList = ({ post, compact = false, titled = false }) => (
   </div>
 );
 
-const RecruitDetailModal = ({ post, onClose }) => {
+const RecruitDetailModal = ({ post, onClose, onEdit }) => {
   const recruitDisplayCount = getRecruitDisplayCount(post);
   const availablePositions = useMemo(
     () =>
@@ -189,9 +194,9 @@ const RecruitDetailModal = ({ post, onClose }) => {
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-5">
-          <div className="space-y-2">
+          <div className="min-w-0 space-y-2">
             <span className="text-xs font-semibold text-[#7C96FF]">{post.version}</span>
-            <h2 className="text-2xl font-black tracking-tight text-slate-950 sm:text-[2rem]">
+            <h2 className="truncate text-2xl font-black tracking-tight text-slate-950 sm:text-[2rem]">
               {post.title}
             </h2>
           </div>
@@ -213,78 +218,87 @@ const RecruitDetailModal = ({ post, onClose }) => {
 
           <p className="text-base font-medium leading-7 text-slate-800">{post.description}</p>
 
-          <div className="rounded-3xl bg-[#F8FAFF] px-4 py-4">
-            <p className="text-xs font-bold tracking-[0.12em] text-[#6B86E8]">지원 포지션 선택</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {availablePositions.length > 0 ? (
-                availablePositions.map(([tag, slot]) => {
-                  const isSelected = currentSelectedPosition === tag;
-
-                  return (
-                    <button
-                      key={`${post.id}-${tag}`}
-                      type="button"
-                      onClick={() => {
-                        setSelectedPosition(tag);
-                        setErrorMessage("");
-                        setIsSubmitted(false);
-                      }}
-                      className={`inline-flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm font-black transition ${
-                        isSelected
-                          ? "border-[#336DFE] bg-[#EEF3FF] text-[#2458E6]"
-                          : "border-slate-200 bg-white text-slate-600 hover:border-[#C9D7FF] hover:text-slate-800"
-                      }`}
-                    >
-                      <span
-                        className={`inline-flex min-w-9 items-center justify-center rounded-md px-2 py-1 text-[10px] font-black ${
-                          tagColorMap[tag] ?? "bg-slate-200 text-slate-700"
-                        }`}
-                      >
-                        {tag}
-                      </span>
-                      <span>{slot.total - slot.current}명</span>
-                    </button>
-                  );
-                })
-              ) : (
-                <p className="text-sm font-medium text-slate-500">
-                  현재 지원 가능한 포지션이 없습니다.
-                </p>
-              )}
+          {post.isMine ? (
+            <div className="rounded-3xl bg-[#F8FAFF] px-4 py-4">
+              <p className="text-xs font-bold tracking-[0.12em] text-[#6B86E8]">모집 포지션</p>
+              <PositionSlotList post={post} titled />
             </div>
-          </div>
+          ) : (
+            <>
+              <div className="rounded-3xl bg-[#F8FAFF] px-4 py-4">
+                <p className="text-xs font-bold tracking-[0.12em] text-[#6B86E8]">지원 포지션 선택</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {availablePositions.length > 0 ? (
+                    availablePositions.map(([tag, slot]) => {
+                      const isSelected = currentSelectedPosition === tag;
 
-          <div className="space-y-3 rounded-3xl border border-[#E5ECFF] bg-white px-4 py-4 sm:px-5">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-bold tracking-[0.12em] text-[#6B86E8]">지원 메시지</p>
-              <span className="text-xs font-semibold text-slate-400">{messageLength}/300</span>
-            </div>
-
-            <textarea
-              value={message}
-              onChange={(event) => {
-                setMessage(event.target.value.slice(0, 300));
-                if (errorMessage) {
-                  setErrorMessage("");
-                }
-                if (isSubmitted) {
-                  setIsSubmitted(false);
-                }
-              }}
-              placeholder="팀에 전하고 싶은 자기소개와 협업 경험을 자유롭게 남겨 주세요."
-              className="min-h-[132px] w-full rounded-2xl border border-slate-200 bg-[#F8FAFF] px-4 py-3 text-sm font-medium leading-6 text-slate-800 outline-none transition focus:border-[#AFC5FF] focus:ring-4 focus:ring-[#EEF3FF]"
-            />
-
-            {errorMessage ? (
-              <p className="text-sm font-semibold text-[#D93A3A]">{errorMessage}</p>
-            ) : null}
-
-            {isSubmitted ? (
-              <div className="rounded-2xl bg-[#EEF9F1] px-4 py-3 text-sm font-semibold text-[#1E9F46]">
-                {selectedPositionLabel} 포지션으로 지원 메시지를 작성했습니다.
+                      return (
+                        <button
+                          key={`${post.id}-${tag}`}
+                          type="button"
+                          onClick={() => {
+                            setSelectedPosition(tag);
+                            setErrorMessage("");
+                            setIsSubmitted(false);
+                          }}
+                          className={`inline-flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm font-black transition ${
+                            isSelected
+                              ? "border-[#336DFE] bg-[#EEF3FF] text-[#2458E6]"
+                              : "border-slate-200 bg-white text-slate-600 hover:border-[#C9D7FF] hover:text-slate-800"
+                          }`}
+                        >
+                          <span
+                            className={`inline-flex min-w-9 items-center justify-center rounded-md px-2 py-1 text-[10px] font-black ${
+                              tagColorMap[tag] ?? "bg-slate-200 text-slate-700"
+                            }`}
+                          >
+                            {tag}
+                          </span>
+                          <span>{slot.total - slot.current}명</span>
+                        </button>
+                      );
+                    })
+                  ) : (
+                    <p className="text-sm font-medium text-slate-500">
+                      현재 지원 가능한 포지션이 없습니다.
+                    </p>
+                  )}
+                </div>
               </div>
-            ) : null}
-          </div>
+
+              <div className="space-y-3 rounded-3xl border border-[#E5ECFF] bg-white px-4 py-4 sm:px-5">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs font-bold tracking-[0.12em] text-[#6B86E8]">지원 메시지</p>
+                  <span className="text-xs font-semibold text-slate-400">{messageLength}/300</span>
+                </div>
+
+                <textarea
+                  value={message}
+                  onChange={(event) => {
+                    setMessage(event.target.value.slice(0, 300));
+                    if (errorMessage) {
+                      setErrorMessage("");
+                    }
+                    if (isSubmitted) {
+                      setIsSubmitted(false);
+                    }
+                  }}
+                  placeholder="팀에 전하고 싶은 자기소개와 협업 경험을 자유롭게 남겨 주세요."
+                  className="min-h-[132px] w-full rounded-2xl border border-slate-200 bg-[#F8FAFF] px-4 py-3 text-sm font-medium leading-6 text-slate-800 outline-none transition focus:border-[#AFC5FF] focus:ring-4 focus:ring-[#EEF3FF]"
+                />
+
+                {errorMessage ? (
+                  <p className="text-sm font-semibold text-[#D93A3A]">{errorMessage}</p>
+                ) : null}
+
+                {isSubmitted ? (
+                  <div className="rounded-2xl bg-[#EEF9F1] px-4 py-3 text-sm font-semibold text-[#1E9F46]">
+                    {selectedPositionLabel} 포지션으로 지원 메시지를 작성했습니다.
+                  </div>
+                ) : null}
+              </div>
+            </>
+          )}
 
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-3xl border border-[#E5ECFF] bg-[#F8FAFF] px-4 py-4 sm:px-5">
             <div className="min-w-0">
@@ -310,22 +324,34 @@ const RecruitDetailModal = ({ post, onClose }) => {
               </div>
             </div>
           </div>
+
+          {post.isMine ? (
+            <p className="text-sm font-semibold text-slate-500">
+              내가 작성한 모집 글입니다. 내용을 수정하려면 아래 버튼을 눌러 주세요.
+            </p>
+          ) : null}
         </div>
 
         <div className="flex justify-end border-t border-slate-100 pt-5">
           <div className="w-full sm:w-auto">
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={availablePositions.length === 0}
-              className={`inline-flex h-12 w-full items-center justify-center rounded-2xl px-5 text-sm font-bold text-white transition duration-200 sm:w-auto ${
-                availablePositions.length === 0
-                  ? "cursor-not-allowed bg-slate-300"
-                  : "cursor-pointer bg-[#336DFE] hover:-translate-y-0.5 hover:bg-[#2458E6] hover:shadow-[0_14px_30px_rgba(51,109,254,0.25)]"
-              }`}
-            >
-              {currentSelectedPosition ? `${currentSelectedPosition} 포지션 지원하기` : "지원하기"}
-            </button>
+            {post.isMine ? (
+              <PrimaryActionButton fullWidth onClick={() => onEdit(post)}>
+                수정하기
+              </PrimaryActionButton>
+            ) : (
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={availablePositions.length === 0}
+                className={`inline-flex h-12 w-full items-center justify-center rounded-2xl px-5 text-sm font-bold text-white transition duration-200 sm:w-auto ${
+                  availablePositions.length === 0
+                    ? "cursor-not-allowed bg-slate-300"
+                    : "cursor-pointer bg-[#336DFE] hover:-translate-y-0.5 hover:bg-[#2458E6] hover:shadow-[0_14px_30px_rgba(51,109,254,0.25)]"
+                }`}
+              >
+                {currentSelectedPosition ? `${currentSelectedPosition} 포지션 지원하기` : "지원하기"}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -414,6 +440,7 @@ const RecruitMemberPage = () => {
   const [searchValue, setSearchValue] = useState(initialSearchValue);
   const [statusFilter, setStatusFilter] = useState("all");
   const [positionFilter, setPositionFilter] = useState("all");
+  const [ownershipFilter, setOwnershipFilter] = useState("all");
   const [selectedPost, setSelectedPost] = useState(null);
   const [recruitItems, setRecruitItems] = useState([]);
 
@@ -483,10 +510,16 @@ const RecruitMemberPage = () => {
           if (positionFilter === "data") return tag === "DB";
           return false;
         });
+      const matchesOwnership = ownershipFilter === "all" || post.isMine;
 
-      return matchesStatus && matchesPosition;
+      return matchesStatus && matchesPosition && matchesOwnership;
     });
-  }, [positionFilter, recruitItems, statusFilter]);
+  }, [ownershipFilter, positionFilter, recruitItems, statusFilter]);
+
+  const handleEditPost = (post) => {
+    setSelectedPost(null);
+    navigate(`/teams/write?articleId=${post.articleId}`);
+  };
 
   return (
     <div className="min-h-screen bg-[#F3F6FF]">
@@ -531,6 +564,27 @@ const RecruitMemberPage = () => {
             />
           </div>
 
+          <div className="flex flex-wrap items-center gap-2">
+            {ownershipOptions.map((option) => {
+              const isActive = ownershipFilter === option.value;
+
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setOwnershipFilter(option.value)}
+                  className={`inline-flex h-11 cursor-pointer items-center justify-center rounded-full px-4 text-sm font-black transition ${
+                    isActive
+                      ? "bg-[#336DFE] text-white shadow-[0_12px_24px_rgba(51,109,254,0.2)]"
+                      : "border border-slate-200 bg-white text-slate-500 hover:border-[#C9D7FF] hover:text-slate-700"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+
           {isLoading ? (
             <BaseInfoCard className="rounded-[28px] p-10 text-center text-sm font-medium text-slate-500">
               팀원 모집 목록을 불러오는 중입니다.
@@ -541,7 +595,9 @@ const RecruitMemberPage = () => {
             </BaseInfoCard>
           ) : filteredPosts.length === 0 ? (
             <BaseInfoCard className="rounded-[28px] p-10 text-center text-sm font-medium text-slate-500">
-              조건에 맞는 팀원 모집 글이 없습니다.
+              {ownershipFilter === "mine"
+                ? "내가 작성한 팀원 모집 글이 없습니다."
+                : "조건에 맞는 팀원 모집 글이 없습니다."}
             </BaseInfoCard>
           ) : (
             <div className="grid gap-6 sm:gap-7 md:grid-cols-2 xl:grid-cols-3">
@@ -554,7 +610,11 @@ const RecruitMemberPage = () => {
       </div>
 
       {selectedPost ? (
-        <RecruitDetailModal post={selectedPost} onClose={() => setSelectedPost(null)} />
+        <RecruitDetailModal
+          post={selectedPost}
+          onClose={() => setSelectedPost(null)}
+          onEdit={handleEditPost}
+        />
       ) : null}
     </div>
   );

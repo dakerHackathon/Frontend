@@ -1,33 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import BaseInfoCard from "../components/common/BaseInfoCard";
 import PrimaryActionButton from "../components/common/PrimaryActionButton";
 import { useRecruit } from "../hooks/useRecruit";
-import { validateRecruitCreateForm } from "../utils/recruit";
+import { mapRecruitPostToForm, recruitEditableTeams, validateRecruitCreateForm } from "../utils/recruit";
 
 const TEAM_MAX_MEMBERS = 5;
 
 const statusOptions = [
   { value: "open", label: "모집중", dotTone: "active" },
   { value: "closed", label: "마감", dotTone: "closed" },
-];
-
-const myTeams = [
-  {
-    id: 1,
-    name: "#336DFE",
-    hackathonName: "AI 아이디어톤 2026",
-  },
-  {
-    id: 2,
-    name: "#BloomUp",
-    hackathonName: "캠퍼스 창업톤 2026",
-  },
-  {
-    id: 3,
-    name: "#Nebula",
-    hackathonName: "부산 빅데이터톤 2026",
-  },
 ];
 
 const tagOptions = ["FE", "BE", "AI", "DB", "DESIGNER"];
@@ -205,7 +187,7 @@ const RecruitPreviewCard = ({ form, selectedTeam }) => {
   return (
     <BaseInfoCard className="p-6 transition duration-200 hover:-translate-y-1 hover:border-[#C9D7FF] hover:shadow-[0_24px_50px_rgba(51,109,254,0.12)]">
       <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-5">
-        <div className="space-y-2">
+        <div className="min-w-0 space-y-2">
           <span className="text-[10px] font-medium text-[#7C96FF]">15분전</span>
           <h2 className="truncate text-[1.65rem] font-black tracking-tight text-slate-950">
             {form.title || "팀원 마지막 한 명 구합니다."}
@@ -246,7 +228,7 @@ const RecruitPreviewCard = ({ form, selectedTeam }) => {
               참여 해커톤
             </span>
             <p className="mt-2 truncate text-base font-black text-slate-900 sm:text-[1.05rem]">
-              {form.hackathonName || "참여 해커톤을 선택해 주세요"}
+            {form.hackathonName || "참여 해커톤 정보가 없습니다."}
             </p>
           </div>
           <div className="flex items-center gap-3 border-l border-[#D7E2FF] pl-4">
@@ -278,13 +260,18 @@ const RecruitPreviewCard = ({ form, selectedTeam }) => {
 
 const RecruitWritePage = () => {
   const navigate = useNavigate();
-  const { createArticle, closeArticle, isSubmitting } = useRecruit();
+  const [searchParams] = useSearchParams();
+  const { fetchList, createArticle, updateArticle, closeArticle, isSubmitting, isLoading } =
+    useRecruit();
+  const navigationTimeoutRef = useRef(null);
+  const articleId = Number(searchParams.get("articleId") ?? 0);
+  const isEditMode = articleId > 0;
   const [form, setForm] = useState({
     title: "",
-    teamId: myTeams[0].id,
+    teamId: recruitEditableTeams[0].id,
     tags: ["FE", "BE"],
     description: "",
-    hackathonName: myTeams[0].hackathonName,
+    hackathonName: recruitEditableTeams[0].hackathonName,
     contact: "",
     status: "open",
     positionSlots: {
@@ -297,14 +284,68 @@ const RecruitWritePage = () => {
   });
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");
+  const [isEditReady, setIsEditReady] = useState(!isEditMode);
 
   const selectedStatusLabel = useMemo(
     () => statusOptions.find((option) => option.value === form.status)?.label ?? "모집중",
     [form.status]
   );
 
+  useEffect(() => {
+    return () => {
+      if (navigationTimeoutRef.current) {
+        window.clearTimeout(navigationTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (!isEditMode) {
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    const loadArticle = async () => {
+      setIsEditReady(false);
+      setSubmitError("");
+
+      // 상세 API가 따로 없어 목록 응답에서 수정 대상을 찾아 폼 초기값으로 재사용합니다.
+      const result = await fetchList();
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (!result?.isSuccess) {
+        setSubmitError(result?.message || "수정할 팀원 모집 글을 불러오지 못했습니다.");
+        setIsEditReady(true);
+        return;
+      }
+
+      const targetPost = (result.data?.posts ?? []).find((post) => post.articleId === articleId);
+
+      if (!targetPost?.isMine) {
+        setSubmitError("수정할 수 있는 팀원 모집 글을 찾지 못했습니다.");
+        setIsEditReady(true);
+        return;
+      }
+
+      setForm(mapRecruitPostToForm(targetPost));
+      setIsEditReady(true);
+    };
+
+    loadArticle();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [articleId, fetchList, isEditMode]);
+
   const selectedTeam = useMemo(
-    () => myTeams.find((team) => team.id === form.teamId) ?? myTeams[0],
+    () => recruitEditableTeams.find((team) => team.id === form.teamId) ?? recruitEditableTeams[0],
     [form.teamId]
   );
 
@@ -368,16 +409,17 @@ const RecruitWritePage = () => {
   };
 
   const handleTeamChange = (teamId) => {
-    const nextTeam = myTeams.find((team) => team.id === teamId) ?? myTeams[0];
+    const nextTeam =
+      recruitEditableTeams.find((team) => team.id === Number(teamId)) ?? recruitEditableTeams[0];
     setForm((prev) => ({
       ...prev,
-      teamId,
+      teamId: nextTeam.id,
       hackathonName: nextTeam.hackathonName ?? "",
     }));
   };
 
   const handleSubmit = async () => {
-    if (isSubmitting) {
+    if (isSubmitting || !isEditReady) {
       return;
     }
 
@@ -391,19 +433,26 @@ const RecruitWritePage = () => {
 
     setSubmitError("");
 
-    // 글쓰기 화면의 입력값을 명세 request body로 변환해 바로 등록합니다.
-    const result = await createArticle({
-      teamId: form.teamId,
-      form,
-    });
+    // 등록과 수정은 같은 폼을 사용하고, 수정 모드일 때만 PATCH API로 분기합니다.
+    const result = isEditMode
+      ? await updateArticle({
+          articleId,
+          form,
+        })
+      : await createArticle({
+          teamId: form.teamId,
+          form,
+        });
 
     if (!result?.isSuccess) {
       setSubmitSuccess("");
-      setSubmitError(result?.message || "팀원 모집 글을 등록하지 못했습니다.");
+      setSubmitError(
+        result?.message || (isEditMode ? "팀원 모집 글을 수정하지 못했습니다." : "팀원 모집 글을 등록하지 못했습니다."),
+      );
       return;
     }
 
-    if (form.status === "closed") {
+    if (!isEditMode && form.status === "closed") {
       // 등록 API에는 상태 필드가 없어서, 마감 작성은 등록 직후 마감 API로 상태를 맞춥니다.
       const closeResult = await closeArticle(result.data?.articleId);
 
@@ -414,11 +463,27 @@ const RecruitWritePage = () => {
       }
     }
 
-    setSubmitSuccess("팀원 모집 글이 등록되었습니다. 목록에서 바로 확인할 수 있습니다.");
-    window.setTimeout(() => {
+    setSubmitSuccess(
+      isEditMode
+        ? "팀원 모집 글이 수정되었습니다. 목록에서 바로 확인할 수 있습니다."
+        : "팀원 모집 글이 등록되었습니다. 목록에서 바로 확인할 수 있습니다.",
+    );
+    navigationTimeoutRef.current = window.setTimeout(() => {
       navigate("/teams");
-    }, 600);
+    }, 1500);
   };
+
+  if (isEditMode && !isEditReady && isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F3F6FF]">
+        <div className="mx-auto max-w-[1520px] px-4 py-8 sm:px-5 sm:py-10 lg:px-10 lg:py-12">
+          <BaseInfoCard className="p-10 text-center text-sm font-medium text-slate-500">
+            수정할 팀원 모집 글을 불러오는 중입니다.
+          </BaseInfoCard>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F3F6FF]">
@@ -427,14 +492,20 @@ const RecruitWritePage = () => {
           <section className="space-y-6">
             <div className="space-y-3">
               <h1 className="text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
-                팀원 모집 글쓰기
+                {isEditMode ? "팀원 모집 글 수정" : "팀원 모집 글쓰기"}
               </h1>
               <p className="text-sm font-medium text-slate-500 sm:text-base">
-                팀 최대 인원 5명을 기준으로, 포지션별 모집할 인원만 설정해 주세요.
+                {isEditMode
+                  ? "기존 모집 글 내용을 수정하고 저장할 수 있습니다."
+                  : "팀 최대 인원 5명을 기준으로, 포지션별 모집할 인원만 설정해 주세요."}
               </p>
             </div>
 
             <BaseInfoCard className="p-6 sm:p-7 hover:border-[#D8E3FF] hover:shadow-[0_22px_48px_rgba(51,109,254,0.09)]">
+              {!isEditReady && isEditMode ? (
+                <p className="text-sm font-medium text-slate-500">수정할 팀원 모집 글을 불러오는 중입니다.</p>
+              ) : null}
+
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="md:col-span-2">
                   <FieldLabel>모집 제목</FieldLabel>
@@ -451,7 +522,7 @@ const RecruitWritePage = () => {
                   <SelectField
                     value={form.teamId}
                     onChange={(event) => handleTeamChange(event.target.value)}
-                    options={myTeams.map((team) => ({ value: team.id, label: team.name }))}
+                    options={recruitEditableTeams.map((team) => ({ value: team.id, label: team.name }))}
                   />
                 </div>
 
@@ -560,17 +631,21 @@ const RecruitWritePage = () => {
                   </div>
                 </div>
 
-                <div>
-                  <FieldLabel>모집 상태</FieldLabel>
-                  <SelectField
-                    value={form.status}
-                    onChange={(event) => updateField("status", event.target.value)}
-                    options={statusOptions}
-                    showDot
-                  />
-                </div>
+                {!isEditMode ? (
+                  <>
+                    <div>
+                      <FieldLabel>모집 상태</FieldLabel>
+                      <SelectField
+                        value={form.status}
+                        onChange={(event) => updateField("status", event.target.value)}
+                        options={statusOptions}
+                        showDot
+                      />
+                    </div>
 
-                <div />
+                    <div />
+                  </>
+                ) : null}
               </div>
 
               <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-3xl bg-[#F8FAFF] px-5 py-4">
@@ -593,7 +668,7 @@ const RecruitWritePage = () => {
                 </div>
                 <div className="w-full sm:w-auto">
                   <PrimaryActionButton fullWidth onClick={handleSubmit}>
-                    {isSubmitting ? "등록 중..." : "작성 완료"}
+                    {isSubmitting ? (isEditMode ? "수정 중..." : "등록 중...") : isEditMode ? "수정 완료" : "작성 완료"}
                   </PrimaryActionButton>
                 </div>
               </div>

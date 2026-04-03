@@ -34,7 +34,7 @@ const filterRecruitArticles = (articles, { open, position, filter, query }) => {
 };
 
 export const recruitHandlers = [
-  http.get("/camp/:userId/recruit", ({ request, params }) => {
+  http.get("*/camp/:userId/recruit", ({ request, params }) => {
     console.log(`✅ MSW intercepted: GET /camp/${params.userId}/recruit`);
 
     if (shouldFail) {
@@ -59,7 +59,7 @@ export const recruitHandlers = [
 
     return HttpResponse.json(success({ articles }));
   }),
-  http.get("/camp/:userId/recruit/search", ({ request, params }) => {
+  http.get("*/camp/:userId/recruit/search", ({ request, params }) => {
     console.log(`✅ MSW intercepted: GET /camp/${params.userId}/recruit/search`);
 
     const url = new URL(request.url);
@@ -72,7 +72,72 @@ export const recruitHandlers = [
 
     return HttpResponse.json(success({ articles }));
   }),
-  http.post("/camp/:userId/recruit/:teamId", async ({ request, params }) => {
+  http.patch("*/camp/:userId/recruit/:articleId", async ({ request, params }) => {
+    console.log(`✅ MSW intercepted: PATCH /camp/${params.userId}/recruit/${params.articleId}`);
+
+    const body = await request.json();
+    const articleId = Number(params.articleId);
+    const updatedArticles = getStoredRecruitArticles().map((item) =>
+      item.article.id === articleId
+        ? {
+            ...item,
+            article: {
+              ...item.article,
+              title: body.title,
+              content: body.content,
+              positions: (body.lookingFor ?? []).map((positionInfo) => ({
+                position: positionInfo.positionId,
+                headCount: positionInfo.headCount,
+              })),
+              contact: body.contact,
+            },
+          }
+        : item,
+    );
+
+    saveStoredRecruitArticles(updatedArticles);
+
+    return HttpResponse.json(success({ articleId }));
+  }),
+  http.delete("*/camp/:userId/recruit", async ({ request, params }) => {
+    console.log(`✅ MSW intercepted: DELETE /camp/${params.userId}/recruit`);
+
+    const body = await request.json();
+    const articleId = Number(body.articleId);
+    const filteredArticles = getStoredRecruitArticles().filter(
+      (item) => item.article.id !== articleId,
+    );
+
+    saveStoredRecruitArticles(filteredArticles);
+
+    return HttpResponse.json({
+      isSuccess: true,
+      code: "200",
+      message: "요청이 성공적입니다.",
+    });
+  }),
+  http.post("*/camp/:userId/recruit/close", async ({ request, params }) => {
+    console.log(`✅ MSW intercepted: POST /camp/${params.userId}/recruit/close`);
+
+    const body = await request.json();
+    const articleId = Number(body.articleId);
+    const updatedArticles = getStoredRecruitArticles().map((item) =>
+      item.article.id === articleId
+        ? {
+            ...item,
+            article: {
+              ...item.article,
+              isOpen: false,
+            },
+          }
+        : item,
+    );
+
+    saveStoredRecruitArticles(updatedArticles);
+
+    return HttpResponse.json(success({ articleId }));
+  }),
+  http.post("*/camp/:userId/recruit/:teamId", async ({ request, params }) => {
     console.log(`✅ MSW intercepted: POST /camp/${params.userId}/recruit/${params.teamId}`);
 
     const body = await request.json();
@@ -112,70 +177,5 @@ export const recruitHandlers = [
     saveStoredRecruitArticles([createdArticle, ...storedArticles]);
 
     return HttpResponse.json(success({ articleId: nextArticleId }));
-  }),
-  http.patch("/camp/:userId/recruit/:articleId", async ({ request, params }) => {
-    console.log(`✅ MSW intercepted: PATCH /camp/${params.userId}/recruit/${params.articleId}`);
-
-    const body = await request.json();
-    const articleId = Number(params.articleId);
-    const updatedArticles = getStoredRecruitArticles().map((item) =>
-      item.article.id === articleId
-        ? {
-            ...item,
-            article: {
-              ...item.article,
-              title: body.title,
-              content: body.content,
-              positions: (body.lookingFor ?? []).map((positionInfo) => ({
-                position: positionInfo.positionId,
-                headCount: positionInfo.headCount,
-              })),
-              contact: body.contact,
-            },
-          }
-        : item,
-    );
-
-    saveStoredRecruitArticles(updatedArticles);
-
-    return HttpResponse.json(success({ articleId }));
-  }),
-  http.delete("/camp/:userId/recruit", async ({ request, params }) => {
-    console.log(`✅ MSW intercepted: DELETE /camp/${params.userId}/recruit`);
-
-    const body = await request.json();
-    const articleId = Number(body.articleId);
-    const filteredArticles = getStoredRecruitArticles().filter(
-      (item) => item.article.id !== articleId,
-    );
-
-    saveStoredRecruitArticles(filteredArticles);
-
-    return HttpResponse.json({
-      isSuccess: true,
-      code: "200",
-      message: "요청이 성공적입니다.",
-    });
-  }),
-  http.post("/camp/:userId/recruit/close", async ({ request, params }) => {
-    console.log(`✅ MSW intercepted: POST /camp/${params.userId}/recruit/close`);
-
-    const body = await request.json();
-    const articleId = Number(body.articleId);
-    const updatedArticles = getStoredRecruitArticles().map((item) =>
-      item.article.id === articleId
-        ? {
-            ...item,
-            article: {
-              ...item.article,
-              isOpen: false,
-            },
-          }
-        : item,
-    );
-
-    saveStoredRecruitArticles(updatedArticles);
-
-    return HttpResponse.json(success({ articleId }));
   }),
 ];

@@ -108,6 +108,28 @@ export const useRecruit = () => {
     }
   }, []);
 
+  const updateArticle = useCallback(async ({ articleId, form }) => {
+    const userId = getRecruitUserId();
+
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      return await API.recruit.update(userId, articleId, buildRecruitCreatePayload(form));
+    } catch (error) {
+      const message = error.response?.data?.message || "팀원 모집 글을 수정하지 못했습니다.";
+      setError(message);
+
+      return {
+        isSuccess: false,
+        message,
+        data: null,
+      };
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, []);
+
   const closeArticle = useCallback(async (articleId) => {
     const userId = getRecruitUserId();
 
@@ -129,6 +151,7 @@ export const useRecruit = () => {
     fetchList,
     searchArticles,
     createArticle,
+    updateArticle,
     closeArticle,
     isLoading,
     isSubmitting,
