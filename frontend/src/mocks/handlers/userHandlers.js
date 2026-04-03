@@ -1,20 +1,22 @@
 import { http, HttpResponse } from "msw";
 import { mockUsers } from "../data/user";
 
+const BASE_URL = "http://13.125.160.175:8080";
+
 export const userHandlers = [
   // <로그인 API>
-  http.post("/user/login", async ({ request }) => {
+  http.post(`${BASE_URL}/user/login`, async ({ request }) => {
     // 1. 파라미터를 loginId 대신 email로 받습니다.
-    const { loginId, password } = await request.json();
+    const { email, password } = await request.json();
 
     // 2. 로컬스토리지에서 유저 목록을 가져옵니다.
     const storedUsers = JSON.parse(
       localStorage.getItem("users") || JSON.stringify(mockUsers),
     );
 
-    // 3. loginId와 password가 일치하는 유저를 찾습니다.
+    // 3. email과 password가 일치하는 유저를 찾습니다.
     const user = storedUsers.find(
-      (u) => u.loginId === loginId && u.password === password,
+      (u) => u.email === email && u.password === password,
     );
 
     if (user) {
@@ -42,7 +44,7 @@ export const userHandlers = [
   }),
 
   // <회원가입 API>
-  http.post("/user/signup", async ({ request }) => {
+  http.post(`${BASE_URL}/user/signup`, async ({ request }) => {
     const userData = await request.json();
     const { email, loginId, password, name, nickName } = userData;
 
