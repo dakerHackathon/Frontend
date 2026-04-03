@@ -25,7 +25,7 @@ const ProfileEditModal = ({
         </label>
 
         <label className="block">
-          <span className="mb-1 block font-medium">이메일 (수정 불가)</span>
+          <span className="mb-1 block font-medium">이메일(수정 불가)</span>
           <input
             value={editForm.email}
             disabled
@@ -69,7 +69,7 @@ const ProfileEditModal = ({
             placeholder="스킬 검색"
             className="w-full rounded-lg border border-slate-300 px-3 py-2"
           />
-          {skillQuery && (
+          {skillQuery ? (
             <div className="mt-2 max-h-28 overflow-y-auto rounded-lg border border-slate-200">
               {filteredSkills.length === 0 ? (
                 <p className="px-3 py-2 text-xs text-slate-500">검색 결과가 없습니다.</p>
@@ -89,7 +89,7 @@ const ProfileEditModal = ({
                 ))
               )}
             </div>
-          )}
+          ) : null}
           <div className="mt-2 flex flex-wrap gap-2">
             {editForm.skills.map((skill) => (
               <button

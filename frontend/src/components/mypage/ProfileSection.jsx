@@ -1,17 +1,11 @@
 const ProfileSection = ({ profile, onEdit }) => {
-  // 빈 문자열 링크는 버튼을 숨겨서 잘못된 빈 이동을 막습니다.
-  const hasGithub = typeof profile.github === "string" && profile.github.trim();
-  const hasPortfolio =
-    typeof profile.portfolio === "string" && profile.portfolio.trim();
+  const hasGithub = Boolean(profile.github?.trim());
+  const hasPortfolio = Boolean(profile.portfolio?.trim());
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-white px-4 pt-3 pb-5 shadow-[0_10px_20px_rgba(15,23,42,0.05)]">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <img
-          src={profile.avatar}
-          alt="프로필"
-          className="h-24 w-24 rounded-full object-cover"
-        />
+        <img src={profile.avatar} alt="프로필" className="h-24 w-24 rounded-full object-cover" />
         <div className="flex-1">
           <h1 className="text-2xl font-black text-slate-900">{profile.name}</h1>
           <p className="text-sm text-slate-500">{profile.email}</p>
@@ -28,10 +22,7 @@ const ProfileSection = ({ profile, onEdit }) => {
               </a>
             ) : null}
             {profile.skills.map((skill) => (
-              <span
-                key={skill}
-                className="rounded-full bg-blue-50 px-2 py-1 text-blue-700"
-              >
+              <span key={skill} className="rounded-full bg-blue-50 px-2 py-1 text-blue-700">
                 #{skill}
               </span>
             ))}

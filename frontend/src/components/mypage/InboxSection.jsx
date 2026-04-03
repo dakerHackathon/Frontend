@@ -18,8 +18,10 @@ const InboxSection = ({ unreadCount = 3 }) => {
             </svg>
           </div>
           <div>
-            <h3 className="text-3xl font-black leading-none text-slate-900">내 쪽지함</h3>
-            <p className="mt-1 text-base font-semibold text-slate-500">확인하지 않은 쪽지 {unreadCount}통</p>
+            <h3 className="text-3xl font-black leading-none text-slate-900">쪽지함</h3>
+            <p className="mt-1 text-base font-semibold text-slate-500">
+              확인하지 않은 쪽지 {unreadCount}개
+            </p>
           </div>
         </div>
 

@@ -7,7 +7,7 @@ export const skillHandlers = [
   http.get("*/user/skills", async ({ request }) => {
     console.log("✅ MSW intercepted: /user/skills");
 
-    // ?ㅽ궗 ?꾩껜 議고쉶???곹깭 ?꾪솚??媛?ν빐???ㅻⅨ ?붾㈃ ?곕룞 ?꾩뿉 鍮좊Ⅴ寃?寃利앺븷 ???덉뒿?덈떎.
+    // 스킬 전체 조회도 상태 전환을 쉽게 해두면 연동 전 검증이 빨라집니다.
     if (skillMockMode === "unauthorized") {
       return HttpResponse.json(
         {

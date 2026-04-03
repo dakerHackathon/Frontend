@@ -52,9 +52,7 @@ const TeamInviteCard = ({
                 <div className="min-w-0">
                   <p className="font-black text-slate-900">
                     {candidate.nickname}
-                    <span className="ml-2 font-medium text-slate-500">
-                      {candidate.name}
-                    </span>
+                    <span className="ml-2 font-medium text-slate-500">{candidate.name}</span>
                   </p>
                   <p className="mt-1 truncate text-sm text-slate-500">{candidate.email}</p>
                   <p className="mt-2 text-sm text-slate-600">{candidate.intro}</p>

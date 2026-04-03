@@ -10,13 +10,13 @@ export const mypageHandlers = [
 
     console.log(`✅ MSW intercepted: /user/${userId}/mypage`);
 
-    // ?묐떟 ?곹깭瑜???媛??섎굹濡?諛붽씀硫?200/401/500 ?뚯뒪?몃? 鍮좊Ⅴ寃??뺤씤?????덉뒿?덈떎.
+    // 응답 상태를 한 곳에서 바꾸면 200/401/500 테스트를 빠르게 확인할 수 있습니다.
     if (myPageMockMode === "unauthorized") {
       return HttpResponse.json(
         {
           isSuccess: false,
           code: "401",
-          message: "?紐꾩쵄???袁⑹뒄??몃빍??",
+          message: "인증이 필요합니다.",
           data: null,
         },
         { status: 401 },
@@ -62,7 +62,7 @@ export const mypageHandlers = [
         {
           isSuccess: false,
           code: "401",
-          message: "?紐꾩쵄???袁⑹뒄??몃빍??",
+          message: "인증이 필요합니다.",
         },
         { status: 401 },
       );
@@ -79,7 +79,7 @@ export const mypageHandlers = [
       );
     }
 
-    // 수정 API도 실서버 우선으로 보내고, 실패할 때만 기존 mock 저장 흐름으로 내려옵니다.
+    // 수정 API도 실서버를 우선 사용하고, 실패할 때만 mock 성공 응답으로 돌립니다.
     if (myPageMockMode === "fallback") {
       try {
         return await fetch(bypass(request.clone()));
@@ -101,7 +101,7 @@ export const mypageHandlers = [
     return HttpResponse.json({
       isSuccess: true,
       code: "200",
-      message: "?遺욧퍕???源껊궗?怨몄뿯??덈뼄.",
+      message: "요청이 성공적입니다.",
     });
   }),
 ];
