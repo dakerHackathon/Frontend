@@ -180,6 +180,7 @@ export const mapHackathonDetailResponse = ({ detail, summary }) => {
     leaderboard: {
       average: 0,
       note: detail.leaderBoard ? "최종 순위" : "심사 전",
+      isPending: detail.leaderBoard === null,
       entries: (detail.leaderBoard ?? []).map((entry, index) => ({
         rank: index + 1,
         team: entry.teamName,

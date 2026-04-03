@@ -207,7 +207,8 @@ const HackathonDetailPage = () => {
     }));
   })();
 
-  const isLeaderboardVisible = hackathon.status === "closed";
+  const isLeaderboardVisible =
+    hackathon.status === "closed" && hackathon.leaderboard.entries.length > 0;
   const isLeaderUser = leaderTeams.length > 0;
   const registerButtonDisabled = !currentUserId || !isLeaderUser || isLeaderTeamsLoading;
   const registerButtonLabel = !currentUserId
@@ -769,11 +770,25 @@ const HackathonDetailPage = () => {
                     </div>
                   ) : (
                     <div className="rounded-2xl bg-white px-5 py-6 text-center">
-                      <p className="text-base font-black text-slate-900">심사중입니다</p>
+                      <p className="text-base font-black text-slate-900">
+                        {hackathon.leaderboard.isPending
+                          ? "해커톤이 종료되면 발표됩니다"
+                          : "심사중입니다"}
+                      </p>
                       <p className="mt-2 text-sm leading-6 text-slate-500">
-                        현재 제출물 심사가 진행 중입니다.
-                        <br />
-                        심사가 완료되면 리더보드 순위가 공개됩니다.
+                        {hackathon.leaderboard.isPending ? (
+                          <>
+                            아직 리더보드가 공개되지 않았습니다.
+                            <br />
+                            해커톤 종료 후 순위가 발표됩니다.
+                          </>
+                        ) : (
+                          <>
+                            현재 제출물 심사가 진행 중입니다.
+                            <br />
+                            심사가 완료되면 리더보드 순위가 공개됩니다.
+                          </>
+                        )}
                       </p>
                     </div>
                   )}
