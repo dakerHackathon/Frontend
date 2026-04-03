@@ -1,4 +1,4 @@
-//api 筌뤴뫁?э쭪?
+// api 레지스트리
 import { authApi } from "./auth";
 import { hackathonApi } from "./hackathon";
 import { mypageApi } from "./mypage";

@@ -1,6 +1,6 @@
 import PrimaryActionButton from "../../common/PrimaryActionButton";
 import { teamPartOptions } from "../constants";
-import { baseInputClass, pageCardClass, PartBadge } from "./shared.jsx";
+import { baseInputClass, pageCardClass } from "./shared";
 
 const TeamInviteCard = ({
   inviteQuery,
@@ -56,11 +56,6 @@ const TeamInviteCard = ({
                   </p>
                   <p className="mt-1 truncate text-sm text-slate-500">{candidate.email}</p>
                   <p className="mt-2 text-sm text-slate-600">{candidate.intro}</p>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {candidate.parts.map((part) => (
-                    <PartBadge key={`${candidate.id}-${part}`} part={part} />
-                  ))}
                 </div>
               </button>
             );

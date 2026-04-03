@@ -9,10 +9,7 @@ import SavedHackathonsSection from "../components/mypage/SavedHackathonsSection"
 import TeamCreateModal from "../components/mypage/TeamCreateModal";
 import TeamStatusSection from "../components/mypage/TeamStatusSection";
 import {
-  initialHackathons,
   initialProfile,
-  savedHackathons,
-  teams,
 } from "../components/mypage/constants";
 import { useMyPage } from "../hooks/useMyPage";
 import { useSkill } from "../hooks/useSkill";
@@ -25,6 +22,16 @@ const fallbackSkills = [
   { id: 2, name: "TypeScript" },
   { id: 3, name: "Node.js" },
 ];
+
+const emptyProfile = {
+  ...initialProfile,
+  name: "",
+  email: "",
+  intro: "",
+  github: "",
+  portfolio: "",
+  skills: [],
+};
 
 const normalizeSkillLabel = (skill, skillLabelMap) => {
   if (typeof skill === "number") {
@@ -51,22 +58,19 @@ const MyPage = () => {
   const { getAllSkills } = useSkill();
   const { handleCreateTeam: requestCreateTeam, isLoading, createTeamError } =
     useTeam();
-  const [profile, setProfile] = useState(initialProfile);
+  const [profile, setProfile] = useState(emptyProfile);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isTeamCreateOpen, setIsTeamCreateOpen] = useState(false);
   const [teamCreateErrorMessage, setTeamCreateErrorMessage] = useState("");
-  const [editForm, setEditForm] = useState(initialProfile);
+  const [editForm, setEditForm] = useState(emptyProfile);
   const [skillQuery, setSkillQuery] = useState("");
   const [temperature, setTemperature] = useState(43.5);
   const [voteLocks, setVoteLocks] = useState({});
-  const [savedItems, setSavedItems] = useState(savedHackathons);
-  const [hackathonItems, setHackathonItems] = useState(initialHackathons);
-  const [unreadCount, setUnreadCount] = useState(3);
+  const [savedItems, setSavedItems] = useState([]);
+  const [hackathonItems, setHackathonItems] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [availableSkills, setAvailableSkills] = useState(fallbackSkills);
-  const [teamItems, setTeamItems] = useState(() => {
-    const storedTeams = localStorage.getItem(TEAMS_STORAGE_KEY);
-    return storedTeams ? JSON.parse(storedTeams) : teams;
-  });
+  const [teamItems, setTeamItems] = useState([]);
 
   const skillValueMap = useMemo(
     () =>
