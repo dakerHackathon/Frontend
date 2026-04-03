@@ -115,7 +115,7 @@ const PositionSlotList = ({ post, compact = false, titled = false }) => (
   </div>
 );
 
-const RecruitDetailModal = ({ post, onClose, onEdit }) => {
+const RecruitDetailModal = ({ post, onClose, onEdit, onDelete }) => {
   const recruitDisplayCount = getRecruitDisplayCount(post);
   const availablePositions = useMemo(
     () =>
@@ -126,6 +126,7 @@ const RecruitDetailModal = ({ post, onClose, onEdit }) => {
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const currentSelectedPosition =
     availablePositions.some(([tag]) => tag === selectedPosition)
       ? selectedPosition
@@ -182,6 +183,15 @@ const RecruitDetailModal = ({ post, onClose, onEdit }) => {
 
     setErrorMessage("");
     setIsSubmitted(true);
+  };
+
+  const handleDelete = async () => {
+    const result = await onDelete(post);
+
+    if (!result?.isSuccess) {
+      setErrorMessage(result?.message || "팀원 모집 글을 삭제하지 못했습니다.");
+      setIsDeleteConfirmOpen(false);
+    }
   };
 
   return (
@@ -333,11 +343,22 @@ const RecruitDetailModal = ({ post, onClose, onEdit }) => {
         </div>
 
         <div className="flex justify-end border-t border-slate-100 pt-5">
-          <div className="w-full sm:w-auto">
+          <div className={`w-full ${post.isMine ? "sm:w-full" : "sm:w-auto"}`}>
             {post.isMine ? (
-              <PrimaryActionButton fullWidth onClick={() => onEdit(post)}>
-                수정하기
-              </PrimaryActionButton>
+              <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setIsDeleteConfirmOpen(true)}
+                  className="inline-flex h-12 w-full cursor-pointer items-center justify-center rounded-2xl border border-[#FFD4D4] bg-[#FFF6F6] px-5 text-sm font-bold text-[#D93A3A] transition duration-200 hover:bg-[#FFECEC] sm:w-auto sm:min-w-[132px]"
+                >
+                  삭제하기
+                </button>
+                <div className="sm:min-w-[132px]">
+                  <PrimaryActionButton fullWidth onClick={() => onEdit(post)}>
+                    수정하기
+                  </PrimaryActionButton>
+                </div>
+              </div>
             ) : (
               <button
                 type="button"
@@ -354,6 +375,40 @@ const RecruitDetailModal = ({ post, onClose, onEdit }) => {
             )}
           </div>
         </div>
+
+        {isDeleteConfirmOpen ? (
+          <div
+            className="absolute inset-0 flex items-center justify-center rounded-[28px] bg-[rgba(255,255,255,0.78)] px-6 backdrop-blur-[2px]"
+            onClick={() => setIsDeleteConfirmOpen(false)}
+          >
+            <div
+              className="w-full max-w-[360px] rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_24px_50px_rgba(15,23,42,0.18)]"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <p className="text-lg font-black text-slate-950">팀원 모집 글을 삭제하시겠습니까?</p>
+              <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
+                삭제한 글은 다시 복구할 수 없습니다.
+              </p>
+
+              <div className="mt-5 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsDeleteConfirmOpen(false)}
+                  className="inline-flex h-11 flex-1 cursor-pointer items-center justify-center rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-600 transition hover:bg-slate-50"
+                >
+                  취소
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className="inline-flex h-11 flex-1 cursor-pointer items-center justify-center rounded-2xl bg-[#D93A3A] text-sm font-bold text-white transition hover:bg-[#C52F2F]"
+                >
+                  삭제
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -432,7 +487,7 @@ const RecruitCard = ({ post, onOpen }) => {
 const RecruitMemberPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { fetchList, searchArticles, isLoading, error: errorMessage } = useRecruit();
+  const { fetchList, searchArticles, removeArticle, isLoading, error: errorMessage } = useRecruit();
   const initialSearchCategory =
     searchParams.get("searchCategory") === "hackathon" ? "hackathon" : "titleAndContent";
   const initialSearchValue = searchParams.get("search") ?? "";
@@ -519,6 +574,19 @@ const RecruitMemberPage = () => {
   const handleEditPost = (post) => {
     setSelectedPost(null);
     navigate(`/teams/write?articleId=${post.articleId}`);
+  };
+
+  const handleDeletePost = async (post) => {
+    const result = await removeArticle(post.articleId);
+
+    if (!result?.isSuccess) {
+      return result;
+    }
+
+    setRecruitItems((prev) => prev.filter((item) => item.articleId !== post.articleId));
+    setSelectedPost(null);
+
+    return result;
   };
 
   return (
@@ -614,6 +682,7 @@ const RecruitMemberPage = () => {
           post={selectedPost}
           onClose={() => setSelectedPost(null)}
           onEdit={handleEditPost}
+          onDelete={handleDeletePost}
         />
       ) : null}
     </div>

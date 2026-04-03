@@ -130,6 +130,27 @@ export const useRecruit = () => {
     }
   }, []);
 
+  const removeArticle = useCallback(async (articleId) => {
+    const userId = getRecruitUserId();
+
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      return await API.recruit.remove(userId, articleId);
+    } catch (error) {
+      const message = error.response?.data?.message || "팀원 모집 글을 삭제하지 못했습니다.";
+      setError(message);
+
+      return {
+        isSuccess: false,
+        message,
+      };
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, []);
+
   const closeArticle = useCallback(async (articleId) => {
     const userId = getRecruitUserId();
 
@@ -152,6 +173,7 @@ export const useRecruit = () => {
     searchArticles,
     createArticle,
     updateArticle,
+    removeArticle,
     closeArticle,
     isLoading,
     isSubmitting,
