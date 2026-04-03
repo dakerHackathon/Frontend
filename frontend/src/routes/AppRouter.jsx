@@ -26,7 +26,7 @@ const AppRouter = () => {
           <Route element={<ProtectedRoute />}>
             <Route path="/mails" element={<MailPage />} />
             <Route path="/hackathons" element={<HackathonListPage />} />
-            <Route path="/hackathons/:slug" element={<HackathonDetailPage />} />
+            <Route path="/hackathons/:id" element={<HackathonDetailPage />} />
             <Route path="/teams" element={<RecruitMemberPage />} />
             <Route path="/teams/write" element={<RecruitWritePage />} />
             <Route path="/ranking" element={<RankingPage />} />
@@ -42,7 +42,7 @@ const AppRouter = () => {
       {backgroundLocation ? (
         <Routes>
           <Route element={<ProtectedRoute />}>
-            <Route path="/hackathons/:slug" element={<HackathonDetailPage />} />
+            <Route path="/hackathons/:id" element={<HackathonDetailPage />} />
           </Route>
         </Routes>
       ) : null}

@@ -1,94 +1,112 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import BaseInfoCard from "../components/common/BaseInfoCard";
 import PrimaryActionButton from "../components/common/PrimaryActionButton";
 import SearchFilterBar from "../components/common/SearchFilterBar";
+import { useRecruit } from "../hooks/useRecruit";
 
-const recruitPosts = [
+const initialRecruitPosts = [
   {
     id: 1,
-    version: "1분 전",
+    version: "1분전",
     title: "팀원 모집합니다.",
     tags: ["FE", "BE", "AI"],
     accent: "#336DFE",
     description:
-      "우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.우리팀은 이런 사람을 원합니다.",
+      "우리 팀은 빠르게 프로토타입을 만들고 실제 사용 가능성까지 검증하고 싶은 분을 찾고 있습니다.",
     hackathonName: "AI 아이디어톤 2026",
-    currentCount: 2,
-    maxCount: 5,
+    positionSlots: {
+      FE: { current: 1, total: 2 },
+      BE: { current: 1, total: 2 },
+      AI: { current: 0, total: 1 },
+    },
     status: "open",
     position: "all",
   },
   {
     id: 2,
-    version: "15분 전",
+    version: "15분전",
     title: "팀원 마지막 한 명 구합니다.",
     tags: ["FE", "DB"],
     accent: "#336DFE",
-    description: "우리팀은 이런 사람을 원합니다.",
+    description: "프론트와 데이터 처리 경험이 있는 분이면 바로 합류 가능합니다.",
     hackathonName: "AI 아이디어톤 2026",
-    currentCount: 3,
-    maxCount: 5,
+    positionSlots: {
+      FE: { current: 2, total: 3 },
+      DB: { current: 1, total: 2 },
+    },
     status: "open",
     position: "frontend",
   },
   {
     id: 3,
-    version: "32분 전",
+    version: "32분전",
     title: "백엔드, AI 가능한 사람 구합니다.",
     tags: ["BE", "AI"],
     accent: "#336DFE",
-    description: "우리팀은 이런 사람을 원합니다.",
+    description: "모델 서빙과 API 설계 경험이 있는 분을 우선으로 찾고 있습니다.",
     hackathonName: "AI 아이디어톤 2026",
-    currentCount: 3,
-    maxCount: 5,
+    positionSlots: {
+      BE: { current: 2, total: 3 },
+      AI: { current: 1, total: 2 },
+    },
     status: "open",
     position: "backend",
   },
   {
     id: 4,
-    version: "1분 전",
+    version: "1분전",
     title: "팀원 모집합니다.",
     tags: ["FE", "BE", "AI"],
     accent: "#336DFE",
-    description: "우리팀은 이런 사람을 원합니다.",
+    description: "같이 밤새울 의지 있는 팀원을 기다립니다.",
     hackathonName: "AI 아이디어톤 2026",
-    currentCount: 2,
-    maxCount: 5,
+    positionSlots: {
+      FE: { current: 1, total: 2 },
+      BE: { current: 1, total: 2 },
+      AI: { current: 0, total: 1 },
+    },
     status: "open",
     position: "all",
   },
   {
     id: 5,
-    version: "1분 전",
-    title: "팀원 모집합니다.",
+    version: "1분전",
+    title: "AI 직군 마감 직전입니다.",
     tags: ["FE", "BE", "AI"],
     accent: "#336DFE",
-    description: "우리팀은 이런 사람을 원합니다.",
+    description: "현재는 AI 포지션 중심으로 확인 중이며 빠르게 합류 가능한 분을 찾습니다.",
     hackathonName: "AI 아이디어톤 2026",
-    currentCount: 2,
-    maxCount: 5,
+    positionSlots: {
+      FE: { current: 1, total: 2 },
+      BE: { current: 0, total: 1 },
+      AI: { current: 1, total: 2 },
+    },
     status: "closed",
     position: "ai",
   },
   {
     id: 6,
-    version: "1분 전",
-    title: "팀원 모집합니다.",
-    tags: ["FE", "BE", "AI"],
+    version: "1분전",
+    title: "디자이너와 개발자 모두 모집해요.",
+    tags: ["FE", "BE", "AI", "DESIGNER"],
     accent: "#336DFE",
-    description: "우리팀은 이런 사람을 원합니다.",
+    description: "브랜딩과 UI 콘셉트까지 같이 만들어갈 분을 기다립니다.",
     hackathonName: "AI 아이디어톤 2026",
-    currentCount: 2,
-    maxCount: 5,
+    positionSlots: {
+      FE: { current: 1, total: 2 },
+      BE: { current: 1, total: 2 },
+      AI: { current: 0, total: 1 },
+      DESIGNER: { current: 0, total: 1 },
+    },
     status: "open",
     position: "designer",
   },
 ];
 
 const searchOptions = [
-  { value: "title", label: "제목 + 내용" },
-  { value: "titleAndTag", label: "제목 + 태그" },
+  { value: "titleAndContent", label: "제목 + 내용" },
+  { value: "hackathon", label: "해커톤" },
 ];
 
 const statusOptions = [
@@ -102,7 +120,8 @@ const positionOptions = [
   { value: "frontend", label: "프론트" },
   { value: "backend", label: "백엔드" },
   { value: "ai", label: "AI" },
-  { value: "designer", label: "디자인" },
+  { value: "designer", label: "디자이너" },
+  { value: "data", label: "DB" },
 ];
 
 const tagColorMap = {
@@ -110,7 +129,20 @@ const tagColorMap = {
   BE: "bg-[#4CD137] text-white",
   AI: "bg-[#666666] text-white",
   DB: "bg-[#FFB547] text-white",
+  DESIGNER: "bg-[#FF7AB6] text-white",
 };
+
+const getTotalCounts = (post) =>
+  Object.values(post.positionSlots ?? {}).reduce(
+    (acc, slot) => ({
+      current: acc.current + (slot.current ?? 0),
+      total: acc.total + (slot.total ?? 0),
+    }),
+    { current: 0, total: 0 },
+  );
+
+const getPositionSlotEntries = (post) =>
+  Object.entries(post.positionSlots ?? {}).filter(([, slot]) => (slot?.total ?? 0) > 0);
 
 const MemberCountIcon = ({ className = "h-5 w-5" }) => (
   <svg viewBox="0 0 24 24" fill="none" className={`stroke-current ${className}`}>
@@ -139,7 +171,43 @@ const CloseIcon = ({ className = "h-4 w-4" }) => (
   </svg>
 );
 
+const PositionSlotList = ({ post, compact = false, titled = false }) => (
+  <div className={`${compact ? "pt-3" : ""}`}>
+    <div className={`flex flex-wrap gap-2 ${titled ? "mt-1" : ""}`}>
+      {getPositionSlotEntries(post).map(([tag, slot]) => (
+        <div
+          key={`${post.id}-${tag}`}
+          className={`inline-flex items-center gap-2 rounded-xl border font-black ${
+            compact ? "px-2.5 py-2 text-xs" : "px-3 py-2 text-sm"
+          } border-slate-200 bg-white text-slate-600`}
+        >
+          <span
+            className={`inline-flex min-w-9 items-center justify-center rounded-md px-2 py-1 text-[10px] font-black ${
+              tagColorMap[tag] ?? "bg-slate-200 text-slate-700"
+            }`}
+          >
+            {tag}
+          </span>
+          <span>{slot.total - slot.current}명</span>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 const RecruitDetailModal = ({ post, onClose }) => {
+  const totalCounts = getTotalCounts(post);
+  const availablePositions = useMemo(
+    () =>
+      getPositionSlotEntries(post).filter(([, slot]) => (slot.total ?? 0) > (slot.current ?? 0)),
+    [post],
+  );
+  const [selectedPosition, setSelectedPosition] = useState(availablePositions[0]?.[0] ?? "");
+  const currentSelectedPosition =
+    availablePositions.some(([tag]) => tag === selectedPosition)
+      ? selectedPosition
+      : (availablePositions[0]?.[0] ?? "");
+
   useEffect(() => {
     const previousBodyOverflow = document.body.style.overflow;
     const previousHtmlOverflow = document.documentElement.style.overflow;
@@ -202,22 +270,46 @@ const RecruitDetailModal = ({ post, onClose }) => {
             {post.accent}
           </p>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {post.tags.map((tag) => (
-              <span
-                key={tag}
-                className={`inline-flex min-w-9 items-center justify-center rounded-md px-2.5 py-1 text-[11px] font-black ${
-                  tagColorMap[tag] ?? "bg-slate-200 text-slate-700"
-                }`}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-
           <p className="text-base font-medium leading-7 text-slate-800">{post.description}</p>
 
-          <div className="grid gap-3 rounded-3xl border border-[#E5ECFF] bg-[#F8FAFF] px-5 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+          <div className="rounded-3xl bg-[#F8FAFF] px-4 py-4">
+            <p className="text-xs font-bold tracking-[0.12em] text-[#6B86E8]">지원 포지션 선택</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {availablePositions.length > 0 ? (
+                availablePositions.map(([tag, slot]) => {
+                  const isSelected = currentSelectedPosition === tag;
+
+                  return (
+                    <button
+                      key={`${post.id}-${tag}`}
+                      type="button"
+                      onClick={() => setSelectedPosition(tag)}
+                      className={`inline-flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm font-black transition ${
+                        isSelected
+                          ? "border-[#336DFE] bg-[#EEF3FF] text-[#2458E6]"
+                          : "border-slate-200 bg-white text-slate-600 hover:border-[#C9D7FF] hover:text-slate-800"
+                      }`}
+                    >
+                      <span
+                        className={`inline-flex min-w-9 items-center justify-center rounded-md px-2 py-1 text-[10px] font-black ${
+                          tagColorMap[tag] ?? "bg-slate-200 text-slate-700"
+                        }`}
+                      >
+                        {tag}
+                      </span>
+                      <span>{slot.total - slot.current}명</span>
+                    </button>
+                  );
+                })
+              ) : (
+                <p className="text-sm font-medium text-slate-500">
+                  현재 지원 가능한 포지션이 없습니다.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-3xl border border-[#E5ECFF] bg-[#F8FAFF] px-4 py-4 sm:px-5">
             <div className="min-w-0">
               <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-[0.12em] text-[#6B86E8]">
                 <HackathonIcon className="h-3.5 w-3.5" />
@@ -227,7 +319,7 @@ const RecruitDetailModal = ({ post, onClose }) => {
                 {post.hackathonName}
               </p>
             </div>
-            <div className="flex items-center gap-4 sm:border-l sm:border-[#D7E2FF] sm:pl-5">
+            <div className="flex items-center gap-3 border-l border-[#D7E2FF] pl-4 sm:gap-4 sm:pl-5">
               <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-[#336DFE] shadow-[0_8px_18px_rgba(51,109,254,0.12)]">
                 <MemberCountIcon className="h-4 w-4" />
               </span>
@@ -236,7 +328,7 @@ const RecruitDetailModal = ({ post, onClose }) => {
                   모집 인원
                 </span>
                 <span className="mt-1 block text-lg font-black text-slate-900">
-                  {post.currentCount}/{post.maxCount}
+                  {totalCounts.current}/{totalCounts.total}
                 </span>
               </div>
             </div>
@@ -245,7 +337,9 @@ const RecruitDetailModal = ({ post, onClose }) => {
 
         <div className="flex justify-end border-t border-slate-100 pt-5">
           <div className="w-full sm:w-auto">
-            <PrimaryActionButton fullWidth>지원하기</PrimaryActionButton>
+            <PrimaryActionButton fullWidth disabled={availablePositions.length === 0}>
+              {selectedPosition ? `${selectedPosition} 포지션 지원하기` : "지원하기"}
+            </PrimaryActionButton>
           </div>
         </div>
       </div>
@@ -254,11 +348,12 @@ const RecruitDetailModal = ({ post, onClose }) => {
 };
 
 const RecruitCard = ({ post, onOpen }) => {
+  const totalCounts = getTotalCounts(post);
   const handleOpen = () => onOpen(post);
 
   return (
     <BaseInfoCard
-      className="group flex min-h-[320px] cursor-pointer flex-col p-5 sm:min-h-[340px] sm:p-6"
+      className="group flex min-h-[390px] cursor-pointer flex-col p-5 sm:min-h-[410px] sm:p-6"
       onClick={handleOpen}
       role="button"
       tabIndex={0}
@@ -272,37 +367,44 @@ const RecruitCard = ({ post, onOpen }) => {
       <div className="flex flex-1 flex-col">
         <div className="space-y-3">
           <span className="text-[10px] font-medium text-[#7C96FF]">{post.version}</span>
-          <h2 className="truncate text-[1.5rem] font-black tracking-tight text-slate-950 transition duration-200 group-hover:text-[#2458E6] sm:text-[1.7rem]">
+          <h2 className="truncate text-[1.2rem] font-black tracking-tight text-slate-950 transition duration-200 group-hover:text-[#2458E6] sm:text-[1.35rem]">
             {post.title}
           </h2>
           <p className="text-sm font-black tracking-[0.01em] text-[#4E6FD8] sm:text-[15px]">
             {post.accent}
           </p>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {post.tags.map((tag) => (
-              <span
-                key={tag}
-                className={`inline-flex min-w-8 items-center justify-center rounded px-2 py-1 text-[10px] font-black ${
-                  tagColorMap[tag] ?? "bg-slate-200 text-slate-700"
-                }`}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
+          <PositionSlotList post={post} compact />
         </div>
 
-        <p className="line-clamp-2 pt-5 text-sm font-medium text-slate-800 sm:pt-6 sm:text-base">
+        <p className="line-clamp-2 pt-4 text-sm font-medium leading-7 text-slate-800 sm:pt-5 sm:text-base">
           {post.description}
         </p>
 
-        <div className="mt-auto flex items-end justify-between gap-4 pt-8 sm:pt-10">
-          <span className="text-xs font-bold text-slate-900 sm:text-sm">{post.hackathonName}</span>
-          <span className="inline-flex items-center gap-1.5 text-base font-semibold text-slate-500 sm:text-lg">
-            <MemberCountIcon />
-            {post.currentCount}/{post.maxCount}
-          </span>
+        <div className="mt-auto pt-5">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-3xl border border-[#E5ECFF] bg-[#F8FAFF] px-4 py-4">
+            <div className="min-w-0">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.12em] text-[#6B86E8]">
+                <HackathonIcon className="h-3.5 w-3.5" />
+                참여 해커톤
+              </span>
+              <p className="mt-2 truncate text-sm font-black text-slate-900 sm:text-[1rem]">
+                {post.hackathonName}
+              </p>
+            </div>
+            <div className="flex items-center gap-3 border-l border-[#D7E2FF] pl-4">
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-[#336DFE] shadow-[0_8px_18px_rgba(51,109,254,0.12)]">
+                <MemberCountIcon className="h-4 w-4" />
+              </span>
+              <div className="text-center">
+                <span className="block text-[11px] font-semibold tracking-[0.12em] text-[#6B86E8]">
+                  모집 인원
+                </span>
+                <span className="mt-1 block text-lg font-black text-slate-900">
+                  {totalCounts.current}/{totalCounts.total}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -317,31 +419,87 @@ const RecruitCard = ({ post, onOpen }) => {
 
 const RecruitMemberPage = () => {
   const navigate = useNavigate();
-  const [searchCategory, setSearchCategory] = useState("title");
-  const [searchValue, setSearchValue] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { fetchList, isLoading, error: errorMessage } = useRecruit();
+  const initialSearchCategory =
+    searchParams.get("searchCategory") === "hackathon" ? "hackathon" : "titleAndContent";
+  const initialSearchValue = searchParams.get("search") ?? "";
+  const [searchCategory, setSearchCategory] = useState(initialSearchCategory);
+  const [searchValue, setSearchValue] = useState(initialSearchValue);
   const [statusFilter, setStatusFilter] = useState("all");
   const [positionFilter, setPositionFilter] = useState("all");
   const [selectedPost, setSelectedPost] = useState(null);
+  const [recruitItems, setRecruitItems] = useState(initialRecruitPosts);
+
+  useEffect(() => {
+    const nextParams = new URLSearchParams(searchParams);
+
+    if (searchValue.trim()) {
+      nextParams.set("search", searchValue);
+    } else {
+      nextParams.delete("search");
+    }
+
+    if (searchCategory !== "titleAndContent") {
+      nextParams.set("searchCategory", searchCategory);
+    } else {
+      nextParams.delete("searchCategory");
+    }
+
+    const nextQuery = nextParams.toString();
+    const currentQuery = searchParams.toString();
+
+    if (nextQuery !== currentQuery) {
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [searchCategory, searchParams, searchValue, setSearchParams]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadRecruitPosts = async () => {
+      const result = await fetchList();
+
+      if (!isMounted || !result?.isSuccess) {
+        return;
+      }
+
+      setRecruitItems(result.data?.posts ?? []);
+    };
+
+    loadRecruitPosts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchList]);
 
   const filteredPosts = useMemo(() => {
     const loweredSearch = searchValue.trim().toLowerCase();
 
-    return recruitPosts.filter((post) => {
+    return recruitItems.filter((post) => {
       const searchableText =
-        searchCategory === "title"
-          ? `${post.title} ${post.description}`
-          : `${post.title} ${post.tags.join(" ")} ${post.description}`;
+        searchCategory === "hackathon" ? post.hackathonName : `${post.title} ${post.description}`;
 
       const matchesSearch =
         loweredSearch.length === 0 || searchableText.toLowerCase().includes(loweredSearch);
 
       const matchesStatus = statusFilter === "all" || post.status === statusFilter;
       const matchesPosition =
-        positionFilter === "all" || post.position === positionFilter || post.position === "all";
+        positionFilter === "all" ||
+        post.position === positionFilter ||
+        post.tags.some((tag) => {
+          if (positionFilter === "frontend") return tag === "FE";
+          if (positionFilter === "backend") return tag === "BE";
+          if (positionFilter === "ai") return tag === "AI";
+          if (positionFilter === "designer") return tag === "DESIGNER";
+          if (positionFilter === "data") return tag === "DB";
+          return false;
+        });
 
       return matchesSearch && matchesStatus && matchesPosition;
     });
-  }, [positionFilter, searchCategory, searchValue, statusFilter]);
+  }, [positionFilter, recruitItems, searchCategory, searchValue, statusFilter]);
 
   return (
     <div className="min-h-screen bg-[#F3F6FF]">
@@ -360,7 +518,7 @@ const RecruitMemberPage = () => {
               onSearchCategoryChange={setSearchCategory}
               searchValue={searchValue}
               onSearchValueChange={setSearchValue}
-              searchPlaceholder="제목 또는 내용을 입력하세요."
+              searchPlaceholder="제목 또는 내용을 입력해 주세요."
               filters={[
                 {
                   key: "status",
@@ -386,11 +544,25 @@ const RecruitMemberPage = () => {
             />
           </div>
 
-          <div className="grid gap-6 sm:gap-7 md:grid-cols-2 xl:grid-cols-3">
-            {filteredPosts.map((post) => (
-              <RecruitCard key={post.id} post={post} onOpen={setSelectedPost} />
-            ))}
-          </div>
+          {isLoading ? (
+            <BaseInfoCard className="rounded-[28px] p-10 text-center text-sm font-medium text-slate-500">
+              팀원 모집 목록을 불러오는 중입니다.
+            </BaseInfoCard>
+          ) : errorMessage ? (
+            <BaseInfoCard className="rounded-[28px] p-10 text-center text-sm font-medium text-red-500">
+              {errorMessage}
+            </BaseInfoCard>
+          ) : filteredPosts.length === 0 ? (
+            <BaseInfoCard className="rounded-[28px] p-10 text-center text-sm font-medium text-slate-500">
+              조건에 맞는 팀원 모집 글이 없습니다.
+            </BaseInfoCard>
+          ) : (
+            <div className="grid gap-6 sm:gap-7 md:grid-cols-2 xl:grid-cols-3">
+              {filteredPosts.map((post) => (
+                <RecruitCard key={post.id} post={post} onOpen={setSelectedPost} />
+              ))}
+            </div>
+          )}
         </section>
       </div>
 

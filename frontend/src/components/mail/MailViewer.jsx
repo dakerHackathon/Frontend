@@ -32,8 +32,7 @@ const MailViewer = ({ message, mode, onToggleStar, onDelete, onRespond }) => {
   const currentId = message.id || message.invitationId;
 
   // 1. 이름 처리 (객체 우선 체크)
-  const senderName =
-    message.sender?.userName || message.sender || "알 수 없는 사용자";
+  const senderName = message.sender?.userName || message.sender || "알 수 없는 사용자";
 
   // 2. 제목 처리 (백엔드 추가 필드 'title' 최우선 반영)
   const displayTitle =
@@ -52,6 +51,9 @@ const MailViewer = ({ message, mode, onToggleStar, onDelete, onRespond }) => {
     4: "디자이너",
   };
   const positionName = positions[message.position] || null;
+
+  //5. 팀명
+  const teamName = message.sender?.teamName || message.sender || "알 수 없는 사용자";
 
   const isStarred = message.isStar || false;
   const isTeamInvite = message.type === 1;
@@ -90,9 +92,7 @@ const MailViewer = ({ message, mode, onToggleStar, onDelete, onRespond }) => {
         <div className="space-y-3 text-[#2F3645]">
           {/* 보낸 사람 */}
           <div className="flex items-center gap-3">
-            <span className="text-sm font-bold w-16 shrink-0 text-[#656D7E]">
-              보낸사람
-            </span>
+            <span className="text-sm font-bold w-16 shrink-0 text-[#656D7E]">보낸사람</span>
             <div className="inline-flex items-center rounded-full bg-[#E8F2FF] px-4 py-1.5 text-sm">
               <span className="font-semibold">{senderName}</span>
               {positionName && (
@@ -105,11 +105,9 @@ const MailViewer = ({ message, mode, onToggleStar, onDelete, onRespond }) => {
 
           {/* 보낸 날짜 */}
           <div className="flex items-center gap-3">
-            <span className="text-sm font-bold w-16 shrink-0 text-[#656D7E]">
-              보낸날짜
-            </span>
-            <div className="text-[13px] text-[#656D7E] font-medium pl-1">
-              {displayDate}
+            <span className="text-sm font-bold w-16 shrink-0 text-[#656D7E]">보낸날짜</span>
+            <div className="inline-flex items-center rounded-full bg-[#E8F2FF] px-4 py-1.5 text-sm">
+              <div className="text-[13px] font-medium">{displayDate}</div>
             </div>
           </div>
         </div>
@@ -121,16 +119,10 @@ const MailViewer = ({ message, mode, onToggleStar, onDelete, onRespond }) => {
               color={isStarred ? "#F5C542" : "#B8C1D2"}
               onClick={() => onToggleStar(currentId)}
             >
-              <span className="-translate-y-[2px] text-xl">
-                {isStarred ? "★" : "☆"}
-              </span>
+              <span className="-translate-y-[2px] text-xl">{isStarred ? "★" : "☆"}</span>
             </ActionCircle>
           )}
-          <ActionCircle
-            title="삭제하기"
-            color="#F16A6A"
-            onClick={() => onDelete(currentId)}
-          >
+          <ActionCircle title="삭제하기" color="#F16A6A" onClick={() => onDelete(currentId)}>
             <img src={deleteIcon} alt="delete" />
           </ActionCircle>
         </div>
@@ -146,19 +138,21 @@ const MailViewer = ({ message, mode, onToggleStar, onDelete, onRespond }) => {
 
       {/* 본문 내용 */}
       <article className="flex-1 text-xl leading-[2] text-[#4C5568]">
-        <div
-          className="min-h-[200px] whitespace-pre-line"
-          dangerouslySetInnerHTML={{ __html: displayContent }}
-        />
-
         {/* 팀 초대/신청 모드일 때 보여주는 액션 박스 */}
         {isDecisionMessage ? (
-          <div className="mt-12 rounded-2xl border-2 border-[#D7E2FF] bg-[#F6F9FF] p-8">
+          <div className="rounded-2xl border-2 border-[#D7E2FF] bg-[#F6F9FF] p-8">
             <p className="mb-4 text-lg font-bold text-[#336DFE]">
-              {isTeamInvite ? "팀 초대 응답" : "합류 요청 검토"}
+              {isTeamInvite
+                ? `[${teamName} - ${positionName}]팀 초대 응답`
+                : `[${teamName} - ${positionName}]합류 요청 검토`}
             </p>
 
-            <div className="flex justify-start gap-3 mt-8">
+            <div
+              className="min-h-[200px] whitespace-pre-line"
+              dangerouslySetInnerHTML={{ __html: displayContent }}
+            />
+
+            <div className="flex justify-end gap-3 mt-8">
               <button
                 type="button"
                 onClick={() => handleDecision(true)}
@@ -175,29 +169,30 @@ const MailViewer = ({ message, mode, onToggleStar, onDelete, onRespond }) => {
               </button>
             </div>
 
-            {/* 하단에 작은 안내 문구를 추가해 영역 밸런스를 맞췄습니다 */}
+            {/* 하단에 안내 문구를 추가 */}
             <p className="mt-4 text-sm text-[#8B95A7]">
-              * 수락 또는 거절을 선택하면 해당 메시지는 자동으로 목록에서
-              제외됩니다.
+              * 수락 또는 거절을 선택하면 해당 메시지는 자동으로 목록에서 제외됩니다.
             </p>
           </div>
         ) : (
           /* 일반 쪽지일 때 보여주는 안내 사항 */
-          <div className="mt-12 rounded-2xl border border-[#E4E9F2] bg-[#F8FAFC] p-6">
-            <p className="mb-2 font-bold text-[#64748B]">💡 안내 사항</p>
-            <ul className="list-disc space-y-1 pl-5 text-base text-[#94A3B8]">
-              <li>본 메시지는 해커톤 운영 시스템을 통해 발송되었습니다.</li>
-              <li>
-                중요한 쪽지는 별표(★) 기능을 통해 따로 보관할 수 있습니다.
-              </li>
-            </ul>
+
+          <div className="flex flex-col gap-8">
+            <div
+              className="min-h-[300px] whitespace-pre-line px-2"
+              dangerouslySetInnerHTML={{ __html: displayContent }}
+            />
+
+            {/* 기존 안내 사항 */}
+            <div className="rounded-2xl border border-[#E4E9F2] bg-[#F8FAFC] p-8">
+              <p className="mb-2 font-bold text-[#64748B] text-base">💡 안내 사항</p>
+              <ul className="list-disc space-y-1 pl-5 text-sm text-[#94A3B8]">
+                <li>본 메시지는 해커톤 운영 시스템을 통해 발송되었습니다.</li>
+                <li>중요한 쪽지는 별표(★) 기능을 통해 따로 보관할 수 있습니다.</li>
+              </ul>
+            </div>
           </div>
         )}
-
-        <div className="mt-12 text-[#99A2B4]">
-          <p>감사합니다.</p>
-          <p className="font-bold text-[#656D7E]">{senderName} 드림.</p>
-        </div>
       </article>
 
       <div className="mt-12 flex items-end justify-between border-t border-[#F1F4F9] pt-6">
@@ -205,9 +200,7 @@ const MailViewer = ({ message, mode, onToggleStar, onDelete, onRespond }) => {
           <p className="font-black text-[#64748B]">System Verified</p>
           <p>Ref: {isTeamsMode ? `INV-${currentId}` : `MSG-${currentId}`}</p>
         </div>
-        <div className="text-[10px] text-[#D1D9E6]">
-          © 2026 Hackathon Management System
-        </div>
+        <div className="text-[10px] text-[#D1D9E6]">© 2026 Hackathon Management System</div>
       </div>
     </section>
   );
