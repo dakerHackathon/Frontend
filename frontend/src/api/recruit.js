@@ -1,11 +1,19 @@
 import axiosInstance from "./axiosInstance";
 
+const buildRecruitParams = (params = {}) =>
+  Object.fromEntries(
+    Object.entries(params).filter(([, value]) => value !== undefined && value !== null),
+  );
+
 export const recruitApi = {
-  // 백엔드 명세 수신 전까지 팀원 모집 목록은 임시 mock endpoint를 사용합니다.
-  getList: () =>
-    axiosInstance.get(
-      typeof window === "undefined"
-        ? "/recruits"
-        : new URL("/recruits", window.location.origin).toString(),
-    ),
+  getList: (userId, params = {}) =>
+    axiosInstance.get(`/camp/${userId}/recruit`, { params: buildRecruitParams(params) }),
+  search: (userId, params) =>
+    axiosInstance.get(`/camp/${userId}/recruit/search`, { params: buildRecruitParams(params) }),
+  create: (userId, teamId, data) => axiosInstance.post(`/camp/${userId}/recruit/${teamId}`, data),
+  update: (userId, articleId, data) =>
+    axiosInstance.patch(`/camp/${userId}/recruit/${articleId}`, data),
+  remove: (userId, articleId) => axiosInstance.delete(`/camp/${userId}/recruit`, { data: { articleId } }),
+  close: (userId, articleId) =>
+    axiosInstance.post(`/camp/${userId}/recruit/close`, { articleId }),
 };

@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import BaseInfoCard from "../components/common/BaseInfoCard";
 import PrimaryActionButton from "../components/common/PrimaryActionButton";
+import { useRecruit } from "../hooks/useRecruit";
+import { validateRecruitCreateForm } from "../utils/recruit";
 
 const TEAM_MAX_MEMBERS = 5;
 
@@ -11,17 +14,17 @@ const statusOptions = [
 
 const myTeams = [
   {
-    id: "team-336dfe",
+    id: 1,
     name: "#336DFE",
     hackathons: ["AI 아이디어톤 2026", "스마트시티 데이터톤 2026"],
   },
   {
-    id: "team-bloomup",
+    id: 2,
     name: "#BloomUp",
     hackathons: ["캠퍼스 창업톤 2026", "로컬 문제 해결톤 2026"],
   },
   {
-    id: "team-nebula",
+    id: 3,
     name: "#Nebula",
     hackathons: ["AI 아이디어톤 2026", "부산 빅데이터톤 2026"],
   },
@@ -272,12 +275,15 @@ const RecruitPreviewCard = ({ form, selectedTeam }) => {
 };
 
 const RecruitWritePage = () => {
+  const navigate = useNavigate();
+  const { createArticle, closeArticle, isSubmitting } = useRecruit();
   const [form, setForm] = useState({
     title: "",
     teamId: myTeams[0].id,
     tags: ["FE", "BE"],
     description: "",
     hackathonName: myTeams[0].hackathons[0],
+    contact: "",
     status: "open",
     positionSlots: {
       FE: { recruit: 1 },
@@ -287,6 +293,8 @@ const RecruitWritePage = () => {
       DESIGNER: { recruit: 0 },
     },
   });
+  const [submitError, setSubmitError] = useState("");
+  const [submitSuccess, setSubmitSuccess] = useState("");
 
   const selectedStatusLabel = useMemo(
     () => statusOptions.find((option) => option.value === form.status)?.label ?? "모집중",
@@ -349,6 +357,50 @@ const RecruitWritePage = () => {
     }));
   };
 
+  const handleSubmit = async () => {
+    if (isSubmitting) {
+      return;
+    }
+
+    const validationMessage = validateRecruitCreateForm(form);
+
+    if (validationMessage) {
+      setSubmitSuccess("");
+      setSubmitError(validationMessage);
+      return;
+    }
+
+    setSubmitError("");
+
+    // 글쓰기 화면의 입력값을 명세 request body로 변환해 바로 등록합니다.
+    const result = await createArticle({
+      teamId: form.teamId,
+      form,
+    });
+
+    if (!result?.isSuccess) {
+      setSubmitSuccess("");
+      setSubmitError(result?.message || "팀원 모집 글을 등록하지 못했습니다.");
+      return;
+    }
+
+    if (form.status === "closed") {
+      // 등록 API에는 상태 필드가 없어서, 마감 작성은 등록 직후 마감 API로 상태를 맞춥니다.
+      const closeResult = await closeArticle(result.data?.articleId);
+
+      if (!closeResult?.isSuccess) {
+        setSubmitSuccess("");
+        setSubmitError(closeResult?.message || "등록 후 공고를 마감하지 못했습니다.");
+        return;
+      }
+    }
+
+    setSubmitSuccess("팀원 모집 글이 등록되었습니다. 목록에서 바로 확인할 수 있습니다.");
+    window.setTimeout(() => {
+      navigate("/teams");
+    }, 600);
+  };
+
   return (
     <div className="min-h-screen bg-[#F3F6FF]">
       <div className="mx-auto max-w-[1520px] px-4 py-8 sm:px-5 sm:py-10 lg:px-10 lg:py-12">
@@ -403,6 +455,16 @@ const RecruitWritePage = () => {
                     onChange={(event) => updateField("description", event.target.value)}
                     placeholder="우리 팀이 어떤 방향으로 프로젝트를 진행하고 있는지 적어 주세요."
                     className="mt-2 min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 outline-none transition focus:border-[#AFC5FF] focus:ring-4 focus:ring-[#EEF3FF]"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <FieldLabel>연락 받을 URL</FieldLabel>
+                  <input
+                    value={form.contact}
+                    onChange={(event) => updateField("contact", event.target.value)}
+                    placeholder="예: https://open.kakao.com/o/..."
+                    className={baseInputClass}
                   />
                 </div>
 
@@ -523,9 +585,19 @@ const RecruitWritePage = () => {
                   </span>
                 </div>
                 <div className="w-full sm:w-auto">
-                  <PrimaryActionButton fullWidth>작성 완료</PrimaryActionButton>
+                  <PrimaryActionButton fullWidth onClick={handleSubmit}>
+                    {isSubmitting ? "등록 중..." : "작성 완료"}
+                  </PrimaryActionButton>
                 </div>
               </div>
+
+              {submitError ? (
+                <p className="mt-4 text-sm font-semibold text-[#D93A3A]">{submitError}</p>
+              ) : null}
+
+              {submitSuccess ? (
+                <p className="mt-4 text-sm font-semibold text-[#1E9F46]">{submitSuccess}</p>
+              ) : null}
             </BaseInfoCard>
           </section>
 
