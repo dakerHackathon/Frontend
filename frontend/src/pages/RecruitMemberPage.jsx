@@ -4,26 +4,7 @@ import BaseInfoCard from "../components/common/BaseInfoCard";
 import PrimaryActionButton from "../components/common/PrimaryActionButton";
 import SearchFilterBar from "../components/common/SearchFilterBar";
 import { useRecruit } from "../hooks/useRecruit";
-
-const initialRecruitPosts = [
-  {
-    id: 1,
-    version: "1분 전",
-    title: "팀원 모집합니다.",
-    tags: ["FE", "BE", "AI"],
-    accent: "#336DFE",
-    description:
-      "아이디어를 빠르게 프로토타입으로 만들고 실제 사용자 가능성까지 검증할 분을 찾고 있습니다.",
-    hackathonName: "AI 아이디어톤 2026",
-    positionSlots: {
-      FE: { current: 1, total: 2 },
-      BE: { current: 1, total: 2 },
-      AI: { current: 0, total: 1 },
-    },
-    status: "open",
-    position: "all",
-  },
-];
+import { getPositionIdByFilter } from "../utils/recruit";
 
 const searchOptions = [
   { value: "titleAndContent", label: "제목 + 내용" },
@@ -420,7 +401,7 @@ const RecruitCard = ({ post, onOpen }) => {
 const RecruitMemberPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { fetchList, isLoading, error: errorMessage } = useRecruit();
+  const { fetchList, searchArticles, isLoading, error: errorMessage } = useRecruit();
   const initialSearchCategory =
     searchParams.get("searchCategory") === "hackathon" ? "hackathon" : "titleAndContent";
   const initialSearchValue = searchParams.get("search") ?? "";
@@ -429,7 +410,7 @@ const RecruitMemberPage = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [positionFilter, setPositionFilter] = useState("all");
   const [selectedPost, setSelectedPost] = useState(null);
-  const [recruitItems, setRecruitItems] = useState(initialRecruitPosts);
+  const [recruitItems, setRecruitItems] = useState([]);
 
   useEffect(() => {
     const nextParams = new URLSearchParams(searchParams);
@@ -458,7 +439,17 @@ const RecruitMemberPage = () => {
     let isMounted = true;
 
     const loadRecruitPosts = async () => {
-      const result = await fetchList();
+      const trimmedSearch = searchValue.trim();
+      const result = trimmedSearch
+        ? await searchArticles({
+            filter: searchCategory,
+            query: trimmedSearch,
+          })
+        : await fetchList({
+            open:
+              statusFilter === "all" ? undefined : statusFilter === "open",
+            position: getPositionIdByFilter(positionFilter),
+          });
 
       if (!isMounted || !result?.isSuccess) {
         return;
@@ -472,22 +463,13 @@ const RecruitMemberPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [fetchList]);
+  }, [fetchList, positionFilter, searchArticles, searchCategory, searchValue, statusFilter]);
 
   const filteredPosts = useMemo(() => {
-    const loweredSearch = searchValue.trim().toLowerCase();
-
     return recruitItems.filter((post) => {
-      const searchableText =
-        searchCategory === "hackathon" ? post.hackathonName : `${post.title} ${post.description}`;
-
-      const matchesSearch =
-        loweredSearch.length === 0 || searchableText.toLowerCase().includes(loweredSearch);
-
       const matchesStatus = statusFilter === "all" || post.status === statusFilter;
       const matchesPosition =
         positionFilter === "all" ||
-        post.position === positionFilter ||
         post.tags.some((tag) => {
           if (positionFilter === "frontend") return tag === "FE";
           if (positionFilter === "backend") return tag === "BE";
@@ -497,9 +479,9 @@ const RecruitMemberPage = () => {
           return false;
         });
 
-      return matchesSearch && matchesStatus && matchesPosition;
+      return matchesStatus && matchesPosition;
     });
-  }, [positionFilter, recruitItems, searchCategory, searchValue, statusFilter]);
+  }, [positionFilter, recruitItems, statusFilter]);
 
   return (
     <div className="min-h-screen bg-[#F3F6FF]">
