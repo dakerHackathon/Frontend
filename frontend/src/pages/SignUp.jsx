@@ -33,10 +33,18 @@ const SignUp = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { name, email, loginId, password, passwordCheck, nickName } = formData;
+    const { name, email, loginId, password, passwordCheck, nickName } =
+      formData;
 
     // 간단한 유효성 검사
-    if (!name || !email || !loginId || !password || !passwordCheck || !nickName) {
+    if (
+      !name ||
+      !email ||
+      !loginId ||
+      !password ||
+      !passwordCheck ||
+      !nickName
+    ) {
       alert("모든 필수 항목(*)을 입력해주세요.");
       return;
     }
@@ -73,7 +81,9 @@ const SignUp = () => {
       <h1 className="text-3xl font-bold text-[#3B82F6] mb-10">회원가입</h1>
 
       <div className="w-full max-w-lg bg-white rounded-xl shadow-sm border border-gray-100 p-10 lg:p-14">
-        <h2 className="text-[#3B82F6] font-bold mb-8">회원정보를 입력해주세요</h2>
+        <h2 className="text-[#3B82F6] font-bold mb-8">
+          회원정보를 입력해주세요
+        </h2>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
           {/* 이름 */}
