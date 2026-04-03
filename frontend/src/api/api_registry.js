@@ -1,7 +1,8 @@
-//api 紐⑥쓬吏?
+//api 筌뤴뫁?э쭪?
 import { authApi } from "./auth";
 import { hackathonApi } from "./hackathon";
 import { mypageApi } from "./mypage";
+import { skillApi } from "./skill";
 import { teamApi } from "./team";
 import { mailApi } from "./mail";
 import { recruitApi } from "./recruit";
@@ -10,6 +11,7 @@ export const API = {
   auth: authApi,
   hackathon: hackathonApi,
   mypage: mypageApi,
+  skill: skillApi,
   team: teamApi,
   mail: mailApi,
   recruit: recruitApi,

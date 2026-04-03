@@ -47,7 +47,7 @@ const TeamCreateModal = ({
           <input
             value={form.name}
             onChange={(event) => handleChange("name", event.target.value)}
-            placeholder="팀 이름을 입력하세요."
+            placeholder="팀 이름을 입력하세요"
             className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-[#AFC5FF] focus:ring-4 focus:ring-[#EEF3FF]"
             required
           />
@@ -59,7 +59,7 @@ const TeamCreateModal = ({
             rows={4}
             value={form.description}
             onChange={(event) => handleChange("description", event.target.value)}
-            placeholder="팀 소개를 입력하세요."
+            placeholder="팀 소개를 입력하세요"
             className="w-full resize-none rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-[#AFC5FF] focus:ring-4 focus:ring-[#EEF3FF]"
             required
           />
@@ -80,9 +80,7 @@ const TeamCreateModal = ({
           </select>
         </label>
 
-        {createError ? (
-          <p className="text-sm font-semibold text-rose-500">{createError}</p>
-        ) : null}
+        {createError ? <p className="text-sm font-semibold text-rose-500">{createError}</p> : null}
 
         <div className="flex justify-end gap-2 pt-2">
           <button

@@ -11,7 +11,7 @@ const ActivityTemperatureCard = ({ temperature, stats }) => {
       <div className="space-y-4">
         <div className="rounded-xl bg-blue-600 px-4 py-3 text-white">
           <p className="text-xs">활동 온도</p>
-          <p className="text-3xl font-black">{temperature.toFixed(1)}℃</p>
+          <p className="text-3xl font-black">{temperature.toFixed(1)}°C</p>
         </div>
         <div className="grid grid-cols-2 gap-2">
           {stats.map((item) => (
