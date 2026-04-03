@@ -1,8 +1,8 @@
-// 랭킹 페이지 기간 탭 목록 (주간 / 월간 / 누적)
+// 랭킹 페이지 기준 탭 목록 (온도 / 최다참여 / 최다우승)
 export const periodTabs = [
-  { key: "weekly", label: "주간" },
-  { key: "monthly", label: "월간" },
-  { key: "cumulative", label: "누적" },
+  { key: "temperature", label: "온도" },
+  { key: "mostParticipation", label: "최다참여" },
+  { key: "mostWins", label: "최다우승" },
 ];
 
 // 순위 1~3위 메달 색상 토큰 (링, 라인, 배지, 카드 배경)

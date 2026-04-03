@@ -10,10 +10,10 @@ const GithubIcon = ({ className = "" }) => (
 );
 
 // 랭킹 TOP 10 테이블 컴포넌트 — 순위, 닉네임, 온도, 포인트를 표시
-const RankingTable = ({ rows }) => (
+const RankingTable = ({ rows, title }) => (
   <section className="rounded-[30px] border border-slate-200 bg-white px-5 py-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)] sm:px-8 sm:py-8">
     <div className="border-b border-slate-200 pb-5">
-      <h2 className="text-[1.45rem] font-black tracking-tight text-slate-950">랭킹 TOP 10</h2>
+      <h2 className="text-[1.45rem] font-black tracking-tight text-slate-950">{title} TOP 10</h2>
     </div>
 
     <div className="mt-6 overflow-hidden rounded-[28px] border border-slate-200">

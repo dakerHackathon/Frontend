@@ -7,10 +7,10 @@ import { rankingByPeriod, sidebarRankings } from "../mocks/data/ranking";
 import { periodTabs } from "./rankingPage.constants";
 
 const RankingPage = () => {
-  const [activePeriod, setActivePeriod] = useState("weekly");
+  const [activePeriod, setActivePeriod] = useState("temperature");
   const activeRows = useMemo(
     () =>
-      [...(rankingByPeriod[activePeriod] ?? rankingByPeriod.weekly)].sort(
+      [...(rankingByPeriod[activePeriod] ?? rankingByPeriod.temperature)].sort(
         (left, right) => right.points - left.points,
       ),
     [activePeriod],
@@ -97,7 +97,10 @@ const RankingPage = () => {
             ) : null}
           </section>
 
-          <RankingTable rows={activeRows} />
+          <RankingTable
+            rows={activeRows}
+            title={periodTabs.find((t) => t.key === activePeriod)?.label ?? "랭킹"}
+          />
         </section>
       </div>
     </div>

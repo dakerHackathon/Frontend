@@ -1,6 +1,6 @@
-// 기간별 랭킹 목업 데이터 (주간 / 월간 / 누적)
+// 기준별 랭킹 목업 데이터 (온도 / 최다참여 / 최다우승)
 export const rankingByPeriod = {
-  weekly: [
+  temperature: [
     {
       rank: 1,
       name: "이민호",
@@ -82,7 +82,7 @@ export const rankingByPeriod = {
       avatar: { initials: "박", bg: "from-[#7A4A35] to-[#DAB39F]" },
     },
   ],
-  monthly: [
+  mostParticipation: [
     {
       rank: 1,
       name: "김현호",
@@ -164,7 +164,7 @@ export const rankingByPeriod = {
       avatar: { initials: "최", bg: "from-[#6E4A2A] to-[#C7A27D]" },
     },
   ],
-  cumulative: [
+  mostWins: [
     {
       rank: 1,
       name: "강석진",
