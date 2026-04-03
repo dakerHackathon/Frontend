@@ -38,8 +38,7 @@ const MailPage = () => {
       const filter = activeTab === "starred" ? "star" : activeTab;
       fetchMessages(filter);
     } else {
-      const type =
-        activeTab === "invited" ? 1 : activeTab === "requested" ? 2 : null;
+      const type = activeTab === "invited" ? 1 : activeTab === "requested" ? 2 : null;
       fetchInvitations(type);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -47,8 +46,7 @@ const MailPage = () => {
 
   // --- [로직 2: UI용 리스트 필터링] ---
   const filteredItems = useMemo(() => {
-    const base =
-      currentMode === "messages" ? messages || [] : invitations || [];
+    const base = currentMode === "messages" ? messages || [] : invitations || [];
 
     if (currentMode === "messages") {
       if (activeTab === "unread") {
@@ -66,9 +64,7 @@ const MailPage = () => {
     // 로딩이 끝났고 리스트가 있는데 선택된 ID가 없거나 유효하지 않을 때
     if (!isLoading && filteredItems.length > 0) {
       const idField = currentMode === "messages" ? "id" : "invitationId";
-      const isCurrentIdValid = filteredItems.some(
-        (item) => item[idField] === activeMessageId,
-      );
+      const isCurrentIdValid = filteredItems.some((item) => item[idField] === activeMessageId);
       // 현재 선택된 ID가 없거나, 탭 전환 등으로 리스트에서 사라졌을 때만 첫 번째 요소 선택
       if (!activeMessageId || !isCurrentIdValid) {
         const timer = setTimeout(() => {
@@ -83,10 +79,14 @@ const MailPage = () => {
   const selectedMessage = useMemo(() => {
     if (filteredItems.length === 0) return null;
     const idField = currentMode === "messages" ? "id" : "invitationId";
+<<<<<<< HEAD
     return (
       filteredItems.find((item) => item[idField] === activeMessageId) ||
       filteredItems[0]
     );
+=======
+    return filteredItems.find((item) => item[idField] === activeMessageId) || filteredItems[0];
+>>>>>>> main
   }, [activeMessageId, filteredItems, currentMode]);
 
   // --- [핸들러] ---
