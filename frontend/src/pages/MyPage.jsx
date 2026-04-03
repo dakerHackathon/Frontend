@@ -21,6 +21,11 @@ import { getCurrentUser } from "../utils/auth";
 
 const TEAMS_STORAGE_KEY = "mypageTeams";
 
+const getStoredTeams = () => {
+  const storedTeams = localStorage.getItem(TEAMS_STORAGE_KEY);
+  return storedTeams ? JSON.parse(storedTeams) : teams;
+};
+
 const skillLabelMap = {
   1: "React",
   2: "TypeScript",
@@ -31,6 +36,34 @@ const skillValueMap = {
   TypeScript: 2,
   "Node.js": 3,
 };
+
+const getSkillLabel = (skill) => {
+  if (typeof skill === "string") {
+    return skill;
+  }
+
+  if (typeof skill === "number") {
+    return skillLabelMap[skill] || `Skill ${skill}`;
+  }
+
+  if (skill && typeof skill === "object") {
+    if (typeof skill.name === "string" && skill.name.trim()) {
+      return skill.name;
+    }
+
+    if (typeof skill.id === "number") {
+      return skillLabelMap[skill.id] || `Skill ${skill.id}`;
+    }
+  }
+
+  return null;
+};
+
+const getCurrentUserNickname = (currentUser, profile) =>
+  currentUser?.userNickname ||
+  currentUser?.nickName ||
+  currentUser?.nickname ||
+  profile.name;
 
 const MyPage = () => {
   const navigate = useNavigate();
@@ -48,10 +81,7 @@ const MyPage = () => {
   const [savedItems, setSavedItems] = useState(savedHackathons);
   const [hackathonItems, setHackathonItems] = useState(initialHackathons);
   const [unreadCount, setUnreadCount] = useState(3);
-  const [teamItems, setTeamItems] = useState(() => {
-    const storedTeams = localStorage.getItem(TEAMS_STORAGE_KEY);
-    return storedTeams ? JSON.parse(storedTeams) : teams;
-  });
+  const [teamItems, setTeamItems] = useState(() => getStoredTeams());
 
   useEffect(() => {
     const fetchMyPage = async () => {
@@ -65,6 +95,7 @@ const MyPage = () => {
       if (!result?.isSuccess || !result.data) return;
 
       const { data } = result;
+      console.log("[MyPage] getMyPage nickname:", data.nickname);
 
       const nextProfile = {
         ...initialProfile,
@@ -74,7 +105,7 @@ const MyPage = () => {
         github: data.github || "",
         portfolio: data.portfolio || "",
         skills: Array.isArray(data.skills)
-          ? data.skills.map((skill) => skillLabelMap[skill] || `Skill ${skill}`)
+          ? data.skills.map(getSkillLabel).filter(Boolean)
           : [],
       };
 
@@ -103,14 +134,24 @@ const MyPage = () => {
         })) || [],
       );
       setUnreadCount(data.unread ?? 0);
+      const storedTeams = getStoredTeams();
       const nextTeams =
-        data.teams?.map((team) => ({
-          id: `t${team.teamId}`,
-          name: team.teamName,
-          description: team.description,
-        })) || [];
+        data.teams?.map((team) => {
+          const teamId = `t${team.teamId}`;
+          const storedTeam =
+            storedTeams.find((item) => item.id === teamId) ||
+            storedTeams.find((item) => item.name === team.teamName);
+
+          return {
+            ...storedTeam,
+            id: teamId,
+            name: team.teamName,
+            description: team.description,
+          };
+        }) || [];
 
       // 마이페이지 조회 결과가 보이도록 목록 기준값을 API 응답으로 다시 맞춥니다.
+      // 팀 상세에서 닉네임이 사라지지 않도록 기존 멤버 정보를 유지합니다.
       setTeamItems(nextTeams);
       localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(nextTeams));
     };
@@ -173,6 +214,8 @@ const MyPage = () => {
         .map((skill) => skillValueMap[skill])
         .filter((skill) => typeof skill === "number"),
     });
+    console.log("[MyPage] updateMyPage nickname payload:", editForm.name);
+    console.log("[MyPage] updateMyPage result:", result);
 
     if (!result?.isSuccess) {
       alert(result?.message || "Profile update failed.");
@@ -235,10 +278,7 @@ const MyPage = () => {
             {
               id: newMemberId,
               name: currentUser?.name || profile.name,
-              nickname:
-                currentUser?.nickName ||
-                currentUser?.userNickname ||
-                profile.name,
+              nickname: getCurrentUserNickname(currentUser, profile),
               email: currentUser?.email || currentUser?.userEmail || profile.email,
               role: "leader",
               part: teamData.role,

@@ -2,7 +2,7 @@ export const initialProfile = {
   name: "강석진",
   email: "asdf123@gmail.com",
   intro:
-    "안녕하세요. 3년차 웹 개발자입니다. React와 Node.js를 중심으로 서비스를 만들고 있습니다.",
+    "안녕하세요. 3년차 개발자입니다. React와 Node.js를 중심으로 서비스를 만들고 있습니다.",
   github: "https://github.com/seokjin-dev",
   portfolio: "https://seokjin.dev",
   skills: ["React", "TypeScript", "Node.js", "Spring"],
@@ -53,8 +53,8 @@ export const initialHackathons = [
     status: "완료",
     date: "2023.11.05 - 11.20",
     members: [
-      { id: "m5", name: "박지우" },
-      { id: "m6", name: "정하늘" },
+      { id: "m5", name: "박도윤" },
+      { id: "m6", name: "정하은" },
     ],
   },
 ];
@@ -63,7 +63,7 @@ export const teamPartOptions = [
   { value: "frontend", label: "프론트", shortLabel: "FE" },
   { value: "backend", label: "백엔드", shortLabel: "BE" },
   { value: "ai", label: "AI", shortLabel: "AI" },
-  { value: "designer", label: "디자인", shortLabel: "DES" },
+  { value: "designer", label: "디자이너", shortLabel: "DES" },
   { value: "planner", label: "기획", shortLabel: "PM" },
 ];
 
@@ -76,7 +76,7 @@ export const teams = [
     role: "팀장",
     leaderId: "tm1",
     description:
-      "해커톤용 협업 플랫폼을 만드는 팀입니다. 빠르게 실험하고 피드백을 반복하는 걸 중요하게 생각합니다.",
+      "해커톤용 작업 플로우를 만들어 보는 팀입니다. 빠르게 실험하고 피드백을 반복하는 걸 중요하게 생각합니다.",
     linkedHackathonId: "h2",
     members: [
       {
@@ -108,10 +108,10 @@ export const teams = [
   {
     id: "t2",
     name: "AI Avengers",
-    role: "팀원",
+    role: "팀장",
     leaderId: "tm5",
     description:
-      "LLM 기반 추천 서비스를 준비 중인 팀입니다. 데이터 실험과 제품 감각을 함께 챙기는 걸 목표로 하고 있습니다.",
+      "LLM 기반 추천 서비스를 준비 중인 팀입니다. 데이터 실험과 제품 감각을 함께 챙기는 것이 목표입니다.",
     linkedHackathonId: null,
     members: [
       {
@@ -153,7 +153,7 @@ export const inviteCandidatePool = [
   },
   {
     id: "u2",
-    name: "정다은",
+    name: "다은 정",
     nickname: "다은",
     email: "daeun@mail.com",
     parts: ["planner"],
@@ -161,7 +161,7 @@ export const inviteCandidatePool = [
   },
   {
     id: "u3",
-    name: "오서윤",
+    name: "서윤 김",
     nickname: "서윤",
     email: "seoyoon@mail.com",
     parts: ["designer"],
@@ -173,14 +173,14 @@ export const inviteCandidatePool = [
     nickname: "도윤",
     email: "doyoon@mail.com",
     parts: ["backend", "ai"],
-    intro: "Spring과 Python으로 API와 모델 서빙을 다룹니다.",
+    intro: "Spring과 Python으로 API와 모델 서빙을 다뤄봤습니다.",
   },
 ];
 
 export const savedHackathons = [
-  { id: "s1", title: "Global Tech Meetup 2024", org: "블루잡" },
+  { id: "s1", title: "Global Tech Meetup 2024", org: "브리즈" },
   { id: "s2", title: "Campus Hack Challenge", org: "대학생연합" },
-  { id: "s3", title: "Bio Health Datathon", org: "헬스케어진흥원" },
+  { id: "s3", title: "Bio Health Datathon", org: "스케일업진흥원" },
   { id: "s4", title: "Green Energy Sprint", org: "에너지랩" },
 ];
 

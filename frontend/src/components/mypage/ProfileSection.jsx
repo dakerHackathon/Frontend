@@ -1,4 +1,7 @@
 const ProfileSection = ({ profile, onEdit }) => {
+  const hasGithub = Boolean(profile.github?.trim());
+  const hasPortfolio = Boolean(profile.portfolio?.trim());
+
   return (
     <section className="rounded-2xl border border-slate-200 bg-white px-4 pt-3 pb-5 shadow-[0_10px_20px_rgba(15,23,42,0.05)]">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -8,8 +11,16 @@ const ProfileSection = ({ profile, onEdit }) => {
           <p className="text-sm text-slate-500">{profile.email}</p>
           <p className="mt-1 text-sm text-slate-600">{profile.intro}</p>
           <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-600">
-            <a href={profile.github} className="rounded-full border px-2 py-1">GitHub</a>
-            <a href={profile.portfolio} className="rounded-full border px-2 py-1">Portfolio</a>
+            {hasGithub ? (
+              <a href={profile.github} className="rounded-full border px-2 py-1">
+                GitHub
+              </a>
+            ) : null}
+            {hasPortfolio ? (
+              <a href={profile.portfolio} className="rounded-full border px-2 py-1">
+                Portfolio
+              </a>
+            ) : null}
             {profile.skills.map((skill) => (
               <span key={skill} className="rounded-full bg-blue-50 px-2 py-1 text-blue-700">
                 #{skill}

@@ -10,6 +10,7 @@ const teamRoleRequestMap = {
 
 export const useTeam = () => {
   const createTeamApi = useApi(API.team.create);
+  const detailTeamApi = useApi(API.team.detail);
 
   const handleCreateTeam = async (userId, teamData) => {
     const role = teamRoleRequestMap[teamData.role];
@@ -40,9 +41,25 @@ export const useTeam = () => {
     }
   };
 
+  const getTeamDetail = async (userId, teamId) => {
+    try {
+      const result = await detailTeamApi.execute(userId, teamId);
+      return result;
+    } catch (e) {
+      console.error("팀 상세 조회 중 에러:", e);
+      return {
+        isSuccess: false,
+        message:
+          e.response?.data?.message || "팀 상세 정보를 불러오는 중 오류가 발생했습니다.",
+      };
+    }
+  };
+
   return {
     handleCreateTeam,
-    isLoading: createTeamApi.isLoading,
+    getTeamDetail,
+    isLoading: createTeamApi.isLoading || detailTeamApi.isLoading,
     createTeamError: createTeamApi.error,
+    teamDetailError: detailTeamApi.error,
   };
 };

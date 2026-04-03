@@ -1,5 +1,5 @@
-import React, { StrictMode } from "react";
-import ReactDOM, { createRoot } from "react-dom/client";
+import React from "react";
+import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App.jsx";
 
@@ -8,12 +8,7 @@ async function enableMocking() {
     return;
   }
 
-  // 가로채기 설정을 담은 browser.js 파일을 가져옵니다.
-  const { worker } = await import("./mocks/browser");
-
-  return worker.start({
-    onUnhandledRequest: "bypass",
-  });
+  // 현재는 실제 응답으로 연동 상태를 확인해야 해서 개발 환경 mock worker를 잠시 비활성화합니다.
 }
 
 enableMocking().then(() => {
@@ -24,8 +19,3 @@ enableMocking().then(() => {
   );
 });
 
-// createRoot(document.getElementById("root")).render(
-//   <StrictMode>
-//     <App />
-//   </StrictMode>,
-// );

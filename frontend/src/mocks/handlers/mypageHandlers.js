@@ -8,15 +8,16 @@ export const mypageHandlers = [
   http.get("*/user/:userId/mypage", ({ params }) => {
     const { userId } = params;
 
-    console.log(`✅ MSW intercepted: /user/${userId}/mypage`);
+    console.log(`??MSW intercepted: /user/${userId}/mypage`);
+    console.log("[MSW][mypage][GET] current mock nickname:", myPageMockData.nickname);
 
-    // 응답 상태를 한 곳에서 바꿔서 200/401/500 흐름을 빠르게 테스트합니다.
+    // ?묐떟 ?곹깭瑜???怨녹뿉??諛붽퓭??200/401/500 ?먮쫫??鍮좊Ⅴ寃??뚯뒪?명빀?덈떎.
     if (myPageMockMode === "unauthorized") {
       return HttpResponse.json(
         {
           isSuccess: false,
           code: "401",
-          message: "인증이 필요합니다.",
+          message: "?몄쬆???꾩슂?⑸땲??",
           data: null,
         },
         { status: 401 },
@@ -46,14 +47,14 @@ export const mypageHandlers = [
   http.patch("*/user/:userId/mypage", async ({ request, params }) => {
     const { userId } = params;
 
-    console.log(`✅ MSW intercepted: PATCH /user/${userId}/mypage`);
+    console.log(`??MSW intercepted: PATCH /user/${userId}/mypage`);
 
     if (myPageMockMode === "unauthorized") {
       return HttpResponse.json(
         {
           isSuccess: false,
           code: "401",
-          message: "인증이 필요합니다.",
+          message: "?몄쬆???꾩슂?⑸땲??",
         },
         { status: 401 },
       );
@@ -71,6 +72,7 @@ export const mypageHandlers = [
     }
 
     const body = await request.json();
+    console.log("[MSW][mypage][PATCH] request body:", body);
     myPageMockData = {
       ...myPageMockData,
       nickname: body.nickname,
@@ -79,11 +81,12 @@ export const mypageHandlers = [
       github: body.github,
       skills: body.skills,
     };
+    console.log("[MSW][mypage][PATCH] next mock nickname:", myPageMockData.nickname);
 
     return HttpResponse.json({
       isSuccess: true,
       code: "200",
-      message: "요청이 성공적입니다.",
+      message: "?붿껌???깃났?곸엯?덈떎.",
     });
   }),
 ];

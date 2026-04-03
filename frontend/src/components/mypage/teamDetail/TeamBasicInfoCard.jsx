@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import PrimaryActionButton from "../../common/PrimaryActionButton";
 import { baseInputClass, pageCardClass } from "./shared.jsx";
 
@@ -12,17 +12,17 @@ const TeamBasicInfoCard = ({
   const [draftName, setDraftName] = useState(teamForm.name);
   const [draftDescription, setDraftDescription] = useState(teamForm.description);
 
-  useEffect(() => {
-    if (!isEditing) {
-      setDraftName(teamForm.name);
-      setDraftDescription(teamForm.description);
-    }
-  }, [isEditing, teamForm.description, teamForm.name]);
-
   const handleCancel = () => {
     setDraftName(teamForm.name);
     setDraftDescription(teamForm.description);
     setIsEditing(false);
+  };
+
+  const handleStartEdit = () => {
+    // 편집 시작 시 최신 팀 정보를 draft에 다시 넣어 화면과 입력값이 어긋나지 않게 합니다.
+    setDraftName(teamForm.name);
+    setDraftDescription(teamForm.description);
+    setIsEditing(true);
   };
 
   const handleSave = () => {
@@ -103,7 +103,7 @@ const TeamBasicInfoCard = ({
             <div className="mt-5 flex justify-end">
               <button
                 type="button"
-                onClick={() => setIsEditing(true)}
+                onClick={handleStartEdit}
                 className="rounded-2xl border border-[#C9D7FF] px-4 py-3 text-sm font-bold text-[#2458E6] transition hover:bg-[#EEF3FF]"
               >
                 수정
