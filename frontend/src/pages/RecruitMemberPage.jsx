@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import BaseInfoCard from "../components/common/BaseInfoCard";
 import PrimaryActionButton from "../components/common/PrimaryActionButton";
 import SearchFilterBar from "../components/common/SearchFilterBar";
@@ -202,6 +202,10 @@ const RecruitDetailModal = ({ post, onClose }) => {
     [post],
   );
   const [selectedPosition, setSelectedPosition] = useState(availablePositions[0]?.[0] ?? "");
+  const currentSelectedPosition =
+    availablePositions.some(([tag]) => tag === selectedPosition)
+      ? selectedPosition
+      : (availablePositions[0]?.[0] ?? "");
 
   useEffect(() => {
     const previousBodyOverflow = document.body.style.overflow;
@@ -232,10 +236,6 @@ const RecruitDetailModal = ({ post, onClose }) => {
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
   }, [onClose]);
-
-  useEffect(() => {
-    setSelectedPosition(availablePositions[0]?.[0] ?? "");
-  }, [availablePositions]);
 
   return (
     <div
@@ -276,7 +276,7 @@ const RecruitDetailModal = ({ post, onClose }) => {
             <div className="mt-3 flex flex-wrap gap-2">
               {availablePositions.length > 0 ? (
                 availablePositions.map(([tag, slot]) => {
-                  const isSelected = selectedPosition === tag;
+                  const isSelected = currentSelectedPosition === tag;
 
                   return (
                     <button
@@ -418,11 +418,38 @@ const RecruitCard = ({ post, onOpen }) => {
 
 const RecruitMemberPage = () => {
   const navigate = useNavigate();
-  const [searchCategory, setSearchCategory] = useState("titleAndContent");
-  const [searchValue, setSearchValue] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialSearchCategory =
+    searchParams.get("searchCategory") === "hackathon" ? "hackathon" : "titleAndContent";
+  const initialSearchValue = searchParams.get("search") ?? "";
+  const [searchCategory, setSearchCategory] = useState(initialSearchCategory);
+  const [searchValue, setSearchValue] = useState(initialSearchValue);
   const [statusFilter, setStatusFilter] = useState("all");
   const [positionFilter, setPositionFilter] = useState("all");
   const [selectedPost, setSelectedPost] = useState(null);
+
+  useEffect(() => {
+    const nextParams = new URLSearchParams(searchParams);
+
+    if (searchValue.trim()) {
+      nextParams.set("search", searchValue);
+    } else {
+      nextParams.delete("search");
+    }
+
+    if (searchCategory !== "titleAndContent") {
+      nextParams.set("searchCategory", searchCategory);
+    } else {
+      nextParams.delete("searchCategory");
+    }
+
+    const nextQuery = nextParams.toString();
+    const currentQuery = searchParams.toString();
+
+    if (nextQuery !== currentQuery) {
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [searchCategory, searchParams, searchValue, setSearchParams]);
 
   const filteredPosts = useMemo(() => {
     const loweredSearch = searchValue.trim().toLowerCase();

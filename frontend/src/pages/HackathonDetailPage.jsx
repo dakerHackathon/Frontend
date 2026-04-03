@@ -217,7 +217,7 @@ const HackathonDetailPage = () => {
       });
       window.setTimeout(() => {
         setIsRegisterModalOpen(false);
-      }, 800);
+      }, 1800);
       return;
     }
 
@@ -225,6 +225,10 @@ const HackathonDetailPage = () => {
       type: "error",
       message: result?.message || "해커톤 참가 신청 중 오류가 발생했습니다.",
     });
+  };
+
+  const moveToTeamRecruit = () => {
+    navigate(`/teams?searchCategory=hackathon&search=${encodeURIComponent(hackathon.title)}`);
   };
 
   const registerModal = isRegisterModalOpen
@@ -326,6 +330,7 @@ const HackathonDetailPage = () => {
         document.body,
       )
     : null;
+  const shouldRenderLegacyRegisterModal = false;
 
   return (
     <div
@@ -507,26 +512,15 @@ const HackathonDetailPage = () => {
                       </button>
                       <button
                         type="button"
-                        onClick={openRegisterModal}
-                        disabled={registerButtonDisabled}
-                        className={`inline-flex h-12 items-center justify-center rounded-2xl px-4 text-sm font-bold transition ${
-                          registerButtonDisabled
-                            ? "cursor-not-allowed bg-slate-200 text-slate-500"
-                            : "cursor-pointer bg-[#336DFE] text-white hover:-translate-y-0.5 hover:bg-[#2458E6] hover:shadow-[0_14px_30px_rgba(51,109,254,0.25)]"
-                        }`}
+                        onClick={moveToTeamRecruit}
+                        className="inline-flex h-12 cursor-pointer items-center justify-center rounded-2xl bg-[#336DFE] px-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#2458E6] hover:shadow-[0_14px_30px_rgba(51,109,254,0.25)]"
                       >
-                        {registerButtonLabel}
+                        팀 참가요청
                       </button>
                     </div>
-                    {!currentUserId ? (
-                      <p className="mt-3 text-xs font-medium text-slate-400">
-                        참가 신청은 로그인한 팀장만 진행할 수 있습니다.
-                      </p>
-                    ) : !isLeaderUser && !isLeaderTeamsLoading ? (
-                      <p className="mt-3 text-xs font-medium text-slate-400">
-                        리더인 팀이 있을 때만 참가 신청이 가능합니다.
-                      </p>
-                    ) : null}
+                    <p className="mt-3 text-xs font-medium text-slate-400">
+                      해당 해커톤 팀원 모집 글만 바로 볼 수 있도록 팀원 모집 페이지로 이동합니다.
+                    </p>
                   </div>
                 </BaseInfoCard>
               </div>
@@ -754,7 +748,7 @@ const HackathonDetailPage = () => {
         </div>
       </div>
 
-      {false ? (
+      {shouldRenderLegacyRegisterModal ? (
         <div
           className="fixed inset-0 z-[100] flex min-h-screen items-center justify-center bg-[rgba(10,16,32,0.42)] px-4"
           onClick={closeRegisterModal}
