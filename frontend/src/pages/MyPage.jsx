@@ -12,29 +12,43 @@ import {
   initialHackathons,
   initialProfile,
   savedHackathons,
-  skillPool,
   teams,
 } from "../components/mypage/constants";
 import { useMyPage } from "../hooks/useMyPage";
+import { useSkill } from "../hooks/useSkill";
 import { useTeam } from "../hooks/useTeam";
 import { getCurrentUser } from "../utils/auth";
 
 const TEAMS_STORAGE_KEY = "mypageTeams";
+const fallbackSkills = [
+  { id: 1, name: "React" },
+  { id: 2, name: "TypeScript" },
+  { id: 3, name: "Node.js" },
+];
 
-const skillLabelMap = {
-  1: "React",
-  2: "TypeScript",
-  3: "Node.js",
-};
-const skillValueMap = {
-  React: 1,
-  TypeScript: 2,
-  "Node.js": 3,
+const normalizeSkillLabel = (skill, skillLabelMap) => {
+  if (typeof skill === "number") {
+    return skillLabelMap[skill] || `Skill ${skill}`;
+  }
+
+  // 마이페이지 조회 응답이 숫자 id 배열이 아닐 때도 화면이 깨지지 않도록 이름을 우선 사용합니다.
+  if (skill && typeof skill === "object") {
+    if (typeof skill.name === "string" && skill.name.trim()) {
+      return skill.name;
+    }
+
+    if (typeof skill.id === "number") {
+      return skillLabelMap[skill.id] || `Skill ${skill.id}`;
+    }
+  }
+
+  return String(skill || "");
 };
 
 const MyPage = () => {
   const navigate = useNavigate();
   const { getMyPage, updateMyPage } = useMyPage();
+  const { getAllSkills } = useSkill();
   const { handleCreateTeam: requestCreateTeam, isLoading, createTeamError } =
     useTeam();
   const [profile, setProfile] = useState(initialProfile);
@@ -48,10 +62,20 @@ const MyPage = () => {
   const [savedItems, setSavedItems] = useState(savedHackathons);
   const [hackathonItems, setHackathonItems] = useState(initialHackathons);
   const [unreadCount, setUnreadCount] = useState(3);
+  const [availableSkills, setAvailableSkills] = useState(fallbackSkills);
   const [teamItems, setTeamItems] = useState(() => {
     const storedTeams = localStorage.getItem(TEAMS_STORAGE_KEY);
     return storedTeams ? JSON.parse(storedTeams) : teams;
   });
+
+  const skillValueMap = useMemo(
+    () =>
+      availableSkills.reduce((acc, skill) => {
+        acc[skill.name] = skill.id;
+        return acc;
+      }, {}),
+    [availableSkills],
+  );
 
   useEffect(() => {
     const fetchMyPage = async () => {
@@ -60,7 +84,24 @@ const MyPage = () => {
 
       if (!userId) return;
 
+      const skillResult = await getAllSkills();
+      const nextSkills = Array.isArray(skillResult?.data?.skills)
+        ? skillResult.data.skills
+        : fallbackSkills;
+
+      console.log("[MyPage] getAllSkills result:", skillResult);
+      console.log("[MyPage] available skills:", nextSkills);
+
+      setAvailableSkills(nextSkills);
+
+      const nextSkillLabelMap = nextSkills.reduce((acc, skill) => {
+        acc[skill.id] = skill.name;
+        return acc;
+      }, {});
+
       const result = await getMyPage(userId);
+
+      console.log("[MyPage] getMyPage result:", result);
 
       if (!result?.isSuccess || !result.data) return;
 
@@ -74,9 +115,14 @@ const MyPage = () => {
         github: data.github || "",
         portfolio: data.portfolio || "",
         skills: Array.isArray(data.skills)
-          ? data.skills.map((skill) => skillLabelMap[skill] || `Skill ${skill}`)
+          ? data.skills
+              .map((skill) => normalizeSkillLabel(skill, nextSkillLabelMap))
+              .filter(Boolean)
           : [],
       };
+
+      console.log("[MyPage] getMyPage raw skills:", data.skills);
+      console.log("[MyPage] mapped profile skills:", nextProfile.skills);
 
       setProfile(nextProfile);
       setEditForm(nextProfile);
@@ -110,22 +156,23 @@ const MyPage = () => {
           description: team.description,
         })) || [];
 
-      // 마이페이지 조회 결과가 보이도록 목록 기준값을 API 응답으로 다시 맞춥니다.
       setTeamItems(nextTeams);
       localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(nextTeams));
     };
 
     fetchMyPage();
-  }, [getMyPage]);
+  }, [getAllSkills, getMyPage]);
 
   const filteredSkills = useMemo(
     () =>
-      skillPool.filter(
-        (skill) =>
-          skill.toLowerCase().includes(skillQuery.toLowerCase()) &&
-          !editForm.skills.includes(skill),
-      ),
-    [skillQuery, editForm.skills],
+      availableSkills
+        .map((skill) => skill.name)
+        .filter(
+          (skill) =>
+            skill.toLowerCase().includes(skillQuery.toLowerCase()) &&
+            !editForm.skills.includes(skill),
+        ),
+    [availableSkills, skillQuery, editForm.skills],
   );
 
   const stats = [
@@ -163,16 +210,23 @@ const MyPage = () => {
       return;
     }
 
+    const mappedSkillIds = editForm.skills
+      .map((skill) => skillValueMap[skill])
+      .filter((skill) => typeof skill === "number");
+
+    console.log("[MyPage] editForm skills before save:", editForm.skills);
+    console.log("[MyPage] skillValueMap:", skillValueMap);
+    console.log("[MyPage] mapped skill ids for PATCH:", mappedSkillIds);
+
     const result = await updateMyPage(userId, {
       nickname: editForm.name,
       description: editForm.intro,
       portfolio: editForm.portfolio,
       github: editForm.github,
-      // 수정 API 명세가 숫자 배열을 요구해서 화면용 스킬 라벨을 요청 값으로 다시 매핑합니다.
-      skills: editForm.skills
-        .map((skill) => skillValueMap[skill])
-        .filter((skill) => typeof skill === "number"),
+      skills: mappedSkillIds,
     });
+
+    console.log("[MyPage] updateMyPage result:", result);
 
     if (!result?.isSuccess) {
       alert(result?.message || "Profile update failed.");
