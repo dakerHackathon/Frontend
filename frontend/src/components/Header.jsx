@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import logoImg from "../assets/BloomingLogo.png";
 import { checkIsLoggedIn, getCurrentUser, logoutUser } from "../utils/auth";
+import { notifyHackathonListRefresh } from "../utils/hackathon";
 
 const navigationItems = [
   { to: "/hackathons", label: "해커톤 목록" },
@@ -12,6 +13,7 @@ const navigationItems = [
 const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(checkIsLoggedIn());
   const [showDropdown, setShowDropdown] = useState(false);
+  const location = useLocation();
   const navigate = useNavigate();
   const currentUser = getCurrentUser();
 
@@ -44,6 +46,11 @@ const Header = () => {
             <NavLink
               key={item.to}
               to={item.to}
+              onClick={() => {
+                if (item.to === "/hackathons" && location.pathname === "/hackathons") {
+                  notifyHackathonListRefresh();
+                }
+              }}
               className={({ isActive }) =>
                 `group relative inline-flex h-full items-center text-lg font-bold transition ${
                   isActive

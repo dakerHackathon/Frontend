@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import ActivityTemperatureCard from "../components/mypage/ActivityTemperatureCard";
 import HackathonListSection from "../components/mypage/HackathonListSection";
 import InboxSection from "../components/mypage/InboxSection";
+import Modal from "../components/mypage/Modal";
 import ProfileEditModal from "../components/mypage/ProfileEditModal";
 import ProfileSection from "../components/mypage/ProfileSection";
 import SavedHackathonsSection from "../components/mypage/SavedHackathonsSection";
@@ -46,6 +47,7 @@ const normalizeSkillLabel = (skill, skillLabelMap) => {
 };
 
 const MyPage = () => {
+  const location = useLocation();
   const navigate = useNavigate();
   const { getMyPage, updateMyPage } = useMyPage();
   const { getAllSkills } = useSkill();
@@ -67,6 +69,12 @@ const MyPage = () => {
     const storedTeams = localStorage.getItem(TEAMS_STORAGE_KEY);
     return storedTeams ? JSON.parse(storedTeams) : teams;
   });
+  const isTeamCreateGuideOpen = Boolean(location.state?.showTeamCreateGuide);
+
+  const closeTeamCreateGuide = () => {
+    // 해커톤 상세에서 전달한 안내 state를 지워야 뒤로 가기나 재진입 시 팝업이 반복되지 않습니다.
+    navigate(location.pathname, { replace: true, state: {} });
+  };
 
   const skillValueMap = useMemo(
     () =>
@@ -362,6 +370,30 @@ const MyPage = () => {
         isCreating={isLoading}
         createError={teamCreateErrorMessage || createTeamError || ""}
       />
+
+      {isTeamCreateGuideOpen ? (
+        <Modal
+          title="팀 생성 안내"
+          onClose={closeTeamCreateGuide}
+          maxWidth="max-w-md"
+        >
+          <div className="space-y-4">
+            <p className="text-sm leading-6 text-slate-600">
+              소속 팀 현황 영역에서 <span className="font-bold text-[#2458E6]">+</span> 버튼을 눌러
+              팀을 생성할 수 있습니다.
+            </p>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={closeTeamCreateGuide}
+                className="inline-flex h-11 items-center justify-center rounded-xl bg-[#336DFE] px-4 text-sm font-bold text-white transition hover:bg-[#2458E6]"
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </Modal>
+      ) : null}
     </div>
   );
 };
