@@ -58,66 +58,61 @@ export const mockMessages = [
 export const mockInvitations = [
   {
     invitationId: 201,
-    type: 1,
-    title: "[신청] 프론트엔드 개발자 지원합니다 (React/Tailwind)",
     content:
-      "성능 최적화에 관심이 많은 프론트엔드 개발자입니다. 효율적인 컴포넌트 구조로 프로젝트를 완성하고 싶습니다.",
+      "저희 팀은 현재 AI 기반 서비스를 기획 중입니다. 귀하의 <strong>백엔드</strong> 역량이 저희 프로젝트에 꼭 필요합니다.",
+    type: 1, // 팀에 초대를 받음
     sender: {
-      userId: 88,
-      userName: "강다니엘",
-      teamName: "프젝짱짱맨",
+      userId: 45,
+      userName: "박민준",
+      teamName: "코드마스터", // 초대를 받은 경우 팀명 존재
     },
-    position: 2, // 프론트엔드
+    position: 3, // 백엔드
     created_at: "2026-03-31 11:05",
   },
   {
     invitationId: 202,
-    type: 2,
-    title: "[초대] '코드마스터' 팀에서 함께하실 백엔드 개발자를 모십니다",
     content:
-      "저희 팀은 현재 AI 기반 서비스를 기획 중입니다. 귀하의 <strong>백엔드</strong> 역량이 저희 프로젝트에 꼭 필요합니다.",
+      "안녕하세요! 해커톤 우승 경험이 있는 <u>서비스 기획자</u> 최서연입니다. 열정 넘치는 팀에 합류하여 시너지를 내고 싶습니다.",
+    type: 2, // 팀 참가 신청을 받음
     sender: {
-      userId: 45,
-      userName: "박민준 팀장",
-      teamName: "코드마스터",
+      userId: 72,
+      userName: "최서연",
+      teamName: null, // 참가 요청인 경우 null
     },
-    position: 3, // 백엔드
+    position: 1, // 기획자
     created_at: "2026-03-31 10:40",
   },
   {
     invitationId: 203,
-    type: 1,
-    title: "[신청] 기획자 직군으로 팀에 합류하고 싶습니다",
     content:
-      "안녕하세요! 해커톤 우승 경험이 있는 <u>서비스 기획자</u> 최서연입니다. 열정 넘치는 팀에 합류하여 시너지를 내고 싶습니다.",
+      "포트폴리오가 매우 인상 깊었습니다. 저희 팀의 <strong>UI/UX 디자인</strong>을 전담해주실 분을 찾고 있습니다.",
+    type: 1, // 팀에 초대를 받음
     sender: {
-      userId: 72,
-      userName: "최서연",
-      teamName: "대충만든팀",
+      userId: 33,
+      userName: "이지후",
+      teamName: "디자인랩",
     },
-    position: 1, // 기획자
+    position: 4, // 디자이너
     created_at: "2026-03-30 16:15",
   },
   {
     invitationId: 204,
-    type: 2,
-    title: "[초대] '노예공장' 팀의 디자이너로 합류 제안드립니다",
     content:
-      "포트폴리오가 매우 인상 깊었습니다. 저희 팀의 <strong>UI/UX 디자인</strong>을 전담해주실 분을 찾고 있습니다.",
+      "성능 최적화에 관심이 많은 프론트엔드 개발자입니다. 효율적인 컴포넌트 구조로 프로젝트를 완성하고 싶습니다.",
+    type: 2, // 팀 참가 신청을 받음
     sender: {
-      userId: 33,
-      userName: "이지후",
-      teamName: "노예공장",
+      userId: 88,
+      userName: "강다니엘",
+      teamName: null,
     },
-    position: 4, // 디자이너
+    position: 2, // 프론트엔드
     created_at: "2026-03-30 09:20",
   },
   {
     invitationId: 205,
-    type: 2,
-    title: "[초대] 함께 대상을 노려볼 기획자를 찾습니다!",
     content:
       "비즈니스 모델 구축에 강점이 있는 <u>기획자</u>분을 모시고 싶습니다. 현재 개발 인력은 세팅이 완료되었습니다.",
+    type: 1, // 팀에 초대를 받음
     sender: {
       userId: 15,
       userName: "한유진",

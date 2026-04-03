@@ -56,7 +56,7 @@ const LoginPage = () => {
               {/* 아이디 입력 */}
               <div>
                 <label htmlFor="id" className="block text-sm font-semibold text-gray-700 mb-2">
-                  이메일
+                  아이디
                 </label>
                 <input
                   type="text"
