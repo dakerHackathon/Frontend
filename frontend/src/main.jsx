@@ -1,26 +1,31 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
+import React, { StrictMode } from "react";
+import ReactDOM, { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.jsx";
 
-// if (import.meta.env.DEV) {
-//   const { worker } = await import("./mocks/browser.js");
-//
-//   worker.start({
-//     onUnhandledRequest: "bypass", // ?뺤쟻 ?뚯씪(JS, CSS)? 臾댁떆?섍퀬 ?듦낵
-//   });
-// }
+async function enableMocking() {
+  if (!import.meta.env.DEV) {
+    return;
+  }
 
-if (import.meta.env.DEV) {
-  const { worker } = await import("./mocks/browser.js");
+  // 가로채기 설정을 담은 browser.js 파일을 가져옵니다.
+  const { worker } = await import("./mocks/browser");
 
-  await worker.start({
-    onUnhandledRequest: "warn",
+  return worker.start({
+    onUnhandledRequest: "bypass",
   });
 }
 
-createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+enableMocking().then(() => {
+  ReactDOM.createRoot(document.getElementById("root")).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+  );
+});
+
+// createRoot(document.getElementById("root")).render(
+//   <StrictMode>
+//     <App />
+//   </StrictMode>,
+// );
