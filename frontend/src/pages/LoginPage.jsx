@@ -1,111 +1,116 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const [loginId, setloginId] = useState("");
+  const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
+  const [feedbackMessage, setFeedbackMessage] = useState("");
 
-  const { handleLogin } = useAuth();
+  const { handleLogin, isLoading } = useAuth();
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (event) => {
+    event.preventDefault();
 
-    if (!loginId || !password) {
-      alert("이메일과 비밀번호를 모두 입력해주세요.");
+    if (!loginId.trim() || !password.trim()) {
+      setFeedbackMessage("이메일과 비밀번호를 모두 입력해 주세요.");
       return;
     }
 
-    // 3. 훅의 handleLogin(API 기반)을 호출합니다.
+    setFeedbackMessage("");
     const result = await handleLogin(loginId, password);
 
-    if (result && result.isSuccess) {
-      navigate("/"); // 성공 시 홈으로
-    } else {
-      // 4. 에러 메시지 처리 (메시지가 없으면 기본값 출력)
-      alert(result?.message || "로그인에 실패했습니다.");
+    if (result?.isSuccess) {
+      navigate("/");
+      return;
     }
+
+    setFeedbackMessage(result?.message || "로그인에 실패했습니다.");
   };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* 왼쪽 영역: 일러스트레이션 (데스크탑 전용) */}
-      <div className="hidden lg:flex lg:w-2/5 bg-gradient-to-br from-blue-100 to-blue-200 items-center justify-center p-12">
-        <div className="relative max-w-lg w-full">
+      <div className="hidden items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200 p-12 lg:flex lg:w-2/5">
+        <div className="relative w-full max-w-lg">
           <img
             src="/api/placeholder/600/600"
-            alt="Security Illustration"
-            className="w-full h-auto drop-shadow-2xl"
+            alt="로그인 안내 일러스트"
+            className="h-auto w-full drop-shadow-2xl"
           />
         </div>
       </div>
 
-      {/* 오른쪽 영역: 로그인 폼 */}
-      <div className="w-full lg:w-3/5 flex flex-col justify-center items-center p-8 bg-white">
-        <div className="max-w-md w-full space-y-8">
-          {/* 헤더 섹션 */}
+      <div className="flex w-full flex-col items-center justify-center bg-white p-8 lg:w-3/5">
+        <div className="w-full max-w-md space-y-8">
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-blue-600 mb-4">로그인</h1>
-            <p className="text-sm text-gray-500 leading-relaxed">어쩌고저쩌고</p>
+            <h1 className="mb-4 text-4xl font-bold text-blue-600">로그인</h1>
+            <p className="text-sm leading-relaxed text-gray-500">
+              계정을 연결하고 해커톤 탐색과 팀 기능을 계속 이용해 보세요.
+            </p>
           </div>
 
-          {/* 폼 섹션 */}
           <form className="mt-8 space-y-6" onSubmit={onSubmit}>
+            {feedbackMessage ? (
+              <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600">
+                {feedbackMessage}
+              </div>
+            ) : null}
+
             <div className="space-y-4">
-              {/* 아이디 입력 */}
               <div>
                 <label htmlFor="id" className="block text-sm font-semibold text-gray-700 mb-2">
                   아이디
                 </label>
                 <input
+                  id="login-id"
                   type="text"
                   value={loginId}
-                  onChange={(e) => setloginId(e.target.value)}
-                  placeholder="아이디"
-                  className="w-full px-4 py-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  onChange={(event) => setLoginId(event.target.value)}
+                  placeholder="이메일"
+                  className="w-full rounded-md border border-gray-200 px-4 py-3 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              {/* 비밀번호 입력 */}
               <div>
-                <div className="flex justify-between items-center mb-2">
-                  <label htmlFor="pw" className="text-sm font-semibold text-gray-700">
-                    비밀번호
-                  </label>
-                </div>
+                <label
+                  htmlFor="password"
+                  className="mb-2 block text-sm font-semibold text-gray-700"
+                >
+                  비밀번호
+                </label>
                 <input
+                  id="password"
                   type="password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(event) => setPassword(event.target.value)}
                   placeholder="비밀번호"
-                  className="w-full px-4 py-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full rounded-md border border-gray-200 px-4 py-3 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
 
-            {/* 버튼 섹션 */}
             <div className="space-y-3">
               <button
                 type="submit"
-                className="w-full py-3 bg-blue-600 text-white font-bold rounded-sm hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
+                disabled={isLoading}
+                className="w-full rounded-sm bg-blue-600 py-3 font-bold text-white shadow-lg shadow-blue-200 transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                로그인
+                {isLoading ? "로그인 중..." : "로그인"}
               </button>
               <button
                 type="button"
                 onClick={() => navigate("/signup")}
-                className="w-full py-3 bg-white text-blue-600 font-semibold border border-blue-600 rounded-sm hover:bg-blue-50 transition-colors"
+                className="w-full rounded-sm border border-blue-600 bg-white py-3 font-semibold text-blue-600 transition-colors hover:bg-blue-50"
               >
                 회원가입
               </button>
             </div>
           </form>
 
-          {/* 하단 구분선 (데코레이션) */}
           <div className="flex items-center justify-between pt-4">
-            <div className="h-px w-24 bg-gray-200"></div>
-            <div className="h-px w-24 bg-gray-200"></div>
+            <div className="h-px w-24 bg-gray-200" />
+            <div className="h-px w-24 bg-gray-200" />
           </div>
         </div>
       </div>

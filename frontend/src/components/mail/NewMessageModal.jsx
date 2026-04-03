@@ -48,12 +48,7 @@ const NewMessageModal = ({
             title="닫기"
             className="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100"
           >
-            <svg
-              viewBox="0 0 20 20"
-              fill="none"
-              className="h-4 w-4"
-              aria-hidden="true"
-            >
+            <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden="true">
               <path
                 d="M5.5 5.5L14.5 14.5M14.5 5.5L5.5 14.5"
                 stroke="currentColor"
