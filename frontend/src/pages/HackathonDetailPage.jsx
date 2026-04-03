@@ -580,7 +580,13 @@ const HackathonDetailPage = () => {
                     <div className="grid gap-3 sm:grid-cols-[0.9fr_1.1fr]">
                       <button
                         type="button"
-                        onClick={() => navigate("/mypage")}
+                        onClick={() =>
+                          navigate("/mypage", {
+                            state: {
+                              showTeamCreateGuide: true,
+                            },
+                          })
+                        }
                         onMouseEnter={() =>
                           setTeamActionHint("팀 생성을 위해 마이페이지로 이동합니다.")
                         }
