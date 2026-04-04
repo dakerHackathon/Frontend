@@ -6,6 +6,7 @@ const buildRecruitParams = (params = {}) =>
   );
 
 export const recruitApi = {
+  getPositions: () => axiosInstance.get("/camp/positions"),
   getList: (userId, params = {}) =>
     axiosInstance.get(`/camp/${userId}/recruit`, { params: buildRecruitParams(params) }),
   search: (userId, params) =>
