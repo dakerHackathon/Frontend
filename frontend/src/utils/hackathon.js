@@ -10,6 +10,27 @@ const formatDateDot = (value) => String(value).slice(0, 10).replaceAll("-", ".")
 
 const formatPeriod = (startAt, endAt) => `${formatDateDot(startAt)} ~ ${formatDateDot(endAt)}`;
 
+const formatScheduleDateTime = (value) => {
+  if (!value) {
+    return "-";
+  }
+
+  const normalizedValue = String(value).trim().replace(" ", "T");
+  const parsedDate = new Date(normalizedValue);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return String(value).replace(" ", "  ");
+  }
+
+  const year = parsedDate.getFullYear();
+  const month = String(parsedDate.getMonth() + 1).padStart(2, "0");
+  const date = String(parsedDate.getDate()).padStart(2, "0");
+  const hours = String(parsedDate.getHours()).padStart(2, "0");
+  const minutes = String(parsedDate.getMinutes()).padStart(2, "0");
+
+  return `${year}.${month}.${date} ${hours}:${minutes}`;
+};
+
 const getStatusMeta = (startAt, endAt) => {
   const now = new Date();
   const startDate = parseApiDate(startAt);
@@ -222,7 +243,7 @@ export const mapHackathonDetailResponse = ({ detail, summary }) => {
     location: detail.location,
     schedule: (detail.schedule ?? []).map((item, index) => ({
       title: item.scheduleName,
-      period: item.scheduleTime,
+      period: formatScheduleDateTime(item.scheduleTime),
       active: index === 0,
     })),
     evaluation: (detail.evaluationCriteria ?? []).map((item) => ({
