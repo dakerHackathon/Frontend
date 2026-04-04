@@ -90,6 +90,7 @@ export const recruitHandlers = [
                 headCount: positionInfo.headCount,
               })),
               contact: body.contact,
+              writer: item.article.writer,
             },
           }
         : item,
@@ -168,6 +169,7 @@ export const recruitHandlers = [
           headCount: item.headCount,
         })),
         isOpen: true,
+        writer: Number(params.userId),
         createdAt: "2026-04-04 12:00",
         contact: body.contact,
       },
