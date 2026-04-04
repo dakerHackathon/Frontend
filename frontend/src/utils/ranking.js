@@ -15,8 +15,14 @@ const rankingTitleMap = {
 
 const rankingValueSuffixMap = {
   temp: "°C",
-  win: "점",
-  part: "점",
+  win: "회",
+  part: "회",
+};
+
+const rankingValueLabelMap = {
+  temp: "온도",
+  win: "우승 횟수",
+  part: "참여 횟수",
 };
 
 export const getRankingUserName = () => {
@@ -29,7 +35,7 @@ export const getRankingUserId = () => {
   return currentUser?.userId ?? currentUser?.id ?? 1;
 };
 
-export const mapRankingRowsResponse = (items = []) =>
+export const mapRankingRowsResponse = (items = [], filter = "temp") =>
   items.map((item, index) => {
     const profile = getRankingProfile(item.id);
 
@@ -41,6 +47,8 @@ export const mapRankingRowsResponse = (items = []) =>
       points: item.point,
       temperature: Number(item.temperature ?? profile.temperature ?? item.point ?? 0),
       avatar: item.avatar ?? profile.avatar,
+      valueSuffix: rankingValueSuffixMap[filter] ?? "점",
+      valueLabel: rankingValueLabelMap[filter] ?? "포인트",
     };
   });
 
@@ -108,5 +116,6 @@ export const mapCurrentUserRow = (myRanking = {}, periodKey = "temperature") => 
     temperature: item.temperature,
     avatar: item.avatar,
     valueSuffix: rankingValueSuffixMap[filter],
+    valueLabel: rankingValueLabelMap[filter],
   };
 };

@@ -4,6 +4,8 @@ import { medalTones } from "../../pages/rankingPage.constants";
 // 상위 3위 플레이어를 보여주는 카드 컴포넌트
 const TopThreeCard = ({ player, highlighted = false, delay = 0, enterRotateY = 0 }) => {
   const tone = medalTones[player.rank];
+  const valueSuffix = player.valueSuffix ?? "점";
+  const valueLabel = player.valueLabel ?? "포인트";
 
   return (
     <article
@@ -35,8 +37,9 @@ const TopThreeCard = ({ player, highlighted = false, delay = 0, enterRotateY = 0
         </h3>
         <p className="mt-4 text-[1.55rem] font-black text-[#336DFE] sm:text-[1.9rem]">
           {player.points}
+          {valueSuffix}
         </p>
-        <p className="mt-1 text-sm font-semibold italic text-slate-400">Points</p>
+        <p className="mt-1 text-sm font-semibold italic text-slate-400">{valueLabel}</p>
       </div>
     </article>
   );

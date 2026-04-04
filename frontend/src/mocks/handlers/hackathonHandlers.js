@@ -83,13 +83,14 @@ const mapLeaderBoard = (hackathon) => {
   }));
 };
 
-const mapHackathonDetail = (hackathon) => ({
+const mapHackathonDetail = (hackathon, userId) => ({
   hackathonId: hackathon.id,
   hackathonTitle: hackathon.title,
   hackathonSubTitle: hackathon.subtitle,
   description: hackathon.summary,
   organizer: hackathon.host,
   location: hackathon.location,
+  isStar: new Set(getSavedHackathonIdsByUserId(userId)).has(hackathon.id),
   schedule: hackathon.schedule.map((item, index) => ({
     scheduleName: item.title,
     scheduleTime: getScheduleTime(hackathon, index),
@@ -110,15 +111,14 @@ const mapHackathonDetail = (hackathon) => ({
 
 export const hackathonHandlers = [
   // 1. 해커톤 목록 조회
-  http.get("*/hackathons", ({ request }) => {
-    console.log("MSW intercepted: GET /hackathons");
+  http.get("*/hackathons/:userId", ({ params }) => {
+    console.log(`MSW intercepted: GET /hackathons/${params.userId}`);
 
     if (shouldFail) {
       return createErrorResponse("500", "서버 오류가 발생했습니다.", 500);
     }
 
-    const userId = new URL(request.url).searchParams.get("userId") ?? "1";
-    const savedIds = new Set(getSavedHackathonIdsByUserId(userId));
+    const savedIds = new Set(getSavedHackathonIdsByUserId(params.userId ?? "1"));
 
     return HttpResponse.json(
       createSuccessResponse({
@@ -131,8 +131,8 @@ export const hackathonHandlers = [
   }),
 
   // 2. 해커톤 상세 조회
-  http.get("*/hackathons/:id", ({ params }) => {
-    console.log(`MSW intercepted: GET /hackathons/${params.id}`);
+  http.get("*/hackathons/:userId/:id", ({ params }) => {
+    console.log(`MSW intercepted: GET /hackathons/${params.userId}/${params.id}`);
 
     const hackathon = getHackathonById(params.id) ?? getHackathonBySlug(params.id);
 
@@ -140,7 +140,9 @@ export const hackathonHandlers = [
       return createErrorResponse("404", "해커톤을 찾을 수 없습니다.", 404);
     }
 
-    return HttpResponse.json(createSuccessResponse(mapHackathonDetail(hackathon)));
+    return HttpResponse.json(
+      createSuccessResponse(mapHackathonDetail(hackathon, params.userId ?? "1")),
+    );
   }),
   http.post("*/hackathons/:userId/save", async ({ params, request }) => {
     console.log(`MSW intercepted: POST /hackathons/${params.userId}/save`);

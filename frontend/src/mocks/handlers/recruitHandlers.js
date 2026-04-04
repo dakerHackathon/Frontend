@@ -1,6 +1,7 @@
 import { http, HttpResponse } from "msw";
 import {
   getStoredRecruitArticles,
+  mockRecruitPositions,
   mockRecruitTeams,
   saveStoredRecruitArticles,
 } from "../data/recruits";
@@ -34,6 +35,11 @@ const filterRecruitArticles = (articles, { open, position, filter, query }) => {
 };
 
 export const recruitHandlers = [
+  http.get("*/camp/positions", () => {
+    console.log("✅ MSW intercepted: GET /camp/positions");
+
+    return HttpResponse.json(success({ positions: mockRecruitPositions }));
+  }),
   http.get("*/camp/:userId/recruit", ({ request, params }) => {
     console.log(`✅ MSW intercepted: GET /camp/${params.userId}/recruit`);
 
@@ -90,6 +96,7 @@ export const recruitHandlers = [
                 headCount: positionInfo.headCount,
               })),
               contact: body.contact,
+              writer: item.article.writer,
             },
           }
         : item,
@@ -168,6 +175,7 @@ export const recruitHandlers = [
           headCount: item.headCount,
         })),
         isOpen: true,
+        writer: Number(params.userId),
         createdAt: "2026-04-04 12:00",
         contact: body.contact,
       },

@@ -3,26 +3,26 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import BaseInfoCard from "../components/common/BaseInfoCard";
 import PrimaryActionButton from "../components/common/PrimaryActionButton";
 import { useRecruit } from "../hooks/useRecruit";
-import { mapRecruitPostToForm, recruitEditableTeams, validateRecruitCreateForm } from "../utils/recruit";
+import {
+  createRecruitPositionSlots,
+  getDefaultRecruitPositionCatalog,
+  getPositionDisplayLabel,
+  getRecruitTagOptions,
+  mapRecruitPostToForm,
+  mergeRecruitPositionSlots,
+  recruitEditableTeams,
+  validateRecruitCreateForm,
+} from "../utils/recruit";
 
 const TEAM_MAX_MEMBERS = 5;
 
-const tagOptions = ["FE", "BE", "AI", "DB", "DESIGNER"];
-
 const tagColorMap = {
+  PM: "bg-[#7E57C2] text-white",
   FE: "bg-[#2A3FFF] text-white",
   BE: "bg-[#4CD137] text-white",
   AI: "bg-[#666666] text-white",
   DB: "bg-[#FFB547] text-white",
   DESIGNER: "bg-[#FF7AB6] text-white",
-};
-
-const positionDisplayLabel = {
-  FE: "프론트엔드",
-  BE: "백엔드",
-  AI: "AI",
-  DB: "데이터 / DB",
-  DESIGNER: "디자이너",
 };
 
 const getSelectedRecruitTotal = (tags, positionSlots) =>
@@ -157,7 +157,7 @@ const PreviewPositionChoice = ({ tag, recruit, active }) => (
 );
 
 const RecruitPreviewCard = ({ form, selectedTeam }) => {
-  const selectedTags = form.tags.length > 0 ? form.tags : ["FE"];
+  const selectedTags = form.tags.length > 0 ? form.tags : [getDefaultRecruitPositionCatalog()[0]?.tag ?? "FE"];
   const recruitTotal = getSelectedRecruitTotal(selectedTags, form.positionSlots);
 
   return (
@@ -237,11 +237,12 @@ const RecruitPreviewCard = ({ form, selectedTeam }) => {
 const RecruitWritePage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { fetchList, createArticle, updateArticle, isSubmitting, isLoading } =
+  const { fetchPositions, fetchList, createArticle, updateArticle, isSubmitting, isLoading } =
     useRecruit();
   const navigationTimeoutRef = useRef(null);
   const articleId = Number(searchParams.get("articleId") ?? 0);
   const isEditMode = articleId > 0;
+  const [positionCatalog, setPositionCatalog] = useState(getDefaultRecruitPositionCatalog());
   const [form, setForm] = useState({
     title: "",
     teamId: recruitEditableTeams[0].id,
@@ -250,16 +251,15 @@ const RecruitWritePage = () => {
     hackathonName: recruitEditableTeams[0].hackathonName,
     contact: "",
     positionSlots: {
+      ...createRecruitPositionSlots(getDefaultRecruitPositionCatalog()),
       FE: { recruit: 1 },
       BE: { recruit: 1 },
-      AI: { recruit: 0 },
-      DB: { recruit: 0 },
-      DESIGNER: { recruit: 0 },
     },
   });
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");
   const [isEditReady, setIsEditReady] = useState(!isEditMode);
+  const tagOptions = useMemo(() => getRecruitTagOptions(positionCatalog), [positionCatalog]);
 
   useEffect(() => {
     return () => {
@@ -268,6 +268,40 @@ const RecruitWritePage = () => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadPositionCatalog = async () => {
+      const result = await fetchPositions();
+
+      if (!isMounted || !result?.isSuccess) {
+        return;
+      }
+
+      const nextCatalog = result.data?.positionCatalog ?? getDefaultRecruitPositionCatalog();
+
+      setPositionCatalog(nextCatalog);
+      setForm((prev) => {
+        const nextTags = prev.tags.filter((tag) =>
+          nextCatalog.some((position) => position.tag === tag),
+        );
+        const safeTags = nextTags.length > 0 ? nextTags : [nextCatalog[0]?.tag].filter(Boolean);
+
+        return {
+          ...prev,
+          tags: safeTags,
+          positionSlots: mergeRecruitPositionSlots(prev.positionSlots, nextCatalog),
+        };
+      });
+    };
+
+    loadPositionCatalog();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchPositions]);
 
   useEffect(() => {
     let isMounted = true;
@@ -295,6 +329,10 @@ const RecruitWritePage = () => {
         return;
       }
 
+      if (result.data?.positionCatalog?.length) {
+        setPositionCatalog(result.data.positionCatalog);
+      }
+
       const targetPost = (result.data?.posts ?? []).find((post) => post.articleId === articleId);
 
       if (!targetPost?.isMine) {
@@ -303,7 +341,7 @@ const RecruitWritePage = () => {
         return;
       }
 
-      setForm(mapRecruitPostToForm(targetPost));
+      setForm(mapRecruitPostToForm(targetPost, result.data?.positionCatalog));
       setIsEditReady(true);
     };
 
@@ -393,7 +431,7 @@ const RecruitWritePage = () => {
       return;
     }
 
-    const validationMessage = validateRecruitCreateForm(form);
+    const validationMessage = validateRecruitCreateForm(form, positionCatalog);
 
     if (validationMessage) {
       setSubmitSuccess("");
@@ -408,10 +446,12 @@ const RecruitWritePage = () => {
       ? await updateArticle({
           articleId,
           form,
+          positionCatalog,
         })
       : await createArticle({
           teamId: form.teamId,
           form,
+          positionCatalog,
         });
 
     if (!result?.isSuccess) {
@@ -568,7 +608,7 @@ const RecruitWritePage = () => {
                             </span>
                             <div className="min-w-0">
                               <p className="text-sm font-black text-slate-800">
-                                {positionDisplayLabel[tag]}
+                                {getPositionDisplayLabel(tag, positionCatalog)}
                               </p>
                               <p className="mt-1 text-xs font-semibold tracking-[0.08em] text-slate-400">
                                 모집할 인원

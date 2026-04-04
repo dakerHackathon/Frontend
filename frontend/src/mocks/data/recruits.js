@@ -1,5 +1,13 @@
 export const RECRUIT_STORAGE_KEY = "mockRecruitArticles";
 
+export const mockRecruitPositions = [
+  { id: 1, name: "FrontEnd" },
+  { id: 2, name: "BackEnd" },
+  { id: 3, name: "AI" },
+  { id: 4, name: "DB" },
+  { id: 5, name: "Designer" },
+];
+
 export const mockRecruitTeams = [
   {
     id: 1,
@@ -43,6 +51,7 @@ export const initialRecruitArticles = [
         { position: 3, headCount: 1 },
       ],
       isOpen: true,
+      writer: 1,
       createdAt: "2026-04-04 11:55",
       contact: "https://open.kakao.com/o/recruit-1",
     },
@@ -58,6 +67,7 @@ export const initialRecruitArticles = [
         { position: 4, headCount: 1 },
       ],
       isOpen: true,
+      writer: 2,
       createdAt: "2026-04-04 11:41",
       contact: "https://open.kakao.com/o/recruit-2",
     },
@@ -73,6 +83,7 @@ export const initialRecruitArticles = [
         { position: 3, headCount: 2 },
       ],
       isOpen: true,
+      writer: 1,
       createdAt: "2026-04-04 11:28",
       contact: "https://open.kakao.com/o/recruit-3",
     },
@@ -88,6 +99,7 @@ export const initialRecruitArticles = [
         { position: 5, headCount: 1 },
       ],
       isOpen: false,
+      writer: 3,
       createdAt: "2026-04-03 21:10",
       contact: "https://open.kakao.com/o/recruit-4",
     },

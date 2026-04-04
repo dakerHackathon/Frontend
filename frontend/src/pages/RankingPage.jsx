@@ -6,6 +6,12 @@ import TopThreeCard from "../components/ranking/TopThreeCard";
 import { useRanking } from "../hooks/useRanking";
 import { periodTabs } from "./rankingPage.constants";
 
+const rankingValueLabelMap = {
+  temperature: "온도",
+  mostParticipation: "참여 횟수",
+  mostWins: "우승 횟수",
+};
+
 const RankingPage = () => {
   const [activePeriod, setActivePeriod] = useState("temperature");
   const { fetchList, fetchMine, fetchSidebar, isLoading, error } = useRanking();
@@ -148,6 +154,8 @@ const RankingPage = () => {
               rows={activeRows}
               title={periodTabs.find((tab) => tab.key === activePeriod)?.label ?? "랭킹"}
               currentUser={currentUser}
+              showTemperature={activePeriod === "temperature"}
+              valueLabel={rankingValueLabelMap[activePeriod] ?? "포인트"}
             />
           )}
         </section>

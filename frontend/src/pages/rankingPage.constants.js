@@ -1,8 +1,8 @@
 // 랭킹 페이지 기준 탭 목록 (온도 / 최다참여 / 최다우승)
 export const periodTabs = [
   { key: "temperature", label: "온도" },
-  { key: "mostParticipation", label: "최다참여" },
-  { key: "mostWins", label: "최다우승" },
+  { key: "mostParticipation", label: "최다 참여" },
+  { key: "mostWins", label: "최다 우승" },
 ];
 
 // 순위 1~3위 메달 색상 토큰 (링, 라인, 배지, 카드 배경)

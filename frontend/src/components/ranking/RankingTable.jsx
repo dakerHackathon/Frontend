@@ -9,9 +9,15 @@ const GithubIcon = ({ className = "" }) => (
   </svg>
 );
 
-const RankingRow = ({ row, highlighted = false }) => (
+const formatRankingValue = (value, suffix = "") => `${Number(value).toLocaleString("ko-KR")}${suffix}`;
+
+const RankingRow = ({ row, highlighted = false, showTemperature = false }) => (
   <div
-    className={`grid gap-5 px-5 py-5 text-sm sm:px-6 md:grid-cols-[72px_minmax(0,1.25fr)_minmax(180px,240px)_96px] md:items-center md:gap-6 lg:grid-cols-[92px_minmax(0,1.5fr)_240px_160px] lg:gap-10 ${
+    className={`grid gap-5 px-5 py-5 text-sm sm:px-6 ${
+      showTemperature
+        ? "md:grid-cols-[72px_minmax(0,1.6fr)_minmax(180px,280px)] lg:grid-cols-[92px_minmax(0,1.9fr)_320px]"
+        : "md:grid-cols-[72px_minmax(0,1.35fr)_120px] lg:grid-cols-[92px_minmax(0,1.6fr)_160px]"
+    } md:items-center md:gap-6 lg:gap-10 ${
       highlighted ? "bg-[#F8FAFF]" : ""
     }`}
   >
@@ -57,59 +63,86 @@ const RankingRow = ({ row, highlighted = false }) => (
       </div>
     </div>
 
-    <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-4 md:flex md:justify-self-center">
-      <span className="text-sm font-black tracking-[0.04em] whitespace-nowrap text-slate-400 md:hidden">
-        온도
-      </span>
-      <TemperatureBar value={row.temperature} />
-    </div>
-
-    <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-4 md:flex md:justify-self-center">
-      <span className="text-sm font-black tracking-[0.04em] whitespace-nowrap text-slate-400 md:hidden">
-        포인트
-      </span>
-      <div className="text-left text-[1.6rem] font-extrabold text-[#336DFE] md:text-[1rem]">
-        {row.points}점
+    {showTemperature ? (
+      <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-4 md:flex md:justify-self-center">
+        <span className="text-sm font-black tracking-[0.04em] whitespace-nowrap text-slate-400 md:hidden">
+          온도
+        </span>
+        <TemperatureBar value={row.temperature} />
       </div>
-    </div>
+    ) : null}
+
+    {!showTemperature ? (
+      <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-4 md:flex md:justify-self-center">
+        <span className="text-sm font-black tracking-[0.04em] whitespace-nowrap text-slate-400 md:hidden">
+          {row.valueLabel ?? "포인트"}
+        </span>
+        <div className="text-left text-[1.6rem] font-extrabold text-[#336DFE] md:text-[1rem]">
+          {formatRankingValue(row.points, row.valueSuffix)}
+        </div>
+      </div>
+    ) : null}
   </div>
 );
 
 // 랭킹 TOP 10 테이블 컴포넌트 — 순위, 닉네임, 온도, 포인트를 표시
-const RankingTable = ({ rows, title, currentUser }) => (
-  <section className="rounded-[30px] border border-slate-200 bg-white px-5 py-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)] sm:px-8 sm:py-8">
-    <div className="border-b border-slate-200 pb-5">
-      <h2 className="text-[1.45rem] font-black tracking-tight text-slate-950">{title} TOP 10</h2>
-    </div>
+const RankingTable = ({
+  rows,
+  title,
+  currentUser,
+  showTemperature = false,
+  valueLabel = "포인트",
+}) => {
+  const isCurrentUserInTopTen = currentUser && currentUser.rank <= 10;
 
-    <div className="mt-6 overflow-hidden rounded-[28px] border border-slate-200">
-      <div className="hidden bg-[#F8FAFF] px-6 py-4 text-sm font-black text-slate-700 md:grid md:grid-cols-[72px_minmax(0,1.25fr)_minmax(180px,240px)_96px] md:items-center md:gap-6 lg:grid-cols-[92px_minmax(0,1.5fr)_240px_160px] lg:gap-10">
-        <span className="justify-self-center font-extrabold text-slate-900">순위</span>
-        <span className="justify-self-center font-extrabold text-slate-900">닉네임</span>
-        <span className="justify-self-center font-extrabold text-slate-900">온도</span>
-        <span className="justify-self-center font-extrabold text-slate-900">포인트</span>
+  return (
+    <section className="rounded-[30px] border border-slate-200 bg-white px-5 py-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)] sm:px-8 sm:py-8">
+      <div className="border-b border-slate-200 pb-5">
+        <h2 className="text-[1.45rem] font-black tracking-tight text-slate-950">{title} TOP 10</h2>
       </div>
 
-      <div>
-        {rows.map((row) => (
-          <div key={`${row.rank}-${row.name}`} className="border-t border-slate-100">
-            <RankingRow row={row} />
-          </div>
-        ))}
+      <div className="mt-6 overflow-hidden rounded-[28px] border border-slate-200">
+        <div
+          className={`hidden bg-[#F8FAFF] px-6 py-4 text-sm font-black text-slate-700 md:grid md:items-center md:gap-6 lg:gap-10 ${
+            showTemperature
+              ? "md:grid-cols-[72px_minmax(0,1.6fr)_minmax(180px,280px)] lg:grid-cols-[92px_minmax(0,1.9fr)_320px]"
+              : "md:grid-cols-[72px_minmax(0,1.35fr)_120px] lg:grid-cols-[92px_minmax(0,1.6fr)_160px]"
+          }`}
+        >
+          <span className="justify-self-center font-extrabold text-slate-900">순위</span>
+          <span className="justify-self-center font-extrabold text-slate-900">닉네임</span>
+          {showTemperature ? (
+            <span className="justify-self-center font-extrabold text-slate-900">온도</span>
+          ) : (
+            <span className="justify-self-center font-extrabold text-slate-900">{valueLabel}</span>
+          )}
+        </div>
 
-        {currentUser ? (
-          <div className="border-t border-slate-100">
-            <div className="flex items-center justify-center px-6 py-4 text-lg font-black tracking-[0.2em] text-slate-300">
-              ...
+        <div>
+          {rows.map((row) => (
+            <div key={`${row.rank}-${row.name}`} className="border-t border-slate-100">
+              <RankingRow
+                row={row}
+                highlighted={Boolean(isCurrentUserInTopTen && currentUser.rank === row.rank)}
+                showTemperature={showTemperature}
+              />
             </div>
-            <div className="border-t border-dashed border-slate-200">
-              <RankingRow row={currentUser} highlighted />
+          ))}
+
+          {currentUser && !isCurrentUserInTopTen ? (
+            <div className="border-t border-slate-100">
+              <div className="flex items-center justify-center px-6 py-4 text-lg font-black tracking-[0.2em] text-slate-300">
+                ...
+              </div>
+              <div className="border-t border-dashed border-slate-200">
+                <RankingRow row={currentUser} highlighted showTemperature={showTemperature} />
+              </div>
             </div>
-          </div>
-        ) : null}
+          ) : null}
+        </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 export default RankingTable;
