@@ -8,6 +8,7 @@ import { mailApi } from "./mail";
 import { recruitApi } from "./recruit";
 import { rankingApi } from "./ranking";
 import { temperatureApi } from "./temperature";
+import { userApi } from "./user";
 
 export const API = {
   auth: authApi,
@@ -19,4 +20,5 @@ export const API = {
   recruit: recruitApi,
   ranking: rankingApi,
   temperature: temperatureApi,
+  user: userApi,
 };

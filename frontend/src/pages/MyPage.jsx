@@ -10,7 +10,9 @@ import SavedHackathonsSection from "../components/mypage/SavedHackathonsSection"
 import TeamCreateModal from "../components/mypage/TeamCreateModal";
 import TeamStatusSection from "../components/mypage/TeamStatusSection";
 import {
+  buildTeamPartOptions,
   initialProfile,
+  teamPartOptions,
 } from "../components/mypage/constants";
 import { useMyPage } from "../hooks/useMyPage";
 import { useSkill } from "../hooks/useSkill";
@@ -61,7 +63,7 @@ const MyPage = () => {
   const { getAllSkills } = useSkill();
   const { getTemperatureMembers, submitTemperatureVote, isLoading: isTemperatureLoading } =
     useTemperature();
-  const { handleCreateTeam: requestCreateTeam, isLoading, createTeamError } =
+  const { handleCreateTeam: requestCreateTeam, getPositions, isLoading, createTeamError } =
     useTeam();
   const [profile, setProfile] = useState(emptyProfile);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -75,6 +77,7 @@ const MyPage = () => {
   const [hackathonItems, setHackathonItems] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [availableSkills, setAvailableSkills] = useState(fallbackSkills);
+  const [partOptions, setPartOptions] = useState(teamPartOptions);
   const [teamItems, setTeamItems] = useState([]);
   const [pageLoadError, setPageLoadError] = useState("");
   const [selectedHackathon, setSelectedHackathon] = useState(null);
@@ -95,6 +98,24 @@ const MyPage = () => {
       }, {}),
     [availableSkills],
   );
+
+  useEffect(() => {
+    const fetchPositions = async () => {
+      const result = await getPositions();
+
+      if (!result?.isSuccess || !result.data) {
+        console.error("[MyPage] /camp/positions failed:", result?.message);
+        return;
+      }
+
+      const nextPartOptions = buildTeamPartOptions(result.data.positions);
+      if (nextPartOptions.length > 0) {
+        setPartOptions(nextPartOptions);
+      }
+    };
+
+    fetchPositions();
+  }, [getPositions]);
 
   useEffect(() => {
     const fetchMyPage = async () => {
@@ -449,6 +470,7 @@ const MyPage = () => {
         onCreate={handleCreateTeam}
         isCreating={isLoading}
         createError={teamCreateErrorMessage || createTeamError || ""}
+        partOptions={partOptions}
       />
 
       {isTeamCreateGuideOpen ? (

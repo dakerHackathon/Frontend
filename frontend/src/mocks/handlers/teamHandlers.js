@@ -49,6 +49,37 @@ const tryPassThrough = async (request, warnMessage) => {
 };
 
 export const teamHandlers = [
+  http.get("*/camp/positions", async ({ request }) => {
+    console.log("✅ MSW intercepted: GET /camp/positions");
+
+    const mockErrorResponse = getMockErrorResponse();
+    if (mockErrorResponse) {
+      return mockErrorResponse;
+    }
+
+    const passThroughResponse = await tryPassThrough(
+      request,
+      "MSW fallback to mock for GET /camp/positions: 실서버 응답을 사용할 수 없습니다.",
+    );
+    if (passThroughResponse) {
+      return passThroughResponse;
+    }
+
+    return HttpResponse.json({
+      isSuccess: true,
+      code: "200",
+      message: "요청이 성공적입니다.",
+      data: {
+        positions: [
+          { id: 1, name: "PM" },
+          { id: 2, name: "FrontEnd" },
+          { id: 3, name: "BackEnd" },
+          { id: 4, name: "Designer" },
+        ],
+      },
+    });
+  }),
+
   // 팀 상세 조회 - GET /camp/:userId/team/:teamId
   // leave, expell 경로보다 먼저 등록되면 "leave"를 teamId로 오인하므로 뒤에 위치
   http.get("*/camp/:userId/team/:teamId", async ({ params, request }) => {

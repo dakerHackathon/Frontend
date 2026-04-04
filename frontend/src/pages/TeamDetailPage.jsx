@@ -25,9 +25,12 @@ const TeamDetailPage = () => {
     inviteNotice,
     invitePart,
     inviteQuery,
+    inviteSearchEmptyMessage,
+    isInviteSearchLoading,
     isLeader,
     loadError,
     members,
+    partOptions,
     saveNotice,
     selectedCandidateId,
     setInviteMessage,
@@ -49,7 +52,7 @@ const TeamDetailPage = () => {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <Link to="/mypage" className="text-sm font-semibold text-[#336DFE] hover:underline">
-              마이페이지로 돌아가기
+              &lt; 마이페이지로 돌아가기
             </Link>
             <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">{teamForm.name}</h1>
             <p className="mt-2 text-sm text-slate-500">
@@ -73,6 +76,7 @@ const TeamDetailPage = () => {
               onKickMember={handleKickMember}
               onLeaveTeam={handleLeaveTeam}
               onDisbandTeam={handleDisbandTeam}
+              partOptions={partOptions}
             />
           </section>
 
@@ -84,13 +88,16 @@ const TeamDetailPage = () => {
                 invitePart={invitePart}
                 inviteMessage={inviteMessage}
                 inviteNotice={inviteNotice}
+                isInviteSearchLoading={isInviteSearchLoading}
                 filteredCandidates={filteredCandidates}
+                inviteSearchEmptyMessage={inviteSearchEmptyMessage}
                 isLeader={isLeader}
                 onInviteQueryChange={setInviteQuery}
                 onCandidateSelect={setSelectedCandidateId}
                 onInvitePartChange={setInvitePart}
                 onInviteMessageChange={setInviteMessage}
                 onInvite={handleInvite}
+                partOptions={partOptions}
               />
             ) : null}
           </aside>

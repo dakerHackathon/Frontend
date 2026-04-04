@@ -2,14 +2,23 @@ import { useCallback } from "react";
 import { API } from "../api/api_registry";
 import { useApi } from "./common/useApi";
 
-const teamRoleRequestMap = {
-  planner: 1,
-  frontend: 2,
-  backend: 3,
-  designer: 4,
+const teamRoleAliasMap = {
+  planner: ["planner", "pm", "productmanager", "product_manager"],
+  frontend: ["frontend", "front", "fe"],
+  backend: ["backend", "back", "be"],
 };
 
+const normalizePositionName = (value) =>
+  String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+
 export const useTeam = () => {
+  const {
+    execute: getPositionsExecute,
+    isLoading: isGetPositionsLoading,
+    error: positionsError,
+  } = useApi(API.team.getPositions);
   const {
     execute: createTeamExecute,
     isLoading: isCreateTeamLoading,
@@ -36,15 +45,44 @@ export const useTeam = () => {
     error: registerHackathonError,
   } = useApi(API.team.registerHackathon);
 
+  const getPositions = useCallback(async () => {
+    try {
+      return await getPositionsExecute();
+    } catch (error) {
+      console.error("포지션 목록 조회 중 에러:", error);
+      return {
+        isSuccess: false,
+        message: error.response?.data?.message || "포지션 목록을 불러오는 중 오류가 발생했습니다.",
+        data: { positions: [] },
+      };
+    }
+  }, [getPositionsExecute]);
+
+  const resolvePositionId = useCallback(
+    async (roleKey) => {
+      const positionsResult = await getPositions();
+      const positions = positionsResult?.data?.positions ?? [];
+      const aliases = teamRoleAliasMap[roleKey] ?? [roleKey];
+
+      const matchedPosition = positions.find((position) => {
+        const normalizedPositionName = normalizePositionName(position.name);
+        return aliases.some((alias) => normalizePositionName(alias) === normalizedPositionName);
+      });
+
+      return matchedPosition?.id ?? null;
+    },
+    [getPositions],
+  );
+
   const handleCreateTeam = useCallback(
     async (userId, teamData) => {
-      const role = teamRoleRequestMap[teamData.role];
+      const role = await resolvePositionId(teamData.role);
 
-      // 현재 백엔드 명세에서 확인된 role 숫자 매핑만 요청에 사용합니다.
+      // 포지션 ID는 백엔드 포지션 목록 기준으로 찾아야 수정/초대 요청이 어긋나지 않습니다.
       if (!role) {
         return {
           isSuccess: false,
-          message: "선택한 포지션 role 값 명세 확인이 필요합니다.",
+          message: "선택한 포지션 ID를 찾지 못했습니다.",
         };
       }
 
@@ -62,7 +100,7 @@ export const useTeam = () => {
         };
       }
     },
-    [createTeamExecute],
+    [createTeamExecute, resolvePositionId],
   );
 
   const getLeaderTeams = useCallback(
@@ -204,6 +242,7 @@ export const useTeam = () => {
   );
 
   return {
+    getPositions,
     handleCreateTeam,
     getLeaderTeams,
     getTeamDetail,
@@ -214,9 +253,11 @@ export const useTeam = () => {
     expellMember,
     inviteMember,
     registerHackathonTeam,
-    isLoading: isCreateTeamLoading || isGetLeaderTeamsLoading || isRegisterHackathonLoading,
+    isLoading:
+      isGetPositionsLoading || isCreateTeamLoading || isGetLeaderTeamsLoading || isRegisterHackathonLoading,
     createTeamError,
     leaderTeamsError,
+    positionsError,
     registerHackathonError,
   };
 };
