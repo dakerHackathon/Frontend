@@ -1,6 +1,6 @@
 import { getPartMeta, getPartStyle } from "./shared";
 
-export const PartBadge = ({ part }) => {
+export const PartBadge = ({ part, showIcon = true }) => {
   const meta = getPartMeta(part);
   const style = getPartStyle(part);
 
@@ -8,9 +8,11 @@ export const PartBadge = ({ part }) => {
     <span
       className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-black ${style.chip}`}
     >
-      <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-white/20 px-1 text-[10px]">
-        {style.icon}
-      </span>
+      {showIcon ? (
+        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-white/20 px-1 text-[10px]">
+          {style.icon}
+        </span>
+      ) : null}
       {meta.label}
     </span>
   );
