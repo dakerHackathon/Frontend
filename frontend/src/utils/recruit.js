@@ -13,6 +13,21 @@ export const recruitSearchFilterMap = {
   hackathon: "hack",
 };
 
+export const recruitEditableTeams = [
+  {
+    id: 1,
+    name: "#336DFE",
+    hackathonName: "AI 아이디어톤 2026",
+  },
+  {
+    id: 2,
+    name: "#BloomUp",
+    hackathonName: "캠퍼스 창업톤 2026",
+  },
+];
+
+export const recruitEditableTeamIds = recruitEditableTeams.map((team) => team.id);
+
 export const getRecruitUserId = () => {
   const currentUser = getCurrentUser();
   return currentUser?.userId ?? currentUser?.id ?? 1;
@@ -101,6 +116,8 @@ export const mapRecruitArticleToPost = ({ article, team }) => {
     status: article.isOpen ? "open" : "closed",
     hackathonName: team?.hackathon?.hackathonTitle ?? "",
     contact: article.contact ?? "",
+    // 현재 명세에는 작성자 식별자가 없어, 내가 관리하는 팀의 공고인지로 수정 가능 여부를 판별합니다.
+    isMine: recruitEditableTeamIds.includes(team?.id),
     rawArticle: article,
   };
 };
@@ -121,6 +138,33 @@ export const buildRecruitCreatePayload = (form) => ({
     .filter((item) => item.positionId > 0 && item.headCount > 0),
   contact: form.contact.trim(),
 });
+
+export const mapRecruitPostToForm = (post) => {
+  const positionSlots = {
+    FE: { recruit: 0 },
+    BE: { recruit: 0 },
+    AI: { recruit: 0 },
+    DB: { recruit: 0 },
+    DESIGNER: { recruit: 0 },
+  };
+
+  post.tags.forEach((tag) => {
+    positionSlots[tag] = {
+      recruit: Math.max(1, Number(post.positionSlots?.[tag]?.total ?? 1)),
+    };
+  });
+
+  return {
+    title: post.title ?? "",
+    teamId: post.teamId ?? recruitEditableTeams[0]?.id ?? 1,
+    tags: post.tags ?? [],
+    description: post.content ?? post.description ?? "",
+    hackathonName: post.hackathonName ?? "",
+    contact: post.contact ?? "",
+    status: post.status ?? "open",
+    positionSlots,
+  };
+};
 
 export const validateRecruitCreateForm = (form) => {
   if (!form.title.trim()) {
