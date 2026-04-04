@@ -40,6 +40,33 @@ export const useRecruit = () => {
     }
   }, []);
 
+  const fetchLeaderTeams = useCallback(async () => {
+    const userId = getRecruitUserId();
+    setError("");
+
+    try {
+      const response = await API.team.getLeaderTeams(userId);
+      const teams = response.data?.teams ?? [];
+
+      return {
+        ...response,
+        data: {
+          ...response.data,
+          teams,
+        },
+      };
+    } catch (error) {
+      const message = error.response?.data?.message || "내 팀 목록을 불러오지 못했습니다.";
+      setError(message);
+
+      return {
+        isSuccess: false,
+        message,
+        data: { teams: [] },
+      };
+    }
+  }, []);
+
   const fetchList = useCallback(async ({ open, position } = {}) => {
     const userId = getRecruitUserId();
 
@@ -213,6 +240,7 @@ export const useRecruit = () => {
 
   return {
     fetchPositions,
+    fetchLeaderTeams,
     fetchList,
     searchArticles,
     createArticle,

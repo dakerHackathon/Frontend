@@ -10,7 +10,6 @@ import {
   getRecruitTagOptions,
   mapRecruitPostToForm,
   mergeRecruitPositionSlots,
-  recruitEditableTeams,
   validateRecruitCreateForm,
 } from "../utils/recruit";
 
@@ -95,11 +94,16 @@ const SelectField = ({ value, onChange, options }) => {
     <div ref={containerRef} className={selectWrapperClass}>
       <button
         type="button"
+        disabled={options.length === 0}
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex h-12 w-full cursor-pointer items-center justify-between rounded-2xl bg-transparent px-4 text-sm font-bold text-slate-800 outline-none transition duration-200"
+        className={`flex h-12 w-full items-center justify-between rounded-2xl bg-transparent px-4 text-sm font-bold outline-none transition duration-200 ${
+          options.length === 0
+            ? "cursor-not-allowed text-slate-400"
+            : "cursor-pointer text-slate-800"
+        }`}
       >
         <span className="flex items-center gap-2">
-          <span>{selectedOption.label}</span>
+          <span>{selectedOption?.label ?? "선택 가능한 팀이 없습니다."}</span>
         </span>
         <span
           className={`text-slate-500 transition duration-200 ${isOpen ? "rotate-180" : ""}`}
@@ -173,7 +177,7 @@ const RecruitPreviewCard = ({ form, selectedTeam }) => {
 
       <div className="space-y-6 py-6">
         <p className="text-sm font-black tracking-[0.01em] text-[#4E6FD8] sm:text-[15px]">
-          {selectedTeam.name}
+          {selectedTeam?.name ?? "팀 정보 없음"}
         </p>
 
         <p className="line-clamp-2 text-base font-medium leading-7 text-slate-800">
@@ -234,15 +238,24 @@ const RecruitPreviewCard = ({ form, selectedTeam }) => {
 const RecruitWritePage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { fetchPositions, fetchList, createArticle, updateArticle, isSubmitting, isLoading } =
+  const {
+    fetchPositions,
+    fetchLeaderTeams,
+    fetchList,
+    createArticle,
+    updateArticle,
+    isSubmitting,
+    isLoading,
+  } =
     useRecruit();
   const navigationTimeoutRef = useRef(null);
   const articleId = Number(searchParams.get("articleId") ?? 0);
   const isEditMode = articleId > 0;
+  const [teamOptions, setTeamOptions] = useState([]);
   const [positionCatalog, setPositionCatalog] = useState(getDefaultRecruitPositionCatalog());
   const [form, setForm] = useState({
     title: "",
-    teamId: recruitEditableTeams[0].id,
+    teamId: "",
     tags: [],
     description: "",
     contact: "",
@@ -263,6 +276,25 @@ const RecruitWritePage = () => {
 
   useEffect(() => {
     let isMounted = true;
+
+    const loadTeamOptions = async () => {
+      const result = await fetchLeaderTeams();
+
+      if (!isMounted || !result?.isSuccess) {
+        return;
+      }
+
+      const teams = (result.data?.teams ?? []).map((team) => ({
+        id: Number(team.teamId),
+        name: team.teamName,
+      }));
+
+      setTeamOptions(teams);
+      setForm((prev) => ({
+        ...prev,
+        teamId: prev.teamId || teams[0]?.id || "",
+      }));
+    };
 
     const loadPositionCatalog = async () => {
       const result = await fetchPositions();
@@ -288,12 +320,12 @@ const RecruitWritePage = () => {
       });
     };
 
+    loadTeamOptions();
     loadPositionCatalog();
-
     return () => {
       isMounted = false;
     };
-  }, [fetchPositions]);
+  }, [fetchLeaderTeams, fetchPositions]);
 
   useEffect(() => {
     let isMounted = true;
@@ -345,8 +377,8 @@ const RecruitWritePage = () => {
   }, [articleId, fetchList, isEditMode]);
 
   const selectedTeam = useMemo(
-    () => recruitEditableTeams.find((team) => team.id === form.teamId) ?? recruitEditableTeams[0],
-    [form.teamId]
+    () => teamOptions.find((team) => Number(team.id) === Number(form.teamId)) ?? null,
+    [form.teamId, teamOptions]
   );
 
   const recruitTotal = useMemo(
@@ -409,11 +441,9 @@ const RecruitWritePage = () => {
   };
 
   const handleTeamChange = (teamId) => {
-    const nextTeam =
-      recruitEditableTeams.find((team) => team.id === Number(teamId)) ?? recruitEditableTeams[0];
     setForm((prev) => ({
       ...prev,
-      teamId: nextTeam.id,
+      teamId: Number(teamId),
     }));
   };
 
@@ -512,7 +542,7 @@ const RecruitWritePage = () => {
                   <SelectField
                     value={form.teamId}
                     onChange={(event) => handleTeamChange(event.target.value)}
-                    options={recruitEditableTeams.map((team) => ({ value: team.id, label: team.name }))}
+                    options={teamOptions.map((team) => ({ value: team.id, label: team.name }))}
                   />
                 </div>
 

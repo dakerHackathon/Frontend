@@ -114,19 +114,6 @@ export const recruitSearchFilterMap = {
   hackathon: "hack",
 };
 
-export const recruitEditableTeams = [
-  {
-    id: 1,
-    name: "#336DFE",
-    hackathonName: "AI 아이디어톤 2026",
-  },
-  {
-    id: 2,
-    name: "#BloomUp",
-    hackathonName: "캠퍼스 창업톤 2026",
-  },
-];
-
 export const getRecruitUserId = () => {
   const currentUser = getCurrentUser();
   return currentUser?.userId ?? currentUser?.id ?? 1;
@@ -279,10 +266,9 @@ export const mapRecruitPostToForm = (
 
   return {
     title: post.title ?? "",
-    teamId: post.teamId ?? recruitEditableTeams[0]?.id ?? 1,
+    teamId: post.teamId ?? "",
     tags: post.tags ?? [],
     description: post.content ?? post.description ?? "",
-    hackathonName: post.hackathonName ?? "",
     contact: post.contact ?? "",
     status: post.status ?? "open",
     positionSlots,
@@ -308,6 +294,10 @@ export const validateRecruitCreateForm = (
   form,
   positionCatalog = getDefaultRecruitPositionCatalog(),
 ) => {
+  if (!form.teamId) {
+    return "내 팀을 선택해 주세요.";
+  }
+
   if (!form.title.trim()) {
     return "모집 제목을 입력해 주세요.";
   }
