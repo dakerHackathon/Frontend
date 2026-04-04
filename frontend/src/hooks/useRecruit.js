@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { API } from "../api/api_registry";
 import {
   buildRecruitCreatePayload,
+  getPositionIdByTag,
   getRecruitUserId,
   mapRecruitArticlesResponse,
   mapRecruitPositionsResponse,
@@ -36,6 +37,67 @@ export const useRecruit = () => {
         isSuccess: false,
         message,
         data: { positions: [], positionCatalog: [] },
+      };
+    }
+  }, []);
+
+  const joinTeam = useCallback(async ({ teamId, positionTag, content, positionCatalog }) => {
+    const userId = getRecruitUserId();
+
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      const position = Number(getPositionIdByTag(positionTag, positionCatalog) ?? 0);
+
+      if (!teamId || !position) {
+        return {
+          isSuccess: false,
+          message: "지원에 필요한 팀 또는 포지션 정보를 찾지 못했습니다.",
+        };
+      }
+
+      return await API.recruit.join(userId, {
+        teamId: Number(teamId),
+        position,
+        content: content.trim(),
+      });
+    } catch (error) {
+      const message = error.response?.data?.message || "팀 가입 신청을 보내지 못했습니다.";
+      setError(message);
+
+      return {
+        isSuccess: false,
+        message,
+      };
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, []);
+
+  const fetchLeaderTeams = useCallback(async () => {
+    const userId = getRecruitUserId();
+    setError("");
+
+    try {
+      const response = await API.team.getLeaderTeams(userId);
+      const teams = response.data?.teams ?? [];
+
+      return {
+        ...response,
+        data: {
+          ...response.data,
+          teams,
+        },
+      };
+    } catch (error) {
+      const message = error.response?.data?.message || "내 팀 목록을 불러오지 못했습니다.";
+      setError(message);
+
+      return {
+        isSuccess: false,
+        message,
+        data: { teams: [] },
       };
     }
   }, []);
@@ -213,8 +275,10 @@ export const useRecruit = () => {
 
   return {
     fetchPositions,
+    fetchLeaderTeams,
     fetchList,
     searchArticles,
+    joinTeam,
     createArticle,
     updateArticle,
     removeArticle,

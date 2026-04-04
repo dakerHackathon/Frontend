@@ -11,6 +11,7 @@ export const recruitApi = {
     axiosInstance.get(`/camp/${userId}/recruit`, { params: buildRecruitParams(params) }),
   search: (userId, params) =>
     axiosInstance.get(`/camp/${userId}/recruit/search`, { params: buildRecruitParams(params) }),
+  join: (userId, data) => axiosInstance.post(`/camp/${userId}/join`, data),
   create: (userId, teamId, data) => axiosInstance.post(`/camp/${userId}/recruit/${teamId}`, data),
   update: (userId, articleId, data) =>
     axiosInstance.patch(`/camp/${userId}/recruit/${articleId}`, data),

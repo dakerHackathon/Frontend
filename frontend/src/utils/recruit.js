@@ -114,19 +114,6 @@ export const recruitSearchFilterMap = {
   hackathon: "hack",
 };
 
-export const recruitEditableTeams = [
-  {
-    id: 1,
-    name: "#336DFE",
-    hackathonName: "AI 아이디어톤 2026",
-  },
-  {
-    id: 2,
-    name: "#BloomUp",
-    hackathonName: "캠퍼스 창업톤 2026",
-  },
-];
-
 export const getRecruitUserId = () => {
   const currentUser = getCurrentUser();
   return currentUser?.userId ?? currentUser?.id ?? 1;
@@ -134,6 +121,11 @@ export const getRecruitUserId = () => {
 
 export const getPositionTag = (positionId, positionCatalog = getDefaultRecruitPositionCatalog()) =>
   findCatalogItemById(positionId, positionCatalog)?.tag ?? null;
+
+export const getPositionIdByTag = (
+  tag,
+  positionCatalog = getDefaultRecruitPositionCatalog(),
+) => findCatalogItemByTag(tag, positionCatalog)?.id ?? null;
 
 export const getPositionDisplayLabel = (
   tag,
@@ -174,7 +166,19 @@ const parseRecruitCreatedAt = (createdAt) => {
     return null;
   }
 
-  return new Date(createdAt.replace(" ", "T"));
+  const normalizedValue = String(createdAt).trim().replace(" ", "T");
+
+  if (!normalizedValue) {
+    return null;
+  }
+
+  // 백엔드가 timezone 없이 UTC 기준 시각을 내려주는 경우가 있어,
+  // 오프셋 정보가 없는 문자열은 UTC로 간주해 KST 기준 상대 시간을 맞춘다.
+  if (!/[zZ]|[+-]\d{2}:\d{2}$/.test(normalizedValue)) {
+    return new Date(`${normalizedValue}Z`);
+  }
+
+  return new Date(normalizedValue);
 };
 
 export const formatRecruitCreatedAt = (createdAt) => {
@@ -208,6 +212,7 @@ export const mapRecruitArticleToPost = (
   positionCatalog = getDefaultRecruitPositionCatalog(),
 ) => {
   const currentUserId = getRecruitUserId();
+  const isArticleOpen = article.open ?? article.isOpen;
   const positionSlots = (article.positions ?? []).reduce((acc, positionInfo) => {
     const tag = getPositionTag(positionInfo.position, positionCatalog);
 
@@ -236,7 +241,9 @@ export const mapRecruitArticleToPost = (
     content: article.content,
     tags,
     positionSlots,
-    status: article.isOpen ? "open" : "closed",
+    // 모집 상태는 응답의 open 값을 우선 사용하고,
+    // 이전 응답 shape와의 호환을 위해 isOpen도 함께 허용한다.
+    status: isArticleOpen === false ? "closed" : "open",
     hackathonName: team?.hackathon?.hackathonTitle ?? "",
     contact: article.contact ?? "",
     writer: article.writer ?? null,
@@ -279,10 +286,9 @@ export const mapRecruitPostToForm = (
 
   return {
     title: post.title ?? "",
-    teamId: post.teamId ?? recruitEditableTeams[0]?.id ?? 1,
+    teamId: post.teamId ?? "",
     tags: post.tags ?? [],
     description: post.content ?? post.description ?? "",
-    hackathonName: post.hackathonName ?? "",
     contact: post.contact ?? "",
     status: post.status ?? "open",
     positionSlots,
@@ -308,6 +314,10 @@ export const validateRecruitCreateForm = (
   form,
   positionCatalog = getDefaultRecruitPositionCatalog(),
 ) => {
+  if (!form.teamId) {
+    return "내 팀을 선택해 주세요.";
+  }
+
   if (!form.title.trim()) {
     return "모집 제목을 입력해 주세요.";
   }

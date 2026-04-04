@@ -10,7 +10,6 @@ import {
   getRecruitTagOptions,
   mapRecruitPostToForm,
   mergeRecruitPositionSlots,
-  recruitEditableTeams,
   validateRecruitCreateForm,
 } from "../utils/recruit";
 
@@ -47,9 +46,6 @@ const compactNumberInputClass =
 
 const selectWrapperClass =
   "relative mt-2 rounded-2xl border border-slate-300 bg-white transition duration-200 hover:border-[#BFD0FF] hover:bg-[#F7F9FF] hover:shadow-[0_10px_24px_rgba(51,109,254,0.08)]";
-
-const readOnlyFieldClass =
-  "mt-2 flex h-12 w-full items-center rounded-2xl border border-slate-200 bg-[#F8FAFF] px-4 text-sm font-bold text-slate-700";
 
 const MemberCountIcon = ({ className = "h-5 w-5" }) => (
   <svg viewBox="0 0 24 24" fill="none" className={`stroke-current ${className}`}>
@@ -98,11 +94,16 @@ const SelectField = ({ value, onChange, options }) => {
     <div ref={containerRef} className={selectWrapperClass}>
       <button
         type="button"
+        disabled={options.length === 0}
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex h-12 w-full cursor-pointer items-center justify-between rounded-2xl bg-transparent px-4 text-sm font-bold text-slate-800 outline-none transition duration-200"
+        className={`flex h-12 w-full items-center justify-between rounded-2xl bg-transparent px-4 text-sm font-bold outline-none transition duration-200 ${
+          options.length === 0
+            ? "cursor-not-allowed text-slate-400"
+            : "cursor-pointer text-slate-800"
+        }`}
       >
         <span className="flex items-center gap-2">
-          <span>{selectedOption.label}</span>
+          <span>{selectedOption?.label ?? "선택 가능한 팀이 없습니다."}</span>
         </span>
         <span
           className={`text-slate-500 transition duration-200 ${isOpen ? "rotate-180" : ""}`}
@@ -176,7 +177,7 @@ const RecruitPreviewCard = ({ form, selectedTeam }) => {
 
       <div className="space-y-6 py-6">
         <p className="text-sm font-black tracking-[0.01em] text-[#4E6FD8] sm:text-[15px]">
-          {selectedTeam.name}
+          {selectedTeam?.name ?? "팀 정보 없음"}
         </p>
 
         <p className="line-clamp-2 text-base font-medium leading-7 text-slate-800">
@@ -204,7 +205,7 @@ const RecruitPreviewCard = ({ form, selectedTeam }) => {
               참여 해커톤
             </span>
             <p className="mt-2 truncate text-base font-black text-slate-900 sm:text-[1.05rem]">
-            {form.hackathonName || "참여 해커톤 정보가 없습니다."}
+              ㅇㅇ해커톤
             </p>
           </div>
           <div className="flex items-center gap-3 border-l border-[#D7E2FF] pl-4">
@@ -237,18 +238,26 @@ const RecruitPreviewCard = ({ form, selectedTeam }) => {
 const RecruitWritePage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { fetchPositions, fetchList, createArticle, updateArticle, isSubmitting, isLoading } =
+  const {
+    fetchPositions,
+    fetchLeaderTeams,
+    fetchList,
+    createArticle,
+    updateArticle,
+    isSubmitting,
+    isLoading,
+  } =
     useRecruit();
   const navigationTimeoutRef = useRef(null);
   const articleId = Number(searchParams.get("articleId") ?? 0);
   const isEditMode = articleId > 0;
+  const [teamOptions, setTeamOptions] = useState([]);
   const [positionCatalog, setPositionCatalog] = useState(getDefaultRecruitPositionCatalog());
   const [form, setForm] = useState({
     title: "",
-    teamId: recruitEditableTeams[0].id,
+    teamId: "",
     tags: [],
     description: "",
-    hackathonName: recruitEditableTeams[0].hackathonName,
     contact: "",
     positionSlots: createRecruitPositionSlots(getDefaultRecruitPositionCatalog()),
   });
@@ -267,6 +276,25 @@ const RecruitWritePage = () => {
 
   useEffect(() => {
     let isMounted = true;
+
+    const loadTeamOptions = async () => {
+      const result = await fetchLeaderTeams();
+
+      if (!isMounted || !result?.isSuccess) {
+        return;
+      }
+
+      const teams = (result.data?.teams ?? []).map((team) => ({
+        id: Number(team.teamId),
+        name: team.teamName,
+      }));
+
+      setTeamOptions(teams);
+      setForm((prev) => ({
+        ...prev,
+        teamId: prev.teamId || teams[0]?.id || "",
+      }));
+    };
 
     const loadPositionCatalog = async () => {
       const result = await fetchPositions();
@@ -292,12 +320,12 @@ const RecruitWritePage = () => {
       });
     };
 
+    loadTeamOptions();
     loadPositionCatalog();
-
     return () => {
       isMounted = false;
     };
-  }, [fetchPositions]);
+  }, [fetchLeaderTeams, fetchPositions]);
 
   useEffect(() => {
     let isMounted = true;
@@ -349,8 +377,8 @@ const RecruitWritePage = () => {
   }, [articleId, fetchList, isEditMode]);
 
   const selectedTeam = useMemo(
-    () => recruitEditableTeams.find((team) => team.id === form.teamId) ?? recruitEditableTeams[0],
-    [form.teamId]
+    () => teamOptions.find((team) => Number(team.id) === Number(form.teamId)) ?? null,
+    [form.teamId, teamOptions]
   );
 
   const recruitTotal = useMemo(
@@ -413,12 +441,9 @@ const RecruitWritePage = () => {
   };
 
   const handleTeamChange = (teamId) => {
-    const nextTeam =
-      recruitEditableTeams.find((team) => team.id === Number(teamId)) ?? recruitEditableTeams[0];
     setForm((prev) => ({
       ...prev,
-      teamId: nextTeam.id,
-      hackathonName: nextTeam.hackathonName ?? "",
+      teamId: Number(teamId),
     }));
   };
 
@@ -517,13 +542,8 @@ const RecruitWritePage = () => {
                   <SelectField
                     value={form.teamId}
                     onChange={(event) => handleTeamChange(event.target.value)}
-                    options={recruitEditableTeams.map((team) => ({ value: team.id, label: team.name }))}
+                    options={teamOptions.map((team) => ({ value: team.id, label: team.name }))}
                   />
-                </div>
-
-                <div>
-                  <FieldLabel>참여 해커톤</FieldLabel>
-                  <div className={readOnlyFieldClass}>{selectedTeam.hackathonName}</div>
                 </div>
 
                 <div className="md:col-span-2">
