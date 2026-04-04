@@ -212,6 +212,7 @@ export const mapRecruitArticleToPost = (
   positionCatalog = getDefaultRecruitPositionCatalog(),
 ) => {
   const currentUserId = getRecruitUserId();
+  const isArticleOpen = article.open ?? article.isOpen;
   const positionSlots = (article.positions ?? []).reduce((acc, positionInfo) => {
     const tag = getPositionTag(positionInfo.position, positionCatalog);
 
@@ -240,9 +241,9 @@ export const mapRecruitArticleToPost = (
     content: article.content,
     tags,
     positionSlots,
-    // 생성 직후 목록 응답에서 isOpen 값이 비어 오는 경우가 있어,
-    // 명시적으로 false일 때만 마감으로 처리한다.
-    status: article.isOpen === false ? "closed" : "open",
+    // 모집 상태는 응답의 open 값을 우선 사용하고,
+    // 이전 응답 shape와의 호환을 위해 isOpen도 함께 허용한다.
+    status: isArticleOpen === false ? "closed" : "open",
     hackathonName: team?.hackathon?.hackathonTitle ?? "",
     contact: article.contact ?? "",
     writer: article.writer ?? null,

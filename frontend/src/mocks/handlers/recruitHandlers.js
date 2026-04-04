@@ -19,8 +19,9 @@ const filterRecruitArticles = (articles, { open, position, filter, query }) => {
   const normalizedQuery = (query ?? "").trim().toLowerCase();
 
   return articles.filter(({ article, team }) => {
+    const isArticleOpen = article.open ?? article.isOpen;
     const matchesOpen =
-      open === null || open === undefined ? true : article.isOpen === Boolean(Number(open));
+      open === null || open === undefined ? true : isArticleOpen === Boolean(Number(open));
     const matchesPosition =
       !position || article.positions.some((item) => item.position === Number(position));
     const searchableText =
@@ -157,7 +158,7 @@ export const recruitHandlers = [
             ...item,
             article: {
               ...item.article,
-              isOpen: false,
+              open: false,
             },
           }
         : item,
@@ -197,7 +198,7 @@ export const recruitHandlers = [
           position: item.positionId,
           headCount: item.headCount,
         })),
-        isOpen: true,
+        open: true,
         writer: Number(params.userId),
         createdAt: "2026-04-04 12:00",
         contact: body.contact,
