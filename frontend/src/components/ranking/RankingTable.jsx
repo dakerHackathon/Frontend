@@ -11,6 +11,22 @@ const GithubIcon = ({ className = "" }) => (
 
 const formatRankingValue = (value, suffix = "") => `${Number(value).toLocaleString("ko-KR")}${suffix}`;
 
+const isSameRankingUser = (row, currentUser) => {
+  if (!row || !currentUser) {
+    return false;
+  }
+
+  if (row.id && currentUser.id) {
+    return String(row.id) === String(currentUser.id);
+  }
+
+  if (row.github && currentUser.github) {
+    return row.github === currentUser.github;
+  }
+
+  return row.name === currentUser.name;
+};
+
 const RankingRow = ({ row, highlighted = false, showTemperature = false }) => (
   <div
     className={`grid gap-5 px-5 py-5 text-sm sm:px-6 ${
@@ -93,7 +109,10 @@ const RankingTable = ({
   showTemperature = false,
   valueLabel = "포인트",
 }) => {
-  const isCurrentUserInTopTen = currentUser && currentUser.rank <= 10;
+  const matchedCurrentUserRow = currentUser
+    ? rows.find((row) => isSameRankingUser(row, currentUser))
+    : null;
+  const shouldShowSeparatedCurrentUser = Boolean(currentUser && !matchedCurrentUserRow);
 
   return (
     <section className="rounded-[30px] border border-slate-200 bg-white px-5 py-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)] sm:px-8 sm:py-8">
@@ -123,13 +142,13 @@ const RankingTable = ({
             <div key={`${row.rank}-${row.name}`} className="border-t border-slate-100">
               <RankingRow
                 row={row}
-                highlighted={Boolean(isCurrentUserInTopTen && currentUser.rank === row.rank)}
+                highlighted={Boolean(matchedCurrentUserRow && isSameRankingUser(row, currentUser))}
                 showTemperature={showTemperature}
               />
             </div>
           ))}
 
-          {currentUser && !isCurrentUserInTopTen ? (
+          {shouldShowSeparatedCurrentUser ? (
             <div className="border-t border-slate-100">
               <div className="flex items-center justify-center px-6 py-4 text-lg font-black tracking-[0.2em] text-slate-300">
                 ...
