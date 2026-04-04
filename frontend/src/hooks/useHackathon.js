@@ -25,6 +25,11 @@ export const useHackathon = () => {
     isLoading: isSaveLoading,
     error: saveError,
   } = useApi(API.hackathon.toggleSave);
+  const {
+    execute: uploadSubmissionExecute,
+    isLoading: isUploadLoading,
+    error: uploadError,
+  } = useApi(API.hackathon.uploadSubmission);
 
   // useCallback으로 참조를 안정화해 useEffect 무한 루프를 방지한다.
   const fetchList = useCallback(async () => {
@@ -94,12 +99,29 @@ export const useHackathon = () => {
     [toggleSaveExecute],
   );
 
+  const uploadSubmission = useCallback(
+    async (hackathonId, memo, userId = getHackathonUserId()) => {
+      try {
+        return await uploadSubmissionExecute(userId, hackathonId, { memo });
+      } catch (err) {
+        return {
+          isSuccess: false,
+          message: err.response?.data?.message || "제출 링크를 불러오지 못했습니다.",
+          data: null,
+        };
+      }
+    },
+    [uploadSubmissionExecute],
+  );
+
   return {
     fetchList,
     fetchDetail,
     toggleSave,
+    uploadSubmission,
     isLoading: isListLoading || isDetailLoading,
     isSaveLoading,
-    error: listError || detailError || saveError,
+    isUploadLoading,
+    error: listError || detailError || saveError || uploadError,
   };
 };
