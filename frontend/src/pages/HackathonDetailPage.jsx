@@ -54,6 +54,7 @@ const HackathonDetailPage = () => {
   const [teamActionHint, setTeamActionHint] = useState("");
   const [submissionMemo, setSubmissionMemo] = useState("");
   const [uploadFeedback, setUploadFeedback] = useState("");
+  const [uploadSuccessMessage, setUploadSuccessMessage] = useState("");
 
   const closeDetail = () => {
     if (backgroundLocation) {
@@ -257,6 +258,7 @@ const HackathonDetailPage = () => {
     const result = await uploadSubmission(hackathon.id, submissionMemo);
 
     if (!result?.isSuccess) {
+      setUploadSuccessMessage("");
       setUploadFeedback(result?.message || "제출 링크를 열지 못했습니다.");
       return;
     }
@@ -264,11 +266,13 @@ const HackathonDetailPage = () => {
     const uploadUrl = result?.data?.url;
 
     if (!uploadUrl) {
+      setUploadSuccessMessage("");
       setUploadFeedback("업로드 링크가 제공되지 않았습니다.");
       return;
     }
 
     setUploadFeedback("");
+    setUploadSuccessMessage("제출 링크가 열렸습니다. 과제물을 제출해 주세요.");
     window.open(uploadUrl, "_blank", "noopener,noreferrer");
   };
 
@@ -772,6 +776,9 @@ const HackathonDetailPage = () => {
                         if (uploadFeedback) {
                           setUploadFeedback("");
                         }
+                        if (uploadSuccessMessage) {
+                          setUploadSuccessMessage("");
+                        }
                       }}
                       className="mt-3 w-full resize-none rounded-2xl border border-slate-200 bg-[#FAFBFF] px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#336DFE] focus:ring-4 focus:ring-[#E8F0FF]"
                     />
@@ -780,6 +787,9 @@ const HackathonDetailPage = () => {
 
                 {uploadFeedback ? (
                   <p className="mt-4 text-sm font-medium text-[#D14343]">{uploadFeedback}</p>
+                ) : null}
+                {uploadSuccessMessage ? (
+                  <p className="mt-4 text-sm font-medium text-[#336DFE]">{uploadSuccessMessage}</p>
                 ) : null}
 
                 <div className="mt-4">
