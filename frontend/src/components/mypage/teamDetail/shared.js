@@ -7,6 +7,11 @@ export const baseInputClass =
   "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-[#AFC5FF] focus:ring-4 focus:ring-[#EEF3FF]";
 
 const partStyleMap = {
+  planner: {
+    chip: "bg-[#FFB547] text-white",
+    card: "bg-[#FFF7E8] text-[#B7791F]",
+    icon: "PM",
+  },
   frontend: {
     chip: "bg-[#2A3FFF] text-white",
     card: "bg-[#EEF2FF] text-[#2A3FFF]",
@@ -16,21 +21,6 @@ const partStyleMap = {
     chip: "bg-[#4CD137] text-white",
     card: "bg-[#EDFBEF] text-[#218838]",
     icon: "BE",
-  },
-  ai: {
-    chip: "bg-[#666666] text-white",
-    card: "bg-[#F2F4F7] text-[#4B5563]",
-    icon: "AI",
-  },
-  designer: {
-    chip: "bg-[#FF7AB6] text-white",
-    card: "bg-[#FFF0F6] text-[#D63384]",
-    icon: "DE",
-  },
-  planner: {
-    chip: "bg-[#FFB547] text-white",
-    card: "bg-[#FFF7E8] text-[#B7791F]",
-    icon: "PM",
   },
 };
 

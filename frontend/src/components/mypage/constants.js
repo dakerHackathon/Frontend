@@ -60,12 +60,42 @@ export const initialHackathons = [
 ];
 
 export const teamPartOptions = [
+  { value: "planner", label: "PM", shortLabel: "PM" },
   { value: "frontend", label: "프론트", shortLabel: "FE" },
   { value: "backend", label: "백엔드", shortLabel: "BE" },
-  { value: "ai", label: "AI", shortLabel: "AI" },
-  { value: "designer", label: "디자이너", shortLabel: "DES" },
-  { value: "planner", label: "기획", shortLabel: "PM" },
 ];
+
+const normalizeTeamPartValue = (value) =>
+  String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+
+const teamPartValueAliasMap = {
+  planner: ["planner", "pm", "productmanager", "product_manager"],
+  frontend: ["frontend", "front", "fe"],
+  backend: ["backend", "back", "be"],
+};
+
+export const buildTeamPartOptions = (positions = []) =>
+  positions.reduce((acc, position) => {
+    const normalizedName = normalizeTeamPartValue(position.name);
+    const matchedOption = teamPartOptions.find((option) =>
+      (teamPartValueAliasMap[option.value] ?? [option.value]).some(
+        (alias) => normalizeTeamPartValue(alias) === normalizedName,
+      ),
+    );
+
+    if (!matchedOption) {
+      return acc;
+    }
+
+    acc.push({
+      ...matchedOption,
+      label: position.name || matchedOption.label,
+    });
+
+    return acc;
+  }, []);
 
 export const teamRoleOptions = ["팀장", "팀원"];
 
