@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import logoImg from "../assets/BloomingLogo.png";
+import AvatarBadge from "./ranking/AvatarBadge";
 import { checkIsLoggedIn, getCurrentUser, logoutUser } from "../utils/auth";
 import { notifyHackathonListRefresh } from "../utils/hackathon";
 
@@ -16,6 +17,16 @@ const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const currentUser = getCurrentUser();
+  const displayName = currentUser?.userNickname ?? currentUser?.nickname ?? currentUser?.name ?? "강석진";
+  const displayEmail = currentUser?.userEmail ?? currentUser?.email ?? "asdf123@gmail.com";
+  const headerAvatarPlayer = {
+    rank: 0,
+    avatar: {
+      initials: displayName.slice(0, 1),
+      bg: "from-[#1C3D6E] to-[#537FBA]",
+      ring: "ring-[#DDE5FF]",
+    },
+  };
 
   const handleLogout = () => {
     logoutUser();
@@ -99,15 +110,13 @@ const Header = () => {
                 onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
                 className="flex cursor-pointer items-center gap-3 rounded-2xl bg-slate-100 px-4 py-3 text-left transition hover:bg-slate-200"
               >
-                <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#DDE5FF] text-lg font-black text-[#336DFE]">
-                  {(currentUser?.userNickname ?? "강석진").slice(0, 1)}
-                </span>
+                <AvatarBadge player={headerAvatarPlayer} />
                 <span className="hidden md:block">
                   <span className="block text-sm font-black text-slate-900">
-                    {currentUser?.userNickname ?? "강석진"}
+                    {displayName}
                   </span>
                   <span className="block text-sm text-slate-400">
-                    {currentUser?.userEmail ?? "asdf123@gmail.com"}
+                    {displayEmail}
                   </span>
                 </span>
                 <span
