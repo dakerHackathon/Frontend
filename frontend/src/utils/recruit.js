@@ -1,4 +1,5 @@
 import { getCurrentUser } from "./auth";
+import axiosInstance from "../api/axiosInstance";
 
 const recruitBasePositionMeta = {
   pm: { tag: "PM", filterValue: "pm", label: "PM" },
@@ -16,6 +17,11 @@ const fallbackRecruitPositions = [
   { id: 4, name: "DB" },
   { id: 5, name: "Designer" },
 ];
+
+const isLocalMockApiMode = () => {
+  const baseURL = String(axiosInstance.defaults.baseURL ?? "");
+  return baseURL.includes("localhost:5173") || baseURL.includes("127.0.0.1:5173");
+};
 
 const normalizeRecruitPositionName = (name = "") => {
   const normalized = String(name).trim().toLowerCase().replace(/[\s/_-]/g, "");
@@ -53,14 +59,20 @@ const mapApiPositionToCatalogItem = (position) => {
 };
 
 export const getDefaultRecruitPositionCatalog = () =>
-  fallbackRecruitPositions.map(mapApiPositionToCatalogItem);
+  isLocalMockApiMode() ? fallbackRecruitPositions.map(mapApiPositionToCatalogItem) : [];
 
 export const mapRecruitPositionsResponse = (positions = []) => {
   const catalog = positions
     .map(mapApiPositionToCatalogItem)
     .filter((position) => Number.isFinite(position.id) && position.tag);
 
-  return catalog.length > 0 ? catalog : getDefaultRecruitPositionCatalog();
+  if (catalog.length > 0) {
+    return catalog;
+  }
+
+  // 로컬 MSW 개발 모드에서만 기본 포지션 목업을 사용하고,
+  // 실제 백엔드와 직접 통신할 때는 임의 데이터를 섞지 않는다.
+  return getDefaultRecruitPositionCatalog();
 };
 
 export const createRecruitPositionSlots = (positionCatalog = getDefaultRecruitPositionCatalog()) =>
