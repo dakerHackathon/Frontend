@@ -122,6 +122,11 @@ export const getRecruitUserId = () => {
 export const getPositionTag = (positionId, positionCatalog = getDefaultRecruitPositionCatalog()) =>
   findCatalogItemById(positionId, positionCatalog)?.tag ?? null;
 
+export const getPositionIdByTag = (
+  tag,
+  positionCatalog = getDefaultRecruitPositionCatalog(),
+) => findCatalogItemByTag(tag, positionCatalog)?.id ?? null;
+
 export const getPositionDisplayLabel = (
   tag,
   positionCatalog = getDefaultRecruitPositionCatalog(),

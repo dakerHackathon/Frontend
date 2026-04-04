@@ -78,6 +78,29 @@ export const recruitHandlers = [
 
     return HttpResponse.json(success({ articles }));
   }),
+  http.post("*/camp/:userId/join", async ({ request, params }) => {
+    console.log(`✅ MSW intercepted: POST /camp/${params.userId}/join`);
+
+    const body = await request.json();
+
+    if (!body.teamId || !body.position || !String(body.content ?? "").trim()) {
+      return HttpResponse.json(
+        {
+          isSuccess: false,
+          code: "400",
+          message: "팀 가입 신청 정보가 올바르지 않습니다.",
+          data: null,
+        },
+        { status: 400 },
+      );
+    }
+
+    return HttpResponse.json({
+      isSuccess: true,
+      code: "200",
+      message: "요청이 성공적입니다.",
+    });
+  }),
   http.patch("*/camp/:userId/recruit/:articleId", async ({ request, params }) => {
     console.log(`✅ MSW intercepted: PATCH /camp/${params.userId}/recruit/${params.articleId}`);
 

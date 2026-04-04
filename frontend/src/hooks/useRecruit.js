@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { API } from "../api/api_registry";
 import {
   buildRecruitCreatePayload,
+  getPositionIdByTag,
   getRecruitUserId,
   mapRecruitArticlesResponse,
   mapRecruitPositionsResponse,
@@ -37,6 +38,40 @@ export const useRecruit = () => {
         message,
         data: { positions: [], positionCatalog: [] },
       };
+    }
+  }, []);
+
+  const joinTeam = useCallback(async ({ teamId, positionTag, content, positionCatalog }) => {
+    const userId = getRecruitUserId();
+
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      const position = Number(getPositionIdByTag(positionTag, positionCatalog) ?? 0);
+
+      if (!teamId || !position) {
+        return {
+          isSuccess: false,
+          message: "지원에 필요한 팀 또는 포지션 정보를 찾지 못했습니다.",
+        };
+      }
+
+      return await API.recruit.join(userId, {
+        teamId: Number(teamId),
+        position,
+        content: content.trim(),
+      });
+    } catch (error) {
+      const message = error.response?.data?.message || "팀 가입 신청을 보내지 못했습니다.";
+      setError(message);
+
+      return {
+        isSuccess: false,
+        message,
+      };
+    } finally {
+      setIsSubmitting(false);
     }
   }, []);
 
@@ -243,6 +278,7 @@ export const useRecruit = () => {
     fetchLeaderTeams,
     fetchList,
     searchArticles,
+    joinTeam,
     createArticle,
     updateArticle,
     removeArticle,

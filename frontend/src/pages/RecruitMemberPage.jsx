@@ -131,7 +131,16 @@ const RecruitStatusBadge = ({ status }) => {
   );
 };
 
-const RecruitDetailModal = ({ post, onClose, onEdit, onDelete, onCloseRecruit, positionCatalog }) => {
+const RecruitDetailModal = ({
+  post,
+  onClose,
+  onEdit,
+  onDelete,
+  onCloseRecruit,
+  onJoin,
+  positionCatalog,
+  isSubmitting = false,
+}) => {
   const recruitDisplayCount = getRecruitDisplayCount(post);
   const availablePositions = useMemo(
     () =>
@@ -183,7 +192,7 @@ const RecruitDetailModal = ({ post, onClose, onEdit, onDelete, onCloseRecruit, p
     return () => window.removeEventListener("keydown", handleEscape);
   }, [onClose]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (availablePositions.length === 0) {
       setErrorMessage("현재 지원 가능한 포지션이 없습니다.");
       return;
@@ -200,6 +209,19 @@ const RecruitDetailModal = ({ post, onClose, onEdit, onDelete, onCloseRecruit, p
     }
 
     setErrorMessage("");
+    const result = await onJoin(post, {
+      teamId: post.teamId,
+      positionTag: currentSelectedPosition,
+      content: message,
+    });
+
+    if (!result?.isSuccess) {
+      setErrorMessage(result?.message || "팀 가입 신청을 보내지 못했습니다.");
+      setIsSubmitted(false);
+      return;
+    }
+
+    setActionMessage(`${selectedPositionLabel} 포지션으로 팀 가입 신청을 보냈습니다.`);
     setIsSubmitted(true);
   };
 
@@ -338,11 +360,6 @@ const RecruitDetailModal = ({ post, onClose, onEdit, onDelete, onCloseRecruit, p
                   <p className="text-sm font-semibold text-[#D93A3A]">{errorMessage}</p>
                 ) : null}
 
-                {isSubmitted ? (
-                  <div className="rounded-2xl bg-[#EEF9F1] px-4 py-3 text-sm font-semibold text-[#1E9F46]">
-                    {selectedPositionLabel} 포지션으로 지원 메시지를 작성했습니다.
-                  </div>
-                ) : null}
               </div>
             </>
           )}
@@ -415,14 +432,18 @@ const RecruitDetailModal = ({ post, onClose, onEdit, onDelete, onCloseRecruit, p
               <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={availablePositions.length === 0}
+                disabled={availablePositions.length === 0 || isSubmitting}
                 className={`inline-flex h-12 w-full items-center justify-center rounded-2xl px-5 text-sm font-bold text-white transition duration-200 sm:w-auto ${
-                  availablePositions.length === 0
+                  availablePositions.length === 0 || isSubmitting
                     ? "cursor-not-allowed bg-slate-300"
                     : "cursor-pointer bg-[#336DFE] hover:-translate-y-0.5 hover:bg-[#2458E6] hover:shadow-[0_14px_30px_rgba(51,109,254,0.25)]"
                 }`}
               >
-                {currentSelectedPosition ? `${currentSelectedPosition} 포지션 지원하기` : "지원하기"}
+                {isSubmitting
+                  ? "신청 중..."
+                  : currentSelectedPosition
+                    ? `${currentSelectedPosition} 포지션 지원하기`
+                    : "지원하기"}
               </button>
             )}
           </div>
@@ -580,8 +601,10 @@ const RecruitMemberPage = () => {
     fetchPositions,
     fetchList,
     searchArticles,
+    joinTeam,
     removeArticle,
     closeArticle,
+    isSubmitting,
     isLoading,
     error: errorMessage,
   } = useRecruit();
@@ -750,6 +773,14 @@ const RecruitMemberPage = () => {
     return result;
   };
 
+  const handleJoinPost = async (post, application) =>
+    joinTeam({
+      teamId: application.teamId ?? post.teamId,
+      positionTag: application.positionTag,
+      content: application.content,
+      positionCatalog,
+    });
+
   return (
     <div className="min-h-screen bg-[#F3F6FF]">
       <div className="mx-auto max-w-[1640px] px-4 py-8 sm:px-5 sm:py-10 lg:px-10 lg:py-12">
@@ -845,7 +876,9 @@ const RecruitMemberPage = () => {
           onEdit={handleEditPost}
           onDelete={handleDeletePost}
           onCloseRecruit={handleClosePost}
+          onJoin={handleJoinPost}
           positionCatalog={positionCatalog}
+          isSubmitting={isSubmitting}
         />
       ) : null}
     </div>
