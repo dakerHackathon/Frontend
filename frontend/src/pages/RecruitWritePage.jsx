@@ -48,9 +48,6 @@ const compactNumberInputClass =
 const selectWrapperClass =
   "relative mt-2 rounded-2xl border border-slate-300 bg-white transition duration-200 hover:border-[#BFD0FF] hover:bg-[#F7F9FF] hover:shadow-[0_10px_24px_rgba(51,109,254,0.08)]";
 
-const readOnlyFieldClass =
-  "mt-2 flex h-12 w-full items-center rounded-2xl border border-slate-200 bg-[#F8FAFF] px-4 text-sm font-bold text-slate-700";
-
 const MemberCountIcon = ({ className = "h-5 w-5" }) => (
   <svg viewBox="0 0 24 24" fill="none" className={`stroke-current ${className}`}>
     <circle cx="12" cy="8" r="4" strokeWidth="1.7" />
@@ -204,7 +201,7 @@ const RecruitPreviewCard = ({ form, selectedTeam }) => {
               참여 해커톤
             </span>
             <p className="mt-2 truncate text-base font-black text-slate-900 sm:text-[1.05rem]">
-            {form.hackathonName || "참여 해커톤 정보가 없습니다."}
+              ㅇㅇ해커톤
             </p>
           </div>
           <div className="flex items-center gap-3 border-l border-[#D7E2FF] pl-4">
@@ -248,7 +245,6 @@ const RecruitWritePage = () => {
     teamId: recruitEditableTeams[0].id,
     tags: [],
     description: "",
-    hackathonName: recruitEditableTeams[0].hackathonName,
     contact: "",
     positionSlots: createRecruitPositionSlots(getDefaultRecruitPositionCatalog()),
   });
@@ -418,7 +414,6 @@ const RecruitWritePage = () => {
     setForm((prev) => ({
       ...prev,
       teamId: nextTeam.id,
-      hackathonName: nextTeam.hackathonName ?? "",
     }));
   };
 
@@ -519,11 +514,6 @@ const RecruitWritePage = () => {
                     onChange={(event) => handleTeamChange(event.target.value)}
                     options={recruitEditableTeams.map((team) => ({ value: team.id, label: team.name }))}
                   />
-                </div>
-
-                <div>
-                  <FieldLabel>참여 해커톤</FieldLabel>
-                  <div className={readOnlyFieldClass}>{selectedTeam.hackathonName}</div>
                 </div>
 
                 <div className="md:col-span-2">
