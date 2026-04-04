@@ -2,57 +2,43 @@ import { useMemo, useState } from "react";
 
 const DAYS = ["S", "M", "T", "W", "T", "F", "S"];
 
-const buildCalendar = (baseDate) => {
-  const year = baseDate.getFullYear();
-  const month = baseDate.getMonth();
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
-  const prevLastDay = new Date(year, month, 0);
-  const days = [];
-  const firstWeekday = firstDay.getDay();
+const CALENDAR_CELL_COUNT = 42;
 
-  for (let index = firstWeekday - 1; index >= 0; index -= 1) {
-    days.push({
-      key: `prev-${index}`,
-      date: prevLastDay.getDate() - index,
-      muted: true,
-    });
-  }
+const getMonthStartDate = (date) => new Date(date.getFullYear(), date.getMonth(), 1);
 
-  // 오늘 날짜를 기준으로 isToday 여부를 판단한다.
-  const today = new Date();
-  const todayYear = today.getFullYear();
-  const todayMonth = today.getMonth();
-  const todayDate = today.getDate();
+const addDays = (date, days) =>
+  new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
 
-  for (let date = 1; date <= lastDay.getDate(); date += 1) {
-    days.push({
-      key: `current-${date}`,
-      date,
-      muted: false,
-      isToday: year === todayYear && month === todayMonth && date === todayDate,
-    });
-  }
+const addMonths = (date, months) =>
+  new Date(date.getFullYear(), date.getMonth() + months, 1);
 
-  const remainder = (7 - (days.length % 7)) % 7;
+const isSameDate = (left, right) =>
+  left.getFullYear() === right.getFullYear() &&
+  left.getMonth() === right.getMonth() &&
+  left.getDate() === right.getDate();
 
-  for (let date = 1; date <= remainder; date += 1) {
-    days.push({
-      key: `next-${date}`,
-      date,
-      muted: true,
-    });
-  }
+const buildCalendar = (baseDate, today) => {
+  const monthStartDate = getMonthStartDate(baseDate);
+  const firstVisibleDate = addDays(monthStartDate, -monthStartDate.getDay());
 
-  return days;
+  return Array.from({ length: CALENDAR_CELL_COUNT }, (_, index) => {
+    const cellDate = addDays(firstVisibleDate, index);
+
+    return {
+      key: `${cellDate.getFullYear()}-${cellDate.getMonth()}-${cellDate.getDate()}`,
+      date: cellDate.getDate(),
+      muted: cellDate.getMonth() !== monthStartDate.getMonth(),
+      isToday: isSameDate(cellDate, today),
+    };
+  });
 };
 
 const MiniCalendar = () => {
-  // 초기 달을 오늘 날짜 기준으로 설정해 캘린더가 현재 월을 먼저 보여주도록 한다.
-  const today = new Date();
-  const [currentDate, setCurrentDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [today] = useState(() => new Date());
+  const [currentDate, setCurrentDate] = useState(getMonthStartDate(today));
+  const yearLabel = `${currentDate.getFullYear()}년`;
   const monthLabel = `${currentDate.getMonth() + 1}월`;
-  const calendarDays = useMemo(() => buildCalendar(currentDate), [currentDate]);
+  const calendarDays = useMemo(() => buildCalendar(currentDate, today), [currentDate, today]);
 
   return (
     <div className="overflow-hidden rounded-[28px] border border-slate-300 bg-white shadow-[0_18px_40px_rgba(15,23,42,0.10)] transition duration-200 hover:border-[#C9D7FF] hover:shadow-[0_22px_46px_rgba(51,109,254,0.12)]">
@@ -60,24 +46,19 @@ const MiniCalendar = () => {
         <button
           type="button"
           aria-label="previous month"
-          onClick={() =>
-            setCurrentDate(
-              (prevDate) => new Date(prevDate.getFullYear(), prevDate.getMonth() - 1, 1),
-            )
-          }
+          onClick={() => setCurrentDate((prevDate) => addMonths(prevDate, -1))}
           className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/50 text-base transition hover:bg-white/10"
         >
           &lt;
         </button>
-        <span className="text-[1.5rem] font-black">{monthLabel}</span>
+        <div className="text-center leading-none">
+          <p className="text-xs font-bold text-white/80">{yearLabel}</p>
+          <p className="mt-1 text-[1.35rem] font-black">{monthLabel}</p>
+        </div>
         <button
           type="button"
           aria-label="next month"
-          onClick={() =>
-            setCurrentDate(
-              (prevDate) => new Date(prevDate.getFullYear(), prevDate.getMonth() + 1, 1),
-            )
-          }
+          onClick={() => setCurrentDate((prevDate) => addMonths(prevDate, 1))}
           className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/50 text-base transition hover:bg-white/10"
         >
           &gt;
