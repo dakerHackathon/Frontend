@@ -157,7 +157,7 @@ const PreviewPositionChoice = ({ tag, recruit, active }) => (
 );
 
 const RecruitPreviewCard = ({ form, selectedTeam }) => {
-  const selectedTags = form.tags.length > 0 ? form.tags : [getDefaultRecruitPositionCatalog()[0]?.tag ?? "FE"];
+  const selectedTags = form.tags;
   const recruitTotal = getSelectedRecruitTotal(selectedTags, form.positionSlots);
 
   return (
@@ -246,15 +246,11 @@ const RecruitWritePage = () => {
   const [form, setForm] = useState({
     title: "",
     teamId: recruitEditableTeams[0].id,
-    tags: ["FE", "BE"],
+    tags: [],
     description: "",
     hackathonName: recruitEditableTeams[0].hackathonName,
     contact: "",
-    positionSlots: {
-      ...createRecruitPositionSlots(getDefaultRecruitPositionCatalog()),
-      FE: { recruit: 1 },
-      BE: { recruit: 1 },
-    },
+    positionSlots: createRecruitPositionSlots(getDefaultRecruitPositionCatalog()),
   });
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");

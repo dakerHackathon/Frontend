@@ -1,4 +1,5 @@
 import { getCurrentUser } from "./auth";
+import axiosInstance from "../api/axiosInstance";
 
 const recruitBasePositionMeta = {
   pm: { tag: "PM", filterValue: "pm", label: "PM" },
@@ -10,18 +11,26 @@ const recruitBasePositionMeta = {
 };
 
 const fallbackRecruitPositions = [
-  { id: 1, name: "FrontEnd" },
-  { id: 2, name: "BackEnd" },
-  { id: 3, name: "AI" },
-  { id: 4, name: "DB" },
-  { id: 5, name: "Designer" },
+  { id: 1, name: "Project Manager", abb: "PM" },
+  { id: 2, name: "FrontEnd", abb: "FE" },
+  { id: 3, name: "BackEnd", abb: "BE" },
+  { id: 4, name: "AI", abb: "AI" },
+  { id: 5, name: "Database", abb: "DB" },
+  { id: 6, name: "Designer", abb: "DESIGNER" },
 ];
+
+const isLocalMockApiMode = () => {
+  const baseURL = String(axiosInstance.defaults.baseURL ?? "");
+  return baseURL.includes("localhost:5173") || baseURL.includes("127.0.0.1:5173");
+};
 
 const normalizeRecruitPositionName = (name = "") => {
   const normalized = String(name).trim().toLowerCase().replace(/[\s/_-]/g, "");
 
   if (normalized === "pm") return "pm";
+  if (normalized === "fe") return "frontend";
   if (normalized === "frontend" || normalized === "front") return "frontend";
+  if (normalized === "be") return "backend";
   if (normalized === "backend" || normalized === "back") return "backend";
   if (normalized === "ai") return "ai";
   if (normalized === "db" || normalized === "database" || normalized === "data") return "data";
@@ -31,13 +40,20 @@ const normalizeRecruitPositionName = (name = "") => {
 };
 
 const mapApiPositionToCatalogItem = (position) => {
-  const baseMeta = recruitBasePositionMeta[normalizeRecruitPositionName(position?.name)] ?? null;
+  const abb = String(position?.abb ?? "").trim().toUpperCase();
+  const baseMeta =
+    recruitBasePositionMeta[
+      normalizeRecruitPositionName(position?.abb || position?.name)
+    ] ?? null;
 
   if (baseMeta) {
     return {
       id: Number(position.id),
       name: position.name,
-      ...baseMeta,
+      abb,
+      tag: abb || baseMeta.tag,
+      filterValue: abb ? abb.toLowerCase() : baseMeta.filterValue,
+      label: abb || baseMeta.tag,
     };
   }
 
@@ -46,21 +62,28 @@ const mapApiPositionToCatalogItem = (position) => {
   return {
     id: Number(position.id),
     name: normalizedName,
-    tag: normalizedName.toUpperCase(),
-    filterValue: normalizedName.toLowerCase(),
-    label: normalizedName,
+    abb,
+    tag: abb || normalizedName.toUpperCase(),
+    filterValue: abb ? abb.toLowerCase() : normalizedName.toLowerCase(),
+    label: abb || normalizedName,
   };
 };
 
 export const getDefaultRecruitPositionCatalog = () =>
-  fallbackRecruitPositions.map(mapApiPositionToCatalogItem);
+  isLocalMockApiMode() ? fallbackRecruitPositions.map(mapApiPositionToCatalogItem) : [];
 
 export const mapRecruitPositionsResponse = (positions = []) => {
   const catalog = positions
     .map(mapApiPositionToCatalogItem)
     .filter((position) => Number.isFinite(position.id) && position.tag);
 
-  return catalog.length > 0 ? catalog : getDefaultRecruitPositionCatalog();
+  if (catalog.length > 0) {
+    return catalog;
+  }
+
+  // 로컬 MSW 개발 모드에서만 기본 포지션 목업을 사용하고,
+  // 실제 백엔드와 직접 통신할 때는 임의 데이터를 섞지 않는다.
+  return getDefaultRecruitPositionCatalog();
 };
 
 export const createRecruitPositionSlots = (positionCatalog = getDefaultRecruitPositionCatalog()) =>

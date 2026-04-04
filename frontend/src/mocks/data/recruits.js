@@ -1,11 +1,12 @@
 export const RECRUIT_STORAGE_KEY = "mockRecruitArticles";
 
 export const mockRecruitPositions = [
-  { id: 1, name: "FrontEnd" },
-  { id: 2, name: "BackEnd" },
-  { id: 3, name: "AI" },
-  { id: 4, name: "DB" },
-  { id: 5, name: "Designer" },
+  { id: 1, name: "Project Manager", abb: "PM" },
+  { id: 2, name: "FrontEnd", abb: "FE" },
+  { id: 3, name: "BackEnd", abb: "BE" },
+  { id: 4, name: "AI", abb: "AI" },
+  { id: 5, name: "Database", abb: "DB" },
+  { id: 6, name: "Designer", abb: "DESIGNER" },
 ];
 
 export const mockRecruitTeams = [
