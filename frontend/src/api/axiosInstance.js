@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "http://13.125.160.175:8080",
+  baseURL: "http://localhost:5173",
   //실제 서버 주소 : 13.125.160.175:8080
   timeout: 3000,
   headers: {

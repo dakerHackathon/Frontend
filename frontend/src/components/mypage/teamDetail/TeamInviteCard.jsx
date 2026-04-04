@@ -1,6 +1,6 @@
 import PrimaryActionButton from "../../common/PrimaryActionButton";
 import { teamPartOptions } from "../constants";
-import { baseInputClass, pageCardClass } from "./shared.jsx";
+import { baseInputClass, pageCardClass } from "./shared";
 
 const TeamInviteCard = ({
   inviteQuery,
@@ -8,33 +8,43 @@ const TeamInviteCard = ({
   invitePart,
   inviteMessage,
   inviteNotice,
+  isInviteSearchLoading,
   filteredCandidates,
+  inviteSearchEmptyMessage,
   isLeader,
   onInviteQueryChange,
   onCandidateSelect,
   onInvitePartChange,
   onInviteMessageChange,
   onInvite,
+  partOptions = teamPartOptions,
 }) => {
   return (
     <div className={pageCardClass}>
       <h2 className="text-xl font-black text-slate-950">팀원 초대</h2>
       <p className="mt-1 text-sm text-slate-500">
-        닉네임 검색으로 후보를 찾고, 어떤 포지션으로 초대할지와 초대 멘트를 함께 보낼 수 있습니다.
+        사용자 검색으로 후보를 찾고, 어떤 포지션으로 초대할지와 초대 멘트를 함께 보낼 수 있습니다.
       </p>
 
       <div className="mt-5 space-y-4">
         <label className="block">
-          <span className="mb-2 block text-sm font-bold text-slate-700">닉네임 검색</span>
+          <span className="mb-2 block text-sm font-bold text-slate-700">사용자 검색</span>
           <input
             value={inviteQuery}
             onChange={(event) => onInviteQueryChange(event.target.value)}
             placeholder="닉네임으로 검색"
+
             className={baseInputClass}
           />
         </label>
 
         <div className="max-h-[260px] space-y-2 overflow-y-auto pr-1">
+          {isInviteSearchLoading ? (
+            <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500">
+              사용자를 검색하는 중입니다.
+            </div>
+          ) : null}
+
           {filteredCandidates.map((candidate) => {
             const isSelected = selectedCandidateId === candidate.id;
 
@@ -50,22 +60,16 @@ const TeamInviteCard = ({
                 }`}
               >
                 <div className="min-w-0">
-                  <p className="font-black text-slate-900">
-                    {candidate.nickname}
-                    <span className="ml-2 font-medium text-slate-500">
-                      {candidate.name}
-                    </span>
-                  </p>
+                  <p className="font-black text-slate-900">{candidate.name}</p>
                   <p className="mt-1 truncate text-sm text-slate-500">{candidate.email}</p>
-                  <p className="mt-2 text-sm text-slate-600">{candidate.intro}</p>
                 </div>
               </button>
             );
           })}
 
-          {filteredCandidates.length === 0 ? (
+          {!isInviteSearchLoading && filteredCandidates.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500">
-              검색 결과가 없습니다.
+              {inviteSearchEmptyMessage}
             </div>
           ) : null}
         </div>
@@ -77,7 +81,7 @@ const TeamInviteCard = ({
             onChange={(event) => onInvitePartChange(event.target.value)}
             className={baseInputClass}
           >
-            {teamPartOptions.map((option) => (
+            {partOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>

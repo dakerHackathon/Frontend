@@ -1,240 +1,86 @@
-import { useMemo, useState } from "react";
-import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import TeamBasicInfoCard from "../components/mypage/teamDetail/TeamBasicInfoCard";
-import TeamHackathonLinkCard from "../components/mypage/teamDetail/TeamHackathonLinkCard";
 import TeamInviteCard from "../components/mypage/teamDetail/TeamInviteCard";
 import TeamMembersCard from "../components/mypage/teamDetail/TeamMembersCard";
-import { getPartMeta } from "../components/mypage/teamDetail/shared.jsx";
-import {
-  initialHackathons,
-  initialProfile,
-  inviteCandidatePool,
-  teams,
-} from "../components/mypage/constants";
+import { useTeamDetailPage } from "../hooks/useTeamDetailPage";
 
-const TEAMS_STORAGE_KEY = "mypageTeams";
+const TEAM_LEADER_LABEL = "팀장";
 
-const getStoredTeams = () => {
-  const storedTeams = localStorage.getItem(TEAMS_STORAGE_KEY);
-  return storedTeams ? JSON.parse(storedTeams) : teams;
-};
+const isLeaderRole = (role) => role === "leader" || role === TEAM_LEADER_LABEL;
+const getRoleLabel = (role) => (isLeaderRole(role) ? TEAM_LEADER_LABEL : role);
 
 const TeamDetailPage = () => {
   const { teamId } = useParams();
-  const navigate = useNavigate();
-
-  const sourceTeam = useMemo(
-    () => getStoredTeams().find((team) => team.id === teamId) ?? null,
-    [teamId],
-  );
-
-  const [teamForm, setTeamForm] = useState(() =>
-    sourceTeam
-      ? {
-          name: sourceTeam.name,
-          description: sourceTeam.description,
-          linkedHackathonId: sourceTeam.linkedHackathonId ?? "",
-        }
-      : {
-          name: "",
-          description: "",
-          linkedHackathonId: "",
-        },
-  );
-  const [members, setMembers] = useState(() => sourceTeam?.members ?? []);
-  const [selectedCandidateId, setSelectedCandidateId] = useState("");
-  const [inviteQuery, setInviteQuery] = useState("");
-  const [invitePart, setInvitePart] = useState("frontend");
-  const [inviteMessage, setInviteMessage] = useState("");
-  const [inviteNotice, setInviteNotice] = useState("");
-  const [saveNotice, setSaveNotice] = useState("");
-  const currentUserEmail = initialProfile.email;
-
-  if (!sourceTeam) {
-    return <Navigate to="/mypage" replace />;
-  }
-
-  const isLeader = sourceTeam.role === "팀장";
-  const activeHackathons = initialHackathons.filter(
-    (hackathon) => hackathon.status === "진행중",
-  );
-
-  const linkedHackathon = activeHackathons.find(
-    (hackathon) => hackathon.id === teamForm.linkedHackathonId,
-  );
-
-  const updateStoredTeam = (updater) => {
-    const nextTeams = getStoredTeams().map((team) =>
-      team.id === teamId ? updater(team) : team,
-    );
-    localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(nextTeams));
-  };
-
-  const filteredCandidates = inviteCandidatePool.filter((candidate) => {
-    if (members.some((member) => member.email === candidate.email)) {
-      return false;
-    }
-
-    if (!inviteQuery.trim()) {
-      return true;
-    }
-
-    const searchText = [
-      candidate.nickname,
-      candidate.name,
-      candidate.email,
-      candidate.intro,
-      ...candidate.parts.map((part) => getPartMeta(part).label),
-    ]
-      .join(" ")
-      .toLowerCase();
-
-    return searchText.includes(inviteQuery.trim().toLowerCase());
-  });
-
-  const handleTeamSave = (nextTeamForm) => {
-    setTeamForm((prev) => ({ ...prev, ...nextTeamForm }));
-    updateStoredTeam((team) => ({
-      ...team,
-      name: nextTeamForm.name,
-      description: nextTeamForm.description,
-    }));
-    setSaveNotice("팀 정보 수정 내용이 임시 저장되었습니다.");
-  };
-
-  const handleLinkHackathon = () => {
-    updateStoredTeam((team) => ({
-      ...team,
-      linkedHackathonId: teamForm.linkedHackathonId,
-    }));
-    setSaveNotice(
-      linkedHackathon
-        ? `${linkedHackathon.title} 해커톤에 팀이 연결되었습니다.`
-        : "연결할 해커톤을 선택해 주세요.",
-    );
-  };
-
-  const handleMemberFieldChange = (memberId, key, value) => {
-    setMembers((prev) =>
-      prev.map((member) => (member.id === memberId ? { ...member, [key]: value } : member)),
-    );
-  };
-
-  const handlePartChange = (memberId, value) => {
-    handleMemberFieldChange(memberId, "part", value);
-    updateStoredTeam((team) => ({
-      ...team,
-      members: team.members.map((member) =>
-        member.id === memberId ? { ...member, part: value } : member,
-      ),
-    }));
-  };
-
-  const handleInvite = () => {
-    const invitedUser = filteredCandidates.find(
-      (candidate) => candidate.id === selectedCandidateId,
-    );
-
-    if (!invitedUser) {
-      setInviteNotice("초대할 팀원을 먼저 선택해 주세요.");
-      return;
-    }
-
-    setSelectedCandidateId("");
-    setInviteQuery("");
-    setInvitePart("frontend");
-    setInviteMessage("");
-    setInviteNotice(
-      `${invitedUser.nickname} 님에게 초대를 보냈습니다. 수락 후 팀원이 추가됩니다.`,
-    );
-  };
-
-  const handleSendMessage = (member) => {
-    navigate("/mails", {
-      state: {
-        composeTo: member.email,
-        composeSubject: `[${teamForm.name}] `,
-      },
-    });
-  };
-
-  const handleKickMember = (member) => {
-    setMembers((prev) => prev.filter((entry) => entry.id !== member.id));
-    updateStoredTeam((team) => ({
-      ...team,
-      members: team.members.filter((entry) => entry.id !== member.id),
-    }));
-    setSaveNotice(`${member.name} 님을 팀에서 추방했습니다.`);
-  };
-
-  const handleLeaveTeam = (member) => {
-    setMembers((prev) => prev.filter((entry) => entry.id !== member.id));
-    updateStoredTeam((team) => ({
-      ...team,
-      members: team.members.filter((entry) => entry.id !== member.id),
-    }));
-    setSaveNotice(`${member.name} 님이 팀에서 나갔습니다.`);
-  };
-
-  const handleDisbandTeam = () => {
-    const nextTeams = getStoredTeams().filter((team) => team.id !== teamId);
-    localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(nextTeams));
-    setSaveNotice("팀이 해체되었습니다.");
-  };
+  const {
+    currentUserId,
+    filteredCandidates,
+    handleDisbandTeam,
+    handleInvite,
+    handleKickMember,
+    handleLeaveTeam,
+    handlePartChange,
+    handleSendMessage,
+    handleTeamSave,
+    inviteMessage,
+    inviteNotice,
+    invitePart,
+    inviteQuery,
+    inviteSearchEmptyMessage,
+    isInviteSearchLoading,
+    isLeader,
+    loadError,
+    members,
+    partOptions,
+    saveNotice,
+    selectedCandidateId,
+    setInviteMessage,
+    setInvitePart,
+    setInviteQuery,
+    setSelectedCandidateId,
+    teamForm,
+    teamRole,
+  } = useTeamDetailPage(teamId);
 
   return (
     <div className="min-h-screen bg-[#F3F6FF] px-4 py-8 sm:px-5 lg:px-8 lg:py-10">
       <div className="mx-auto max-w-[1440px] space-y-6">
+        {loadError ? (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+            팀 상세 API 호출 실패: {loadError}
+          </div>
+        ) : null}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <Link to="/mypage" className="text-sm font-semibold text-[#336DFE] hover:underline">
-              ← 마이페이지로 돌아가기
+              &lt; 마이페이지로 돌아가기
             </Link>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">
-              {teamForm.name}
-            </h1>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">{teamForm.name}</h1>
             <p className="mt-2 text-sm text-slate-500">
-              팀 소개, 팀원 역할, 해커톤 연결, 초대 기능을 한 곳에서 관리할 수 있습니다.
+              팀 소개와 팀원 역할, 초대 기능을 이곳에서 관리할 수 있습니다.
             </p>
           </div>
           <div className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-600 shadow-sm">
-            내 권한: <span className="font-black text-[#336DFE]">{sourceTeam.role}</span>
+            내 권한: <span className="font-black text-[#336DFE]">{getRoleLabel(teamRole)}</span>
           </div>
         </div>
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_420px]">
           <section className="space-y-6">
-            <TeamBasicInfoCard
-              isLeader={isLeader}
-              teamForm={teamForm}
-              saveNotice={saveNotice}
-              onSave={handleTeamSave}
-            />
-
+            <TeamBasicInfoCard isLeader={isLeader} teamForm={teamForm} saveNotice={saveNotice} onSave={handleTeamSave} />
             <TeamMembersCard
               members={members}
               isLeader={isLeader}
-              currentUserEmail={currentUserEmail}
+              currentUserId={currentUserId}
               onPartChange={handlePartChange}
               onSendMessage={handleSendMessage}
               onKickMember={handleKickMember}
               onLeaveTeam={handleLeaveTeam}
               onDisbandTeam={handleDisbandTeam}
+              partOptions={partOptions}
             />
           </section>
 
           <aside className="space-y-6">
-            <TeamHackathonLinkCard
-              activeHackathons={activeHackathons}
-              selectedHackathonId={teamForm.linkedHackathonId}
-              linkedHackathon={linkedHackathon}
-              isLeader={isLeader}
-              onSelect={(hackathonId) =>
-                setTeamForm((prev) => ({ ...prev, linkedHackathonId: hackathonId }))
-              }
-              onLink={handleLinkHackathon}
-            />
-
             {isLeader ? (
               <TeamInviteCard
                 inviteQuery={inviteQuery}
@@ -242,13 +88,16 @@ const TeamDetailPage = () => {
                 invitePart={invitePart}
                 inviteMessage={inviteMessage}
                 inviteNotice={inviteNotice}
+                isInviteSearchLoading={isInviteSearchLoading}
                 filteredCandidates={filteredCandidates}
+                inviteSearchEmptyMessage={inviteSearchEmptyMessage}
                 isLeader={isLeader}
                 onInviteQueryChange={setInviteQuery}
                 onCandidateSelect={setSelectedCandidateId}
                 onInvitePartChange={setInvitePart}
                 onInviteMessageChange={setInviteMessage}
                 onInvite={handleInvite}
+                partOptions={partOptions}
               />
             ) : null}
           </aside>

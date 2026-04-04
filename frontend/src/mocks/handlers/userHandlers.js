@@ -1,9 +1,64 @@
 import { http, HttpResponse } from "msw";
 import { mockUsers } from "../data/user";
 
+const BASE_URL = "http://13.125.160.175:8080";
+
 export const userHandlers = [
+  http.get("*/user/search", async ({ request }) => {
+    const url = new URL(request.url);
+    const keyword = (url.searchParams.get("str") || "").trim().toLowerCase();
+
+    console.log("✅ MSW intercepted: GET /user/search", { str: keyword });
+
+    const storedUsers = JSON.parse(
+      localStorage.getItem("users") || JSON.stringify(mockUsers),
+    );
+
+    const users = storedUsers
+      .filter((user) => {
+        if (!keyword) return false;
+        const searchText = [user.name, user.email].join(" ").toLowerCase();
+        return searchText.includes(keyword);
+      })
+      .map((user) => ({
+        userId: user.id,
+        name: user.name,
+        email: user.email,
+      }));
+
+    return HttpResponse.json({
+      isSuccess: true,
+      code: "200",
+      message: "요청이 성공적입니다.",
+      data: {
+        users,
+      },
+    });
+  }),
+
+  http.get("*/user/:userId/:teamId/member", async ({ params }) => {
+    console.log("✅ MSW intercepted: GET /user/:userId/:teamId/member", params);
+
+    const storedUsers = JSON.parse(
+      localStorage.getItem("users") || JSON.stringify(mockUsers),
+    );
+
+    return HttpResponse.json({
+      isSuccess: true,
+      code: "200",
+      message: "요청이 성공적입니다.",
+      data: {
+        users: storedUsers.map((user) => ({
+          userId: user.id,
+          userName: user.name,
+          userEmail: user.email,
+        })),
+      },
+    });
+  }),
+
   // <로그인 API>
-  http.post("/user/login", async ({ request }) => {
+  http.post(`${BASE_URL}/user/login`, async ({ request }) => {
     // 1. 파라미터를 loginId 대신 email로 받습니다.
     const { email, password } = await request.json();
 
@@ -42,7 +97,7 @@ export const userHandlers = [
   }),
 
   // <회원가입 API>
-  http.post("/user/signup", async ({ request }) => {
+  http.post(`${BASE_URL}/user/signup`, async ({ request }) => {
     const userData = await request.json();
     const { email, loginId, password, name, nickName } = userData;
 

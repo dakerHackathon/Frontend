@@ -1,18 +1,31 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
+import React from "react";
+import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App.jsx";
 
-// if (import.meta.env.DEV) {
-//   const { worker } = await import("./mocks/browser.js");
+async function enableMocking() {
+  if (!import.meta.env.DEV) {
+    return;
+  }
 
-//   worker.start({
-//     onUnhandledRequest: "bypass", // 정적 파일(JS, CSS)은 무시하고 통과
-//   });
-// }
+  // MSW 동작 확인을 위해 잠시 비활성화합니다.
+  // 가로채기 재확인이 필요하면 아래 worker import/start 코드를 다시 활성화하면 됩니다.
+  // const { worker } = await import("./mocks/browser");
+  // return worker.start({
+  //   onUnhandledRequest: "warn",
+  // });
+}
 
-createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+enableMocking().then(() => {
+  ReactDOM.createRoot(document.getElementById("root")).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+  );
+});
+
+// createRoot(document.getElementById("root")).render(
+//   <StrictMode>
+//     <App />
+//   </StrictMode>,
+// );

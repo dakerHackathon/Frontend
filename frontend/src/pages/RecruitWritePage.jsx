@@ -1,33 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import BaseInfoCard from "../components/common/BaseInfoCard";
 import PrimaryActionButton from "../components/common/PrimaryActionButton";
+import { useRecruit } from "../hooks/useRecruit";
+import {
+  createRecruitPositionSlots,
+  getDefaultRecruitPositionCatalog,
+  getPositionDisplayLabel,
+  getRecruitTagOptions,
+  mapRecruitPostToForm,
+  mergeRecruitPositionSlots,
+  recruitEditableTeams,
+  validateRecruitCreateForm,
+} from "../utils/recruit";
 
-const statusOptions = [
-  { value: "open", label: "모집중", dotTone: "active" },
-  { value: "closed", label: "마감", dotTone: "closed" },
-];
-
-const myTeams = [
-  {
-    id: "team-336dfe",
-    name: "#336DFE",
-    hackathons: ["AI 아이디어톤 2026", "스마트시티 해커톤 2026"],
-  },
-  {
-    id: "team-bloomup",
-    name: "#BloomUp",
-    hackathons: ["캠퍼스 창업톤 2026", "로컬 문제 해결톤 2026"],
-  },
-  {
-    id: "team-nebula",
-    name: "#Nebula",
-    hackathons: ["AI 아이디어톤 2026", "헬스케어 데이터톤 2026"],
-  },
-];
-
-const tagOptions = ["FE", "BE", "AI", "DB", "DESIGNER"];
+const TEAM_MAX_MEMBERS = 5;
 
 const tagColorMap = {
+  PM: "bg-[#7E57C2] text-white",
   FE: "bg-[#2A3FFF] text-white",
   BE: "bg-[#4CD137] text-white",
   AI: "bg-[#666666] text-white",
@@ -35,10 +25,31 @@ const tagColorMap = {
   DESIGNER: "bg-[#FF7AB6] text-white",
 };
 
-const toneDotClass = {
-  active: "bg-[#28C840]",
-  closed: "bg-[#EB3B3B]",
-};
+const getSelectedRecruitTotal = (tags, positionSlots) =>
+  tags.reduce((sum, tag) => sum + (positionSlots[tag]?.recruit ?? 0), 0);
+
+const FieldLabel = ({ children }) => (
+  <label className="block text-sm font-black text-slate-800">{children}</label>
+);
+
+const SummaryMetric = ({ label, value, accent }) => (
+  <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
+    <p className="text-xs font-bold tracking-[0.12em] text-slate-400">{label}</p>
+    <p className={`mt-2 text-xl font-black ${accent}`}>{value}</p>
+  </div>
+);
+
+const baseInputClass =
+  "mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-800 outline-none transition focus:border-[#AFC5FF] focus:ring-4 focus:ring-[#EEF3FF]";
+
+const compactNumberInputClass =
+  "h-11 w-full rounded-xl border border-slate-200 bg-[#F8FAFF] px-3 text-center text-sm font-black text-slate-800 outline-none transition focus:border-[#AFC5FF] focus:ring-4 focus:ring-[#EEF3FF]";
+
+const selectWrapperClass =
+  "relative mt-2 rounded-2xl border border-slate-300 bg-white transition duration-200 hover:border-[#BFD0FF] hover:bg-[#F7F9FF] hover:shadow-[0_10px_24px_rgba(51,109,254,0.08)]";
+
+const readOnlyFieldClass =
+  "mt-2 flex h-12 w-full items-center rounded-2xl border border-slate-200 bg-[#F8FAFF] px-4 text-sm font-bold text-slate-700";
 
 const MemberCountIcon = ({ className = "h-5 w-5" }) => (
   <svg viewBox="0 0 24 24" fill="none" className={`stroke-current ${className}`}>
@@ -51,68 +62,23 @@ const MemberCountIcon = ({ className = "h-5 w-5" }) => (
   </svg>
 );
 
-const RecruitPreviewCard = ({ form, selectedTeam }) => {
-  const selectedTags = form.tags.length > 0 ? form.tags : ["FE", "BE"];
-
-  return (
-    <BaseInfoCard className="flex min-h-[340px] flex-col p-6">
-      <div className="flex flex-1 flex-col">
-        <div className="space-y-3">
-          <span className="text-[10px] font-medium text-[#7C96FF]">방금 전</span>
-          <h2 className="truncate text-[1.5rem] font-black tracking-tight text-slate-950 sm:text-[1.7rem]">
-            {form.title || "팀원 모집 제목을 입력하세요."}
-          </h2>
-          <p className="text-sm font-black tracking-[0.01em] text-[#4E6FD8] sm:text-[15px]">
-            {selectedTeam.name}
-          </p>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {selectedTags.map((tag) => (
-              <span
-                key={tag}
-                className={`inline-flex min-w-8 items-center justify-center rounded px-2 py-1 text-[10px] font-black ${
-                  tagColorMap[tag] ?? "bg-slate-200 text-slate-700"
-                }`}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <p className="line-clamp-2 pt-5 text-sm font-medium text-slate-800 sm:pt-6 sm:text-base">
-          {form.description || "여기에 작성한 내용이 미리보기 카드에 표시됩니다. 팀 소개를 입력해보세요."}
-        </p>
-
-        <div className="mt-auto flex items-end justify-between gap-4 pt-8 sm:pt-10">
-          <span className="text-xs font-bold text-slate-900 sm:text-sm">
-            {form.hackathonName || "참여 해커톤을 선택하세요."}
-          </span>
-          <span className="inline-flex items-center gap-1.5 text-base font-semibold text-slate-500 sm:text-lg">
-            <MemberCountIcon />
-            {form.currentCount}/{form.maxCount}
-          </span>
-        </div>
-      </div>
-
-      <div className="pt-5">
-        <PrimaryActionButton fullWidth>상세보기 →</PrimaryActionButton>
-      </div>
-    </BaseInfoCard>
-  );
-};
-
-const FieldLabel = ({ children }) => (
-  <label className="block text-sm font-black text-slate-800">{children}</label>
+const HackathonIcon = ({ className = "h-4 w-4" }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={`stroke-current ${className}`}>
+    <rect x="4.5" y="6" width="15" height="13.5" rx="2.5" strokeWidth="1.7" />
+    <path d="M8 4.5V8" strokeWidth="1.7" strokeLinecap="round" />
+    <path d="M16 4.5V8" strokeWidth="1.7" strokeLinecap="round" />
+    <path d="M4.5 10.5H19.5" strokeWidth="1.7" strokeLinecap="round" />
+  </svg>
 );
 
-const baseInputClass =
-  "mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-800 outline-none transition focus:border-[#AFC5FF] focus:ring-4 focus:ring-[#EEF3FF]";
+const CloseIcon = ({ className = "h-4 w-4" }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={`stroke-current ${className}`}>
+    <path d="M7 7L17 17" strokeWidth="2" strokeLinecap="round" />
+    <path d="M17 7L7 17" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
 
-const selectWrapperClass =
-  "relative mt-2 rounded-2xl border border-slate-300 bg-white transition duration-200 hover:border-[#BFD0FF] hover:bg-[#F7F9FF] hover:shadow-[0_10px_24px_rgba(51,109,254,0.08)]";
-
-const SelectField = ({ value, onChange, options, showDot = false }) => {
+const SelectField = ({ value, onChange, options }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
   const selectedOption = options.find((option) => option.value === value) ?? options[0];
@@ -136,13 +102,6 @@ const SelectField = ({ value, onChange, options, showDot = false }) => {
         className="flex h-12 w-full cursor-pointer items-center justify-between rounded-2xl bg-transparent px-4 text-sm font-bold text-slate-800 outline-none transition duration-200"
       >
         <span className="flex items-center gap-2">
-          {showDot && selectedOption.dotTone ? (
-            <span
-              className={`h-2.5 w-2.5 rounded-full ${
-                toneDotClass[selectedOption.dotTone] ?? "bg-slate-400"
-              }`}
-            />
-          ) : null}
           <span>{selectedOption.label}</span>
         </span>
         <span
@@ -168,13 +127,6 @@ const SelectField = ({ value, onChange, options, showDot = false }) => {
                 option.value === value ? "bg-[#EEF3FF] text-[#2458E6]" : "text-slate-800"
               }`}
             >
-              {showDot && option.dotTone ? (
-                <span
-                  className={`mr-2 h-2.5 w-2.5 rounded-full ${
-                    toneDotClass[option.dotTone] ?? "bg-slate-400"
-                  }`}
-                />
-              ) : null}
               {option.label}
             </button>
           ))}
@@ -184,26 +136,230 @@ const SelectField = ({ value, onChange, options, showDot = false }) => {
   );
 };
 
+const PreviewPositionChoice = ({ tag, recruit, active }) => (
+  <button
+    type="button"
+    className={`inline-flex cursor-default items-center gap-2 rounded-xl border px-3 py-2 text-sm font-black ${
+      active
+        ? "border-[#336DFE] bg-[#EEF3FF] text-[#2458E6]"
+        : "border-slate-200 bg-white text-slate-600"
+    }`}
+  >
+    <span
+      className={`inline-flex min-w-9 items-center justify-center rounded-md px-2 py-1 text-[10px] font-black ${
+        tagColorMap[tag] ?? "bg-slate-200 text-slate-700"
+      }`}
+    >
+      {tag}
+    </span>
+    <span>{recruit}명</span>
+  </button>
+);
+
+const RecruitPreviewCard = ({ form, selectedTeam }) => {
+  const selectedTags = form.tags.length > 0 ? form.tags : [getDefaultRecruitPositionCatalog()[0]?.tag ?? "FE"];
+  const recruitTotal = getSelectedRecruitTotal(selectedTags, form.positionSlots);
+
+  return (
+    <BaseInfoCard className="p-6 transition duration-200 hover:-translate-y-1 hover:border-[#C9D7FF] hover:shadow-[0_24px_50px_rgba(51,109,254,0.12)]">
+      <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-5">
+        <div className="min-w-0 space-y-2">
+          <span className="text-[10px] font-medium text-[#7C96FF]">15분전</span>
+          <h2 className="truncate text-[1.65rem] font-black tracking-tight text-slate-950">
+            {form.title || "팀원 마지막 한 명 구합니다."}
+          </h2>
+        </div>
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+          <CloseIcon className="h-4 w-4" />
+        </span>
+      </div>
+
+      <div className="space-y-6 py-6">
+        <p className="text-sm font-black tracking-[0.01em] text-[#4E6FD8] sm:text-[15px]">
+          {selectedTeam.name}
+        </p>
+
+        <p className="line-clamp-2 text-base font-medium leading-7 text-slate-800">
+          {form.description || "프론트와 데이터 처리 경험이 있는 분이면 바로 합류 가능합니다."}
+        </p>
+
+        <div className="rounded-3xl bg-[#F8FAFF] px-4 py-4">
+          <p className="text-xs font-bold tracking-[0.12em] text-[#6B86E8]">지원 포지션 선택</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {selectedTags.map((tag, index) => (
+              <PreviewPositionChoice
+                key={tag}
+                tag={tag}
+                recruit={form.positionSlots[tag]?.recruit ?? 0}
+                active={index === 0}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-3xl border border-[#E5ECFF] bg-[#F8FAFF] px-4 py-4 sm:px-5">
+          <div className="min-w-0">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-[0.12em] text-[#6B86E8]">
+              <HackathonIcon className="h-3.5 w-3.5" />
+              참여 해커톤
+            </span>
+            <p className="mt-2 truncate text-base font-black text-slate-900 sm:text-[1.05rem]">
+            {form.hackathonName || "참여 해커톤 정보가 없습니다."}
+            </p>
+          </div>
+          <div className="flex items-center gap-3 border-l border-[#D7E2FF] pl-4">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-[#336DFE] shadow-[0_8px_18px_rgba(51,109,254,0.12)]">
+              <MemberCountIcon className="h-4 w-4" />
+            </span>
+            <div className="text-center">
+              <span className="block text-xs font-semibold tracking-[0.12em] text-[#6B86E8]">
+                모집 인원
+              </span>
+              <span className="mt-1 block text-lg font-black text-slate-900">
+                {recruitTotal}명
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-end border-t border-slate-100 pt-5">
+        <div className="w-full sm:w-auto">
+          <PrimaryActionButton fullWidth>
+            {selectedTags[0] ? `${selectedTags[0]} 포지션 지원하기` : "지원하기"}
+          </PrimaryActionButton>
+        </div>
+      </div>
+    </BaseInfoCard>
+  );
+};
+
 const RecruitWritePage = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { fetchPositions, fetchList, createArticle, updateArticle, isSubmitting, isLoading } =
+    useRecruit();
+  const navigationTimeoutRef = useRef(null);
+  const articleId = Number(searchParams.get("articleId") ?? 0);
+  const isEditMode = articleId > 0;
+  const [positionCatalog, setPositionCatalog] = useState(getDefaultRecruitPositionCatalog());
   const [form, setForm] = useState({
     title: "",
-    teamId: myTeams[0].id,
-    tags: ["FE", "BE", "AI"],
+    teamId: recruitEditableTeams[0].id,
+    tags: ["FE", "BE"],
     description: "",
-    hackathonName: myTeams[0].hackathons[0],
-    currentCount: 2,
-    maxCount: 5,
-    status: "open",
+    hackathonName: recruitEditableTeams[0].hackathonName,
+    contact: "",
+    positionSlots: {
+      ...createRecruitPositionSlots(getDefaultRecruitPositionCatalog()),
+      FE: { recruit: 1 },
+      BE: { recruit: 1 },
+    },
   });
+  const [submitError, setSubmitError] = useState("");
+  const [submitSuccess, setSubmitSuccess] = useState("");
+  const [isEditReady, setIsEditReady] = useState(!isEditMode);
+  const tagOptions = useMemo(() => getRecruitTagOptions(positionCatalog), [positionCatalog]);
 
-  const selectedStatusLabel = useMemo(
-    () => statusOptions.find((option) => option.value === form.status)?.label ?? "모집중",
-    [form.status]
-  );
+  useEffect(() => {
+    return () => {
+      if (navigationTimeoutRef.current) {
+        window.clearTimeout(navigationTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadPositionCatalog = async () => {
+      const result = await fetchPositions();
+
+      if (!isMounted || !result?.isSuccess) {
+        return;
+      }
+
+      const nextCatalog = result.data?.positionCatalog ?? getDefaultRecruitPositionCatalog();
+
+      setPositionCatalog(nextCatalog);
+      setForm((prev) => {
+        const nextTags = prev.tags.filter((tag) =>
+          nextCatalog.some((position) => position.tag === tag),
+        );
+        const safeTags = nextTags.length > 0 ? nextTags : [nextCatalog[0]?.tag].filter(Boolean);
+
+        return {
+          ...prev,
+          tags: safeTags,
+          positionSlots: mergeRecruitPositionSlots(prev.positionSlots, nextCatalog),
+        };
+      });
+    };
+
+    loadPositionCatalog();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchPositions]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (!isEditMode) {
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    const loadArticle = async () => {
+      setIsEditReady(false);
+      setSubmitError("");
+
+      // 상세 API가 따로 없어 목록 응답에서 수정 대상을 찾아 폼 초기값으로 재사용합니다.
+      const result = await fetchList();
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (!result?.isSuccess) {
+        setSubmitError(result?.message || "수정할 팀원 모집 글을 불러오지 못했습니다.");
+        setIsEditReady(true);
+        return;
+      }
+
+      if (result.data?.positionCatalog?.length) {
+        setPositionCatalog(result.data.positionCatalog);
+      }
+
+      const targetPost = (result.data?.posts ?? []).find((post) => post.articleId === articleId);
+
+      if (!targetPost?.isMine) {
+        setSubmitError("수정할 수 있는 팀원 모집 글을 찾지 못했습니다.");
+        setIsEditReady(true);
+        return;
+      }
+
+      setForm(mapRecruitPostToForm(targetPost, result.data?.positionCatalog));
+      setIsEditReady(true);
+    };
+
+    loadArticle();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [articleId, fetchList, isEditMode]);
 
   const selectedTeam = useMemo(
-    () => myTeams.find((team) => team.id === form.teamId) ?? myTeams[0],
+    () => recruitEditableTeams.find((team) => team.id === form.teamId) ?? recruitEditableTeams[0],
     [form.teamId]
+  );
+
+  const recruitTotal = useMemo(
+    () => getSelectedRecruitTotal(form.tags, form.positionSlots),
+    [form.tags, form.positionSlots]
   );
 
   const updateField = (key, value) => {
@@ -214,21 +370,119 @@ const RecruitWritePage = () => {
     setForm((prev) => {
       const hasTag = prev.tags.includes(tag);
       const nextTags = hasTag ? prev.tags.filter((item) => item !== tag) : [...prev.tags, tag];
+
+      if (nextTags.length === 0) {
+        return prev;
+      }
+
+      if (!hasTag) {
+        const currentRecruitTotal = getSelectedRecruitTotal(prev.tags, prev.positionSlots);
+
+        // 새 포지션을 추가할 때도 최소 1명은 모집하도록 기본값을 맞춥니다.
+        if (currentRecruitTotal >= TEAM_MAX_MEMBERS) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          tags: nextTags,
+          positionSlots: {
+            ...prev.positionSlots,
+            [tag]: { recruit: Math.max(1, prev.positionSlots[tag]?.recruit ?? 1) },
+          },
+        };
+      }
+
+      return { ...prev, tags: nextTags };
+    });
+  };
+
+  const updatePositionSlot = (tag, value) => {
+    const parsed = Math.max(1, Number(value || 1));
+
+    setForm((prev) => {
+      const otherTags = prev.tags.filter((item) => item !== tag);
+      const otherRecruitTotal = getSelectedRecruitTotal(otherTags, prev.positionSlots);
+      const maxAllowed = Math.max(1, TEAM_MAX_MEMBERS - otherRecruitTotal);
+      const nextRecruit = Math.min(parsed, maxAllowed);
+
       return {
         ...prev,
-        tags: nextTags.length > 0 ? nextTags : prev.tags,
+        positionSlots: {
+          ...prev.positionSlots,
+          [tag]: { recruit: nextRecruit },
+        },
       };
     });
   };
 
   const handleTeamChange = (teamId) => {
-    const nextTeam = myTeams.find((team) => team.id === teamId) ?? myTeams[0];
+    const nextTeam =
+      recruitEditableTeams.find((team) => team.id === Number(teamId)) ?? recruitEditableTeams[0];
     setForm((prev) => ({
       ...prev,
-      teamId,
-      hackathonName: nextTeam.hackathons[0] ?? "",
+      teamId: nextTeam.id,
+      hackathonName: nextTeam.hackathonName ?? "",
     }));
   };
+
+  const handleSubmit = async () => {
+    if (isSubmitting || !isEditReady) {
+      return;
+    }
+
+    const validationMessage = validateRecruitCreateForm(form, positionCatalog);
+
+    if (validationMessage) {
+      setSubmitSuccess("");
+      setSubmitError(validationMessage);
+      return;
+    }
+
+    setSubmitError("");
+
+    // 등록과 수정은 같은 폼을 사용하고, 수정 모드일 때만 PATCH API로 분기합니다.
+    const result = isEditMode
+      ? await updateArticle({
+          articleId,
+          form,
+          positionCatalog,
+        })
+      : await createArticle({
+          teamId: form.teamId,
+          form,
+          positionCatalog,
+        });
+
+    if (!result?.isSuccess) {
+      setSubmitSuccess("");
+      setSubmitError(
+        result?.message || (isEditMode ? "팀원 모집 글을 수정하지 못했습니다." : "팀원 모집 글을 등록하지 못했습니다."),
+      );
+      return;
+    }
+
+    setSubmitSuccess(
+      isEditMode
+        ? "팀원 모집 글이 수정되었습니다. 목록에서 바로 확인할 수 있습니다."
+        : "팀원 모집 글이 등록되었습니다. 목록에서 바로 확인할 수 있습니다.",
+    );
+    navigationTimeoutRef.current = window.setTimeout(() => {
+      navigate("/teams");
+    }, 1500);
+  };
+
+  if (isEditMode && !isEditReady && isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F3F6FF]">
+        <div className="mx-auto max-w-[1520px] px-4 py-8 sm:px-5 sm:py-10 lg:px-10 lg:py-12">
+          <BaseInfoCard className="p-10 text-center text-sm font-medium text-slate-500">
+            수정할 팀원 모집 글을 불러오는 중입니다.
+          </BaseInfoCard>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F3F6FF]">
@@ -237,22 +491,27 @@ const RecruitWritePage = () => {
           <section className="space-y-6">
             <div className="space-y-3">
               <h1 className="text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
-                팀원 모집 글쓰기
+                {isEditMode ? "팀원 모집 글 수정" : "팀원 모집 글쓰기"}
               </h1>
               <p className="text-sm font-medium text-slate-500 sm:text-base">
-                내가 속한 팀을 선택하고, 그 팀이 참여 중인 해커톤 안에서 모집 글을 작성할 수
-                있습니다.
+                {isEditMode
+                  ? "기존 모집 글 내용을 수정하고 저장할 수 있습니다."
+                  : "팀 최대 인원 5명을 기준으로, 포지션별 모집할 인원만 설정해 주세요."}
               </p>
             </div>
 
-            <BaseInfoCard className="p-6 sm:p-7 hover:translate-y-0">
+            <BaseInfoCard className="p-6 sm:p-7 hover:border-[#D8E3FF] hover:shadow-[0_22px_48px_rgba(51,109,254,0.09)]">
+              {!isEditReady && isEditMode ? (
+                <p className="text-sm font-medium text-slate-500">수정할 팀원 모집 글을 불러오는 중입니다.</p>
+              ) : null}
+
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="md:col-span-2">
                   <FieldLabel>모집 제목</FieldLabel>
                   <input
                     value={form.title}
                     onChange={(event) => updateField("title", event.target.value)}
-                    placeholder="예: 팀원 마지막 한 명 구합니다."
+                    placeholder="예: 백엔드 한 분 더 모집합니다."
                     className={baseInputClass}
                   />
                 </div>
@@ -262,20 +521,13 @@ const RecruitWritePage = () => {
                   <SelectField
                     value={form.teamId}
                     onChange={(event) => handleTeamChange(event.target.value)}
-                    options={myTeams.map((team) => ({ value: team.id, label: team.name }))}
+                    options={recruitEditableTeams.map((team) => ({ value: team.id, label: team.name }))}
                   />
                 </div>
 
                 <div>
                   <FieldLabel>참여 해커톤</FieldLabel>
-                  <SelectField
-                    value={form.hackathonName}
-                    onChange={(event) => updateField("hackathonName", event.target.value)}
-                    options={selectedTeam.hackathons.map((hackathonName) => ({
-                      value: hackathonName,
-                      label: hackathonName,
-                    }))}
-                  />
+                  <div className={readOnlyFieldClass}>{selectedTeam.hackathonName}</div>
                 </div>
 
                 <div className="md:col-span-2">
@@ -283,8 +535,18 @@ const RecruitWritePage = () => {
                   <textarea
                     value={form.description}
                     onChange={(event) => updateField("description", event.target.value)}
-                    placeholder="우리팀이 원하는 사람과 현재 프로젝트 상황을 적어주세요."
+                    placeholder="우리 팀이 어떤 방향으로 프로젝트를 진행하고 있는지 적어 주세요."
                     className="mt-2 min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 outline-none transition focus:border-[#AFC5FF] focus:ring-4 focus:ring-[#EEF3FF]"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <FieldLabel>연락 받을 URL</FieldLabel>
+                  <input
+                    value={form.contact}
+                    onChange={(event) => updateField("contact", event.target.value)}
+                    placeholder="예: https://open.kakao.com/o/..."
+                    className={baseInputClass}
                   />
                 </div>
 
@@ -293,6 +555,7 @@ const RecruitWritePage = () => {
                   <div className="mt-3 flex flex-wrap gap-2">
                     {tagOptions.map((tag) => {
                       const isSelected = form.tags.includes(tag);
+
                       return (
                         <button
                           key={tag}
@@ -311,66 +574,85 @@ const RecruitWritePage = () => {
                   </div>
                 </div>
 
-                <div>
-                  <FieldLabel>모집 상태</FieldLabel>
-                  <SelectField
-                    value={form.status}
-                    onChange={(event) => updateField("status", event.target.value)}
-                    options={statusOptions}
-                    showDot
-                  />
-                </div>
-
-                <div />
-
-                <div>
-                  <FieldLabel>현재 인원</FieldLabel>
-                  <input
-                    type="number"
-                    min="1"
-                    max={form.maxCount}
-                    value={form.currentCount}
-                    onChange={(event) =>
-                      updateField("currentCount", Number(event.target.value || 1))
-                    }
-                    className={baseInputClass}
-                  />
-                </div>
-
-                <div>
-                  <FieldLabel>최대 인원</FieldLabel>
-                  <input
-                    type="number"
-                    min="1"
-                    value={form.maxCount}
-                    onChange={(event) => updateField("maxCount", Number(event.target.value || 1))}
-                    className={baseInputClass}
-                  />
-                </div>
-              </div>
-
-              <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-3xl bg-[#F8FAFF] px-5 py-4">
-                <div className="flex flex-wrap items-center gap-4">
-                  <span className="text-sm font-bold text-slate-500">게시 상태</span>
-                  <span
-                    className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-sm font-black ${
-                      form.status === "open"
-                        ? "bg-[#EEF9F1] text-[#1E9F46]"
-                        : "bg-[#FFF1F1] text-[#D93A3A]"
-                    }`}
-                  >
-                    <span
-                      className={`h-2.5 w-2.5 rounded-full ${
-                        form.status === "open" ? "bg-[#28C840]" : "bg-[#EB3B3B]"
-                      }`}
+                <div className="md:col-span-2">
+                  <FieldLabel>포지션별 인원 설정</FieldLabel>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                    <SummaryMetric
+                      label="모집할 인원"
+                      value={`${recruitTotal}명`}
+                      accent="text-[#336DFE]"
                     />
-                    {selectedStatusLabel}
-                  </span>
+                    <SummaryMetric
+                      label="팀 최대 인원"
+                      value={`${TEAM_MAX_MEMBERS}명`}
+                      accent="text-slate-900"
+                    />
+                  </div>
+
+                  <div className="mt-4 space-y-3">
+                    {form.tags.map((tag) => {
+                      const slot = form.positionSlots[tag] ?? { recruit: 0 };
+
+                      return (
+                        <div
+                          key={tag}
+                          className="grid items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)] sm:grid-cols-[minmax(0,1fr)_132px]"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span
+                              className={`inline-flex min-w-11 items-center justify-center rounded-md px-2.5 py-1 text-[10px] font-black ${
+                                tagColorMap[tag] ?? "bg-slate-200 text-slate-700"
+                              }`}
+                            >
+                              {tag}
+                            </span>
+                            <div className="min-w-0">
+                              <p className="text-sm font-black text-slate-800">
+                                {getPositionDisplayLabel(tag, positionCatalog)}
+                              </p>
+                              <p className="mt-1 text-xs font-semibold tracking-[0.08em] text-slate-400">
+                                모집할 인원
+                              </p>
+                            </div>
+                          </div>
+
+                          <input
+                            type="number"
+                            min="1"
+                            max={TEAM_MAX_MEMBERS}
+                            value={slot.recruit}
+                            onChange={(event) => updatePositionSlot(tag, event.target.value)}
+                            className={compactNumberInputClass}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
+
+              </div>
+
+              <div className="mt-8 flex flex-wrap items-center justify-end gap-4 rounded-3xl bg-[#F8FAFF] px-5 py-4">
                 <div className="w-full sm:w-auto">
-                  <PrimaryActionButton fullWidth>작성 완료</PrimaryActionButton>
+                  <PrimaryActionButton fullWidth onClick={handleSubmit}>
+                    {isSubmitting
+                      ? isEditMode
+                        ? "수정 중..."
+                        : "등록 중..."
+                      : isEditMode
+                        ? "수정 완료"
+                        : "작성 완료"}
+                  </PrimaryActionButton>
                 </div>
               </div>
+
+              {submitError ? (
+                <p className="mt-4 text-sm font-semibold text-[#D93A3A]">{submitError}</p>
+              ) : null}
+
+              {submitSuccess ? (
+                <p className="mt-4 text-sm font-semibold text-[#1E9F46]">{submitSuccess}</p>
+              ) : null}
             </BaseInfoCard>
           </section>
 
@@ -378,7 +660,7 @@ const RecruitWritePage = () => {
             <div className="space-y-2">
               <h2 className="text-xl font-black tracking-tight text-slate-950">미리보기</h2>
               <p className="text-sm font-medium text-slate-500">
-                지금 입력한 내용이 카드에서 어떻게 보이는지 바로 확인할 수 있습니다.
+                입력한 내용이 팀원 모집 상세 모달에서 어떻게 보일지 바로 확인할 수 있습니다.
               </p>
             </div>
             <RecruitPreviewCard form={form} selectedTeam={selectedTeam} />

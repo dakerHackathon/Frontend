@@ -1,20 +1,36 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 
-const NewMessageModal = ({ isOpen, onClose, initialReceiver = "", initialSubject = "" }) => {
+const NewMessageModal = ({
+  isOpen,
+  onClose,
+  onSend,
+  initialReceiver = "",
+  initialSubject = "",
+}) => {
   const [receiver, setReceiver] = useState(initialReceiver);
   const [subject, setSubject] = useState(initialSubject);
   const [content, setContent] = useState("");
 
   if (!isOpen) return null;
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    // TODO: 백엔드 연동 후 실제 발송 API 연결
-    onClose();
-    setReceiver("");
-    setSubject("");
-    setContent("");
+
+    // 2. 부모에게 받은 전송 함수를 실행합니다. (데이터 전달)
+    if (onSend) {
+      console.log("전송 데이터:", { receiver, subject, content });
+      const success = await onSend(receiver, subject, content);
+
+      // 전송 성공 시에만 모달을 닫고 상태를 비우고 싶다면 아래와 같이 처리합니다.
+      if (success) {
+        alert("전송이 완료되었습니다.");
+        onClose();
+        setReceiver("");
+        setSubject("");
+        setContent("");
+      }
+    }
   };
 
   return createPortal(
@@ -45,21 +61,27 @@ const NewMessageModal = ({ isOpen, onClose, initialReceiver = "", initialSubject
 
         <div className="space-y-3">
           <div>
-            <label htmlFor="message-receiver" className="mb-1 block text-sm font-semibold text-slate-700">
+            <label
+              htmlFor="message-receiver"
+              className="mb-1 block text-sm font-semibold text-slate-700"
+            >
               받는 사람
             </label>
             <input
               id="message-receiver"
               value={receiver}
               onChange={(event) => setReceiver(event.target.value)}
-              placeholder="받는 사람 이메일 또는 이름"
+              placeholder="받는 사람 이메일"
               className="h-11 w-full rounded-lg border border-[#DCE3EF] px-3 text-sm outline-none focus:border-[#336DFE]"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="message-subject" className="mb-1 block text-sm font-semibold text-slate-700">
+            <label
+              htmlFor="message-subject"
+              className="mb-1 block text-sm font-semibold text-slate-700"
+            >
               제목
             </label>
             <input
@@ -73,7 +95,10 @@ const NewMessageModal = ({ isOpen, onClose, initialReceiver = "", initialSubject
           </div>
 
           <div>
-            <label htmlFor="message-content" className="mb-1 block text-sm font-semibold text-slate-700">
+            <label
+              htmlFor="message-content"
+              className="mb-1 block text-sm font-semibold text-slate-700"
+            >
               내용
             </label>
             <textarea
