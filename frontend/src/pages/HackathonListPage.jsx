@@ -1,18 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useHackathon } from "../hooks/useHackathon";
+import { useRanking } from "../hooks/useRanking";
 import MiniCalendar from "../components/common/MiniCalendar";
 import PageSectionHeader from "../components/common/PageSectionHeader";
 import RankingSidebarCard from "../components/common/RankingSidebarCard";
 import SearchFilterBar from "../components/common/SearchFilterBar";
 import BaseInfoCard from "../components/common/BaseInfoCard";
 import HackathonCard from "../components/hackathon/HackathonCard";
-import {
-  regionOptions,
-  searchOptions,
-  sidebarRankings,
-  statusOptions,
-} from "./hackathonList.constants";
+import { regionOptions, searchOptions, statusOptions } from "./hackathonList.constants";
 import { getRegionValue } from "./hackathonList.utils";
 import {
   getHackathonUserId,
@@ -29,8 +25,10 @@ const HackathonListPage = () => {
   const [regionFilter, setRegionFilter] = useState("all");
   const [hackathonItems, setHackathonItems] = useState([]);
   const [favoriteMessage, setFavoriteMessage] = useState("");
+  const [sidebarRankings, setSidebarRankings] = useState([]);
   const [refreshTick, setRefreshTick] = useState(0);
   const { fetchList, toggleSave, isLoading, isSaveLoading, error: errorMessage } = useHackathon();
+  const { fetchMine: fetchMyRanking, fetchSidebar } = useRanking();
   const currentUserId = getHackathonUserId();
 
   useEffect(() => {
@@ -93,6 +91,30 @@ const HackathonListPage = () => {
       window.removeEventListener(HACKATHON_LIST_REFRESH_EVENT, handleListRefresh);
     };
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadSidebarRankings = async () => {
+      // 해커톤 목록 사이드바도 랭킹 페이지와 같은 API 응답을 바라보도록 맞춘다.
+      const mineResult = await fetchMyRanking("temperature");
+      const sidebarResult = await fetchSidebar(mineResult?.data?.myRanking ?? null);
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (sidebarResult?.isSuccess) {
+        setSidebarRankings(sidebarResult.data?.cards ?? []);
+      }
+    };
+
+    loadSidebarRankings();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchMyRanking, fetchSidebar]);
 
   const filteredHackathons = useMemo(() => {
     const loweredSearch = searchValue.trim().toLowerCase();
