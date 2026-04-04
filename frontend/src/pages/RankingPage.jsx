@@ -1,26 +1,63 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import MiniCalendar from "../components/common/MiniCalendar";
 import RankingSidebarCard from "../components/common/RankingSidebarCard";
 import RankingTable from "../components/ranking/RankingTable";
 import TopThreeCard from "../components/ranking/TopThreeCard";
-import { currentUserRankingByPeriod, rankingByPeriod, sidebarRankings } from "../mocks/data/ranking";
+import { useRanking } from "../hooks/useRanking";
 import { periodTabs } from "./rankingPage.constants";
 
 const RankingPage = () => {
   const [activePeriod, setActivePeriod] = useState("temperature");
-  const activeRows = useMemo(
-    () =>
-      [...(rankingByPeriod[activePeriod] ?? rankingByPeriod.temperature)].sort(
-        (left, right) => right.points - left.points,
-      ),
-    [activePeriod],
-  );
+  const { fetchList, fetchMine, fetchSidebar, isLoading, error } = useRanking();
+  const [activeRows, setActiveRows] = useState([]);
+  const [sidebarRankings, setSidebarRankings] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const topThree = activeRows.slice(0, 3);
   const firstPlace = topThree[0] ?? null;
   const secondPlace = topThree[1] ?? null;
   const thirdPlace = topThree[2] ?? null;
-  const currentUser = currentUserRankingByPeriod[activePeriod] ?? null;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadRankingData = async () => {
+      const [listResult, mineResult] = await Promise.all([
+        fetchList(activePeriod),
+        fetchMine(activePeriod),
+      ]);
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (listResult?.isSuccess) {
+        setActiveRows(listResult.data?.rows ?? []);
+      }
+
+      const myRanking = mineResult?.data?.myRanking ?? null;
+
+      if (mineResult?.isSuccess) {
+        setCurrentUser(mineResult.data?.currentUserRow ?? null);
+      }
+
+      const sidebarResult = await fetchSidebar(myRanking);
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (sidebarResult?.isSuccess) {
+        setSidebarRankings(sidebarResult.data?.cards ?? []);
+      }
+    };
+
+    loadRankingData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activePeriod, fetchList, fetchMine, fetchSidebar]);
 
   return (
     <div className="min-h-screen bg-[#F3F6FF]">
@@ -98,11 +135,21 @@ const RankingPage = () => {
             ) : null}
           </section>
 
-          <RankingTable
-            rows={activeRows}
-            title={periodTabs.find((tab) => tab.key === activePeriod)?.label ?? "랭킹"}
-            currentUser={currentUser}
-          />
+          {error ? (
+            <section className="rounded-[30px] border border-slate-200 bg-white px-5 py-10 text-center text-sm font-semibold text-red-500 shadow-[0_18px_40px_rgba(15,23,42,0.06)] sm:px-8">
+              {error}
+            </section>
+          ) : isLoading && activeRows.length === 0 ? (
+            <section className="rounded-[30px] border border-slate-200 bg-white px-5 py-10 text-center text-sm font-semibold text-slate-500 shadow-[0_18px_40px_rgba(15,23,42,0.06)] sm:px-8">
+              랭킹 정보를 불러오는 중입니다.
+            </section>
+          ) : (
+            <RankingTable
+              rows={activeRows}
+              title={periodTabs.find((tab) => tab.key === activePeriod)?.label ?? "랭킹"}
+              currentUser={currentUser}
+            />
+          )}
         </section>
       </div>
     </div>
