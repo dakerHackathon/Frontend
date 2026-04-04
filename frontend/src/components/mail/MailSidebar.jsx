@@ -131,7 +131,7 @@ const MailSidebar = ({
         }}
         className={`smart-scroll space-y-3 rounded-2xl overflow-y-auto ${
           isDragging ? "cursor-grabbing" : "cursor-grab"
-        } max-h-[700px]`} // 5개 이상의 아이템을 자연스럽게 보여주는 고정 최대 높이
+        } max-h-[700px]`} 
       >
         {messages.map((item) => {
           const itemId = item.id || item.invitationId;
