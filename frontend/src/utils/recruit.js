@@ -161,7 +161,19 @@ const parseRecruitCreatedAt = (createdAt) => {
     return null;
   }
 
-  return new Date(createdAt.replace(" ", "T"));
+  const normalizedValue = String(createdAt).trim().replace(" ", "T");
+
+  if (!normalizedValue) {
+    return null;
+  }
+
+  // 백엔드가 timezone 없이 UTC 기준 시각을 내려주는 경우가 있어,
+  // 오프셋 정보가 없는 문자열은 UTC로 간주해 KST 기준 상대 시간을 맞춘다.
+  if (!/[zZ]|[+-]\d{2}:\d{2}$/.test(normalizedValue)) {
+    return new Date(`${normalizedValue}Z`);
+  }
+
+  return new Date(normalizedValue);
 };
 
 export const formatRecruitCreatedAt = (createdAt) => {
@@ -223,7 +235,9 @@ export const mapRecruitArticleToPost = (
     content: article.content,
     tags,
     positionSlots,
-    status: article.isOpen ? "open" : "closed",
+    // 생성 직후 목록 응답에서 isOpen 값이 비어 오는 경우가 있어,
+    // 명시적으로 false일 때만 마감으로 처리한다.
+    status: article.isOpen === false ? "closed" : "open",
     hackathonName: team?.hackathon?.hackathonTitle ?? "",
     contact: article.contact ?? "",
     writer: article.writer ?? null,
