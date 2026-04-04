@@ -29,15 +29,6 @@ export const rankingHandlers = [
     const filter = new URL(request.url).searchParams.get("filter") ?? "win";
     return HttpResponse.json(getRankingListResponse(filter));
   }),
-  http.get("*/rankings/:userId", ({ params }) => {
-    console.log(`✅ MSW intercepted: GET /rankings/${params.userId}`);
-
-    if (shouldFail) {
-      return createErrorResponse("500", "내 랭킹 정보를 불러오는 중 오류가 발생했습니다.", 500);
-    }
-
-    return HttpResponse.json(getMyRankingResponse());
-  }),
   http.get("*/rankings/top3", () => {
     console.log("✅ MSW intercepted: GET /rankings/top3");
 
@@ -46,5 +37,14 @@ export const rankingHandlers = [
     }
 
     return HttpResponse.json(getRankingTop3Response());
+  }),
+  http.get("*/rankings/:userId", ({ params }) => {
+    console.log(`✅ MSW intercepted: GET /rankings/${params.userId}`);
+
+    if (shouldFail) {
+      return createErrorResponse("500", "내 랭킹 정보를 불러오는 중 오류가 발생했습니다.", 500);
+    }
+
+    return HttpResponse.json(getMyRankingResponse());
   }),
 ];
