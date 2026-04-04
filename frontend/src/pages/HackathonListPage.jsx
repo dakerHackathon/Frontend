@@ -16,6 +16,11 @@ import {
   HACKATHON_SAVE_UPDATED_EVENT,
 } from "../utils/hackathon";
 
+const favoriteFilterOptions = [
+  { value: "all", label: "전체 해커톤" },
+  { value: "favorites", label: "즐겨찾기한 해커톤" },
+];
+
 const HackathonListPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -23,6 +28,7 @@ const HackathonListPage = () => {
   const [searchValue, setSearchValue] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [regionFilter, setRegionFilter] = useState("all");
+  const [favoriteFilter, setFavoriteFilter] = useState("all");
   const [hackathonItems, setHackathonItems] = useState([]);
   const [favoriteMessage, setFavoriteMessage] = useState("");
   const [sidebarRankings, setSidebarRankings] = useState([]);
@@ -124,10 +130,11 @@ const HackathonListPage = () => {
         loweredSearch.length === 0 || hackathon.title.toLowerCase().includes(loweredSearch);
       const matchesStatus = statusFilter === "all" || hackathon.status === statusFilter;
       const matchesRegion = regionFilter === "all" || hackathon.region === regionFilter;
+      const matchesFavorite = favoriteFilter === "all" || hackathon.isStar;
 
-      return matchesSearch && matchesStatus && matchesRegion;
+      return matchesSearch && matchesStatus && matchesRegion && matchesFavorite;
     });
-  }, [hackathonItems, regionFilter, searchValue, statusFilter]);
+  }, [favoriteFilter, hackathonItems, regionFilter, searchValue, statusFilter]);
 
   const toggleFavorite = async (hackathonId) => {
     // 저장 토글은 서버 응답이 성공했을 때만 목록 상태를 갱신해 화면과 실제 값을 맞춥니다.
@@ -186,6 +193,27 @@ const HackathonListPage = () => {
             ]}
           />
 
+          <div className="flex flex-wrap items-center gap-2">
+            {favoriteFilterOptions.map((option) => {
+              const isActive = favoriteFilter === option.value;
+
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setFavoriteFilter(option.value)}
+                  className={`inline-flex h-11 cursor-pointer items-center justify-center rounded-full px-4 text-sm font-black transition ${
+                    isActive
+                      ? "bg-[#336DFE] text-white shadow-[0_12px_24px_rgba(51,109,254,0.2)]"
+                      : "border border-slate-200 bg-white text-slate-500 hover:border-[#C9D7FF] hover:text-slate-700"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+
           {isLoading ? (
             <BaseInfoCard className="rounded-[28px] p-10 text-center text-sm font-medium text-slate-500">
               해커톤 목록을 불러오는 중입니다.
@@ -200,7 +228,9 @@ const HackathonListPage = () => {
             </BaseInfoCard>
           ) : filteredHackathons.length === 0 ? (
             <BaseInfoCard className="rounded-[28px] p-10 text-center text-sm font-medium text-slate-500">
-              조건에 맞는 해커톤이 없습니다.
+              {favoriteFilter === "favorites"
+                ? "즐겨찾기한 해커톤이 없습니다."
+                : "조건에 맞는 해커톤이 없습니다."}
             </BaseInfoCard>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:gap-7">
