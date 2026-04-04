@@ -29,7 +29,7 @@ const TeamInviteCard = ({
           <input
             value={inviteQuery}
             onChange={(event) => onInviteQueryChange(event.target.value)}
-            placeholder="닉네임, 이름, 이메일, 파트로 검색"
+            placeholder="닉네임으로 검색"
             className={baseInputClass}
           />
         </label>
