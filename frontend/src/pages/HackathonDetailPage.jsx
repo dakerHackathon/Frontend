@@ -34,7 +34,15 @@ const HackathonDetailPage = () => {
   const backgroundLocation = location.state?.backgroundLocation;
   const summaryFromLocation = location.state?.hackathonSummary ?? null;
   const currentUserId = getHackathonUserId();
-  const { fetchList, fetchDetail, toggleSave, isLoading, isSaveLoading } = useHackathon();
+  const {
+    fetchList,
+    fetchDetail,
+    toggleSave,
+    uploadSubmission,
+    isLoading,
+    isSaveLoading,
+    isUploadLoading,
+  } = useHackathon();
   const { getLeaderTeams, registerHackathonTeam, isLoading: isTeamActionLoading } = useTeam();
   const [hackathon, setHackathon] = useState(null);
   const [leaderTeams, setLeaderTeams] = useState([]);
@@ -44,6 +52,8 @@ const HackathonDetailPage = () => {
   const [registerFeedback, setRegisterFeedback] = useState(null);
   const [detailError, setDetailError] = useState("");
   const [teamActionHint, setTeamActionHint] = useState("");
+  const [submissionMemo, setSubmissionMemo] = useState("");
+  const [uploadFeedback, setUploadFeedback] = useState("");
 
   const closeDetail = () => {
     if (backgroundLocation) {
@@ -241,6 +251,25 @@ const HackathonDetailPage = () => {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(objectUrl);
+  };
+
+  const handleUploadSubmission = async () => {
+    const result = await uploadSubmission(hackathon.id, submissionMemo);
+
+    if (!result?.isSuccess) {
+      setUploadFeedback(result?.message || "제출 링크를 열지 못했습니다.");
+      return;
+    }
+
+    const uploadUrl = result?.data?.url;
+
+    if (!uploadUrl) {
+      setUploadFeedback("업로드 링크가 제공되지 않았습니다.");
+      return;
+    }
+
+    setUploadFeedback("");
+    window.open(uploadUrl, "_blank", "noopener,noreferrer");
   };
 
   const openRegisterModal = () => {
@@ -737,13 +766,30 @@ const HackathonDetailPage = () => {
                     <textarea
                       rows={3}
                       placeholder={hackathon.submissionGuide.notePlaceholder}
+                      value={submissionMemo}
+                      onChange={(event) => {
+                        setSubmissionMemo(event.target.value);
+                        if (uploadFeedback) {
+                          setUploadFeedback("");
+                        }
+                      }}
                       className="mt-3 w-full resize-none rounded-2xl border border-slate-200 bg-[#FAFBFF] px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#336DFE] focus:ring-4 focus:ring-[#E8F0FF]"
                     />
                   </div>
                 </div>
 
+                {uploadFeedback ? (
+                  <p className="mt-4 text-sm font-medium text-[#D14343]">{uploadFeedback}</p>
+                ) : null}
+
                 <div className="mt-4">
-                  <PrimaryActionButton fullWidth>파일 업로드</PrimaryActionButton>
+                  <PrimaryActionButton
+                    fullWidth
+                    onClick={handleUploadSubmission}
+                    disabled={isUploadLoading}
+                  >
+                    {isUploadLoading ? "링크 불러오는 중..." : "파일 업로드"}
+                  </PrimaryActionButton>
                 </div>
               </BaseInfoCard>
 
