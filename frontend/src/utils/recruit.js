@@ -26,8 +26,6 @@ export const recruitEditableTeams = [
   },
 ];
 
-export const recruitEditableTeamIds = recruitEditableTeams.map((team) => team.id);
-
 export const getRecruitUserId = () => {
   const currentUser = getCurrentUser();
   return currentUser?.userId ?? currentUser?.id ?? 1;
@@ -85,6 +83,7 @@ export const formatRecruitCreatedAt = (createdAt) => {
 };
 
 export const mapRecruitArticleToPost = ({ article, team }) => {
+  const currentUserId = getRecruitUserId();
   const positionSlots = (article.positions ?? []).reduce((acc, positionInfo) => {
     const tag = getPositionTag(positionInfo.position);
 
@@ -116,8 +115,8 @@ export const mapRecruitArticleToPost = ({ article, team }) => {
     status: article.isOpen ? "open" : "closed",
     hackathonName: team?.hackathon?.hackathonTitle ?? "",
     contact: article.contact ?? "",
-    // 현재 명세에는 작성자 식별자가 없어, 내가 관리하는 팀의 공고인지로 수정 가능 여부를 판별합니다.
-    isMine: recruitEditableTeamIds.includes(team?.id),
+    writer: article.writer ?? null,
+    isMine: Number(article.writer) === Number(currentUserId),
     rawArticle: article,
   };
 };
