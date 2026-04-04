@@ -2,16 +2,28 @@ import axios from "axios";
 
 const axiosInstance = axios.create({
   baseURL: "http://13.125.160.175:8080",
-  // 로컬 MSW 확인이 필요할 때만 localhost:5173으로 되돌려서 사용합니다.
-  timeout: 3000,
+  timeout: 3000, // 3초 제한
   headers: {
     "Content-Type": "application/json",
   },
 });
 
+// 응답 인터셉터 설정
 axiosInstance.interceptors.response.use(
-  (response) => response.data,
-  (error) => Promise.reject(error),
+  (response) => {
+    return response.data;
+  },
+  // 응답 실패 시
+  (error) => {
+    const code = error.code;
+    const status = error.response?.status;
+
+    // 타임아웃(ECONNABORTED) 또는 서버의 408 Request Timeout 처리
+    if (code === "ECONNABORTED" || status === 408) {
+      alert("서버 응답 시간이 초과되었습니다. 네트워크 상태를 확인해주세요.");
+    }
+    return Promise.reject(error);
+  }
 );
 
 export default axiosInstance;
