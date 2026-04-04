@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getPartMeta } from "../components/mypage/teamDetail/shared";
-import { initialProfile, inviteCandidatePool, teams } from "../components/mypage/constants";
+import { initialProfile, inviteCandidatePool } from "../components/mypage/constants";
 import { useTeam } from "./useTeam";
 import { getCurrentUser } from "../utils/auth";
 
@@ -24,7 +24,7 @@ const teamRoleRequestMap = {
 
 const getStoredTeams = () => {
   const storedTeams = localStorage.getItem(TEAMS_STORAGE_KEY);
-  return storedTeams ? JSON.parse(storedTeams) : teams;
+  return storedTeams ? JSON.parse(storedTeams) : [];
 };
 
 const isLeaderRole = (role) => role === "leader" || role === TEAM_LEADER_LABEL;
@@ -68,25 +68,12 @@ export const useTeamDetailPage = (teamId) => {
 
   const sourceTeam = useMemo(() => {
     const storedTeam = getStoredTeams().find((team) => team.id === teamId) ?? null;
-    const defaultTeam =
-      teams.find((team) => team.id === teamId) ||
-      teams.find((team) => team.name === storedTeam?.name) ||
-      null;
 
     if (!storedTeam) {
-      return defaultTeam;
+      return null;
     }
 
-    return {
-      ...defaultTeam,
-      ...storedTeam,
-      role: storedTeam.role ?? defaultTeam?.role,
-      leaderId: storedTeam.leaderId ?? defaultTeam?.leaderId,
-      members:
-        storedTeam.members && storedTeam.members.length > 0
-          ? storedTeam.members
-          : defaultTeam?.members ?? [],
-    };
+    return storedTeam;
   }, [teamId]);
 
   const [teamForm, setTeamForm] = useState(() =>
@@ -102,24 +89,37 @@ export const useTeamDetailPage = (teamId) => {
   const [inviteMessage, setInviteMessage] = useState("");
   const [inviteNotice, setInviteNotice] = useState("");
   const [saveNotice, setSaveNotice] = useState("");
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     const fetchTeamDetail = async () => {
-      if (!userId || !requestTeamId) return;
+      if (!userId || !requestTeamId) {
+        setLoadError("팀 상세 조회에 필요한 사용자 또는 팀 정보가 없습니다.");
+        return;
+      }
 
       const [leaderTeamsResult, result] = await Promise.all([
         getLeaderTeams(userId),
         getTeamDetail(userId, requestTeamId),
       ]);
+
+      if (!leaderTeamsResult?.isSuccess) {
+        console.error("[TeamDetail] /camp/:userId/team failed:", leaderTeamsResult?.message);
+      }
+
       const isLeaderTeam =
         leaderTeamsResult?.data?.teams?.some((team) => Number(team.teamId) === requestTeamId) ?? false;
 
       if (!result?.isSuccess || !result.data) {
+        console.error("[TeamDetail] /camp/:userId/team/:teamId failed:", result?.message);
+        setLoadError(result?.message || "팀 상세 데이터를 불러오지 못했습니다.");
         if (isLeaderTeam) {
           setTeamRole(TEAM_LEADER_LABEL);
         }
         return;
       }
+
+      setLoadError("");
 
       const nextMembers =
         result.data.member?.map((member) => ({
@@ -358,6 +358,7 @@ export const useTeamDetailPage = (teamId) => {
     inviteQuery,
     isLeader: isLeaderRole(teamRole),
     members,
+    loadError,
     requestTeamId,
     saveNotice,
     selectedCandidateId,

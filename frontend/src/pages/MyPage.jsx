@@ -14,6 +14,7 @@ import {
 } from "../components/mypage/constants";
 import { useMyPage } from "../hooks/useMyPage";
 import { useSkill } from "../hooks/useSkill";
+import { useTemperature } from "../hooks/useTemperature";
 import { useTeam } from "../hooks/useTeam";
 import { getCurrentUser } from "../utils/auth";
 
@@ -58,6 +59,8 @@ const MyPage = () => {
   const navigate = useNavigate();
   const { getMyPage, updateMyPage } = useMyPage();
   const { getAllSkills } = useSkill();
+  const { getTemperatureMembers, submitTemperatureVote, isLoading: isTemperatureLoading } =
+    useTemperature();
   const { handleCreateTeam: requestCreateTeam, isLoading, createTeamError } =
     useTeam();
   const [profile, setProfile] = useState(emptyProfile);
@@ -72,10 +75,11 @@ const MyPage = () => {
   const [hackathonItems, setHackathonItems] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [availableSkills, setAvailableSkills] = useState(fallbackSkills);
-  const [teamItems, setTeamItems] = useState(() => {
-    const storedTeams = localStorage.getItem(TEAMS_STORAGE_KEY);
-    return storedTeams ? JSON.parse(storedTeams) : teams;
-  });
+  const [teamItems, setTeamItems] = useState([]);
+  const [pageLoadError, setPageLoadError] = useState("");
+  const [selectedHackathon, setSelectedHackathon] = useState(null);
+  const [temperatureMembers, setTemperatureMembers] = useState([]);
+  const [temperatureErrorMessage, setTemperatureErrorMessage] = useState("");
   const isTeamCreateGuideOpen = Boolean(location.state?.showTeamCreateGuide);
 
   const closeTeamCreateGuide = () => {
@@ -97,7 +101,12 @@ const MyPage = () => {
       const currentUser = getCurrentUser();
       const userId = currentUser?.userId;
 
-      if (!userId) return;
+      if (!userId) {
+        setPageLoadError("로그인 사용자 정보를 찾지 못했습니다.");
+        return;
+      }
+
+      setPageLoadError("");
 
       const skillResult = await getAllSkills();
       const nextSkills = Array.isArray(skillResult?.data?.skills)
@@ -106,6 +115,10 @@ const MyPage = () => {
 
       console.log("[MyPage] getAllSkills result:", skillResult);
       console.log("[MyPage] available skills:", nextSkills);
+
+      if (!skillResult?.isSuccess) {
+        console.error("[MyPage] /user/skills failed:", skillResult?.message);
+      }
 
       setAvailableSkills(nextSkills);
 
@@ -118,7 +131,11 @@ const MyPage = () => {
 
       console.log("[MyPage] getMyPage result:", result);
 
-      if (!result?.isSuccess || !result.data) return;
+      if (!result?.isSuccess || !result.data) {
+        console.error("[MyPage] /user/:userId/mypage failed:", result?.message);
+        setPageLoadError(result?.message || "마이페이지 데이터를 불러오지 못했습니다.");
+        return;
+      }
 
       const { data } = result;
 
@@ -145,15 +162,10 @@ const MyPage = () => {
       setHackathonItems(
         data.part_hackathon?.map((hackathon) => ({
           id: `h${hackathon.hackathonId}`,
+          hackathonId: hackathon.hackathonId,
           title: hackathon.hackathonName,
-          status: "active",
+          status: "진행중",
           date: `${hackathon.start} - ${hackathon.end}`,
-          members: [
-            {
-              id: `member-${hackathon.hackathonId}`,
-              name: data.nickname || "mock-user",
-            },
-          ],
         })) || [],
       );
       setSavedItems(
@@ -203,15 +215,65 @@ const MyPage = () => {
     setIsEditOpen(true);
   };
 
-  const handleVote = (hackathonId, memberId, value) => {
-    const voteKey = `${hackathonId}:${memberId}`;
+  const handleOpenVote = async (hackathon) => {
+    const currentUser = getCurrentUser();
+    const userId = currentUser?.userId;
+
+    setSelectedHackathon(hackathon);
+    setTemperatureMembers([]);
+    setTemperatureErrorMessage("");
+
+    if (!userId) {
+      setTemperatureErrorMessage("로그인 사용자 정보를 찾지 못했습니다.");
+      return;
+    }
+
+    if (!hackathon.hackathonId) {
+      setTemperatureErrorMessage("참여한 해커톤 데이터에 hackathonId가 없습니다.");
+      return;
+    }
+
+    const result = await getTemperatureMembers(userId, hackathon.hackathonId);
+    if (!result?.isSuccess || !result.data) {
+      setTemperatureErrorMessage(result?.message || "온도 평가 대상을 불러오지 못했습니다.");
+      return;
+    }
+
+    setTemperatureMembers(result.data.members ?? []);
+  };
+
+  const handleCloseVote = () => {
+    setSelectedHackathon(null);
+    setTemperatureMembers([]);
+    setTemperatureErrorMessage("");
+  };
+
+  const handleVote = async (hackathon, member, plus) => {
+    const currentUser = getCurrentUser();
+    const userId = currentUser?.userId;
+    const voteKey = `${hackathon.id}:${member.userId}`;
+
     if (voteLocks[voteKey]) return;
+    if (!userId || !hackathon.hackathonId || !member.canSet) return;
+
+    const result = await submitTemperatureVote(userId, hackathon.hackathonId, {
+      userId: member.userId,
+      plus,
+    });
+
+    if (!result?.isSuccess) {
+      setTemperatureErrorMessage(result?.message || "온도 평가 제출에 실패했습니다.");
+      return;
+    }
 
     setVoteLocks((prev) => ({
       ...prev,
-      [voteKey]: value > 0 ? "up" : "down",
+      [voteKey]: plus ? "up" : "down",
     }));
-    setTemperature((prev) => Number((prev + value).toFixed(1)));
+    setTemperatureMembers((prev) =>
+      prev.map((entry) => (entry.userId === member.userId ? { ...entry, canSet: false } : entry)),
+    );
+    setTemperature((prev) => Number((prev + (plus ? 0.3 : -0.2)).toFixed(1)));
   };
 
   const closeEditModal = () => setIsEditOpen(false);
@@ -330,12 +392,23 @@ const MyPage = () => {
     <div className="min-h-screen bg-slate-100 px-4 py-8">
       <div className="mx-auto grid w-full max-w-[1200px] gap-4 lg:grid-cols-[2fr_1fr]">
         <div className="flex flex-col gap-4">
+          {pageLoadError ? (
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+              마이페이지 API 호출 실패: {pageLoadError}
+            </div>
+          ) : null}
           <ProfileSection profile={profile} onEdit={openEditModal} />
 
           <div className="grid gap-4 lg:grid-cols-2">
             <HackathonListSection
               hackathons={hackathonItems}
+              isTemperatureLoading={isTemperatureLoading}
+              selectedHackathon={selectedHackathon}
+              temperatureError={temperatureErrorMessage}
+              temperatureMembers={temperatureMembers}
               voteLocks={voteLocks}
+              onCloseVote={handleCloseVote}
+              onOpenVote={handleOpenVote}
               onVote={handleVote}
             />
 

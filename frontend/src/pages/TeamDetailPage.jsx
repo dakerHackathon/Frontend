@@ -1,4 +1,4 @@
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import TeamBasicInfoCard from "../components/mypage/teamDetail/TeamBasicInfoCard";
 import TeamInviteCard from "../components/mypage/teamDetail/TeamInviteCard";
 import TeamMembersCard from "../components/mypage/teamDetail/TeamMembersCard";
@@ -26,6 +26,7 @@ const TeamDetailPage = () => {
     invitePart,
     inviteQuery,
     isLeader,
+    loadError,
     members,
     saveNotice,
     selectedCandidateId,
@@ -33,18 +34,18 @@ const TeamDetailPage = () => {
     setInvitePart,
     setInviteQuery,
     setSelectedCandidateId,
-    sourceTeam,
     teamForm,
     teamRole,
   } = useTeamDetailPage(teamId);
 
-  if (!sourceTeam) {
-    return <Navigate to="/mypage" replace />;
-  }
-
   return (
     <div className="min-h-screen bg-[#F3F6FF] px-4 py-8 sm:px-5 lg:px-8 lg:py-10">
       <div className="mx-auto max-w-[1440px] space-y-6">
+        {loadError ? (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+            팀 상세 API 호출 실패: {loadError}
+          </div>
+        ) : null}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <Link to="/mypage" className="text-sm font-semibold text-[#336DFE] hover:underline">
