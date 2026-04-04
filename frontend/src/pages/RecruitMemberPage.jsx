@@ -31,6 +31,19 @@ const ownershipOptions = [
   { value: "mine", label: "내가 작성한 글" },
 ];
 
+const recruitStatusMeta = {
+  open: {
+    label: "모집중",
+    className: "bg-[#EEF9F1] text-[#1E9F46]",
+    dotClassName: "bg-[#28C840]",
+  },
+  closed: {
+    label: "마감",
+    className: "bg-[#FFF1F1] text-[#D93A3A]",
+    dotClassName: "bg-[#EB3B3B]",
+  },
+};
+
 const tagColorMap = {
   FE: "bg-[#2A3FFF] text-white",
   BE: "bg-[#4CD137] text-white",
@@ -115,7 +128,20 @@ const PositionSlotList = ({ post, compact = false, titled = false }) => (
   </div>
 );
 
-const RecruitDetailModal = ({ post, onClose, onEdit, onDelete }) => {
+const RecruitStatusBadge = ({ status }) => {
+  const meta = recruitStatusMeta[status] ?? recruitStatusMeta.open;
+
+  return (
+    <span
+      className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-black ${meta.className}`}
+    >
+      <span className={`h-2 w-2 rounded-full ${meta.dotClassName}`} />
+      {meta.label}
+    </span>
+  );
+};
+
+const RecruitDetailModal = ({ post, onClose, onEdit, onDelete, onCloseRecruit }) => {
   const recruitDisplayCount = getRecruitDisplayCount(post);
   const availablePositions = useMemo(
     () =>
@@ -127,6 +153,8 @@ const RecruitDetailModal = ({ post, onClose, onEdit, onDelete }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isCloseConfirmOpen, setIsCloseConfirmOpen] = useState(false);
+  const [actionMessage, setActionMessage] = useState("");
   const currentSelectedPosition =
     availablePositions.some(([tag]) => tag === selectedPosition)
       ? selectedPosition
@@ -191,7 +219,23 @@ const RecruitDetailModal = ({ post, onClose, onEdit, onDelete }) => {
     if (!result?.isSuccess) {
       setErrorMessage(result?.message || "팀원 모집 글을 삭제하지 못했습니다.");
       setIsDeleteConfirmOpen(false);
+      setActionMessage("");
     }
+  };
+
+  const handleCloseRecruit = async () => {
+    const result = await onCloseRecruit(post);
+
+    if (!result?.isSuccess) {
+      setErrorMessage(result?.message || "팀원 모집 글을 마감하지 못했습니다.");
+      setIsCloseConfirmOpen(false);
+      setActionMessage("");
+      return;
+    }
+
+    setErrorMessage("");
+    setActionMessage("팀원 모집이 마감되었습니다.");
+    setIsCloseConfirmOpen(false);
   };
 
   return (
@@ -205,7 +249,10 @@ const RecruitDetailModal = ({ post, onClose, onEdit, onDelete }) => {
       >
         <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-5">
           <div className="min-w-0 space-y-2">
-            <span className="text-xs font-semibold text-[#7C96FF]">{post.version}</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold text-[#7C96FF]">{post.version}</span>
+              <RecruitStatusBadge status={post.status} />
+            </div>
             <h2 className="truncate text-2xl font-black tracking-tight text-slate-950 sm:text-[2rem]">
               {post.title}
             </h2>
@@ -340,12 +387,27 @@ const RecruitDetailModal = ({ post, onClose, onEdit, onDelete }) => {
               내가 작성한 모집 글입니다. 내용을 수정하려면 아래 버튼을 눌러 주세요.
             </p>
           ) : null}
+
+          {actionMessage ? (
+            <div className="rounded-2xl bg-[#EEF9F1] px-4 py-3 text-sm font-semibold text-[#1E9F46]">
+              {actionMessage}
+            </div>
+          ) : null}
         </div>
 
         <div className="flex justify-end border-t border-slate-100 pt-5">
           <div className={`w-full ${post.isMine ? "sm:w-full" : "sm:w-auto"}`}>
             {post.isMine ? (
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                {post.status === "open" ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsCloseConfirmOpen(true)}
+                    className="inline-flex h-12 w-full cursor-pointer items-center justify-center rounded-2xl border border-[#CFE0FF] bg-[#F5F8FF] px-5 text-sm font-bold text-[#2458E6] transition duration-200 hover:bg-[#EAF1FF] sm:w-auto sm:min-w-[132px]"
+                  >
+                    마감하기
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   onClick={() => setIsDeleteConfirmOpen(true)}
@@ -409,6 +471,40 @@ const RecruitDetailModal = ({ post, onClose, onEdit, onDelete }) => {
             </div>
           </div>
         ) : null}
+
+        {isCloseConfirmOpen ? (
+          <div
+            className="absolute inset-0 flex items-center justify-center rounded-[28px] bg-[rgba(255,255,255,0.78)] px-6 backdrop-blur-[2px]"
+            onClick={() => setIsCloseConfirmOpen(false)}
+          >
+            <div
+              className="w-full max-w-[360px] rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_24px_50px_rgba(15,23,42,0.18)]"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <p className="text-lg font-black text-slate-950">팀원 모집 글을 마감하시겠습니까?</p>
+              <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
+                마감 후에는 더 이상 새로운 지원을 받을 수 없습니다.
+              </p>
+
+              <div className="mt-5 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsCloseConfirmOpen(false)}
+                  className="inline-flex h-11 flex-1 cursor-pointer items-center justify-center rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-600 transition hover:bg-slate-50"
+                >
+                  취소
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCloseRecruit}
+                  className="inline-flex h-11 flex-1 cursor-pointer items-center justify-center rounded-2xl bg-[#2458E6] text-sm font-bold text-white transition hover:bg-[#1E4BC2]"
+                >
+                  마감
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -433,7 +529,10 @@ const RecruitCard = ({ post, onOpen }) => {
     >
       <div className="flex flex-1 flex-col">
         <div className="space-y-3">
-          <span className="text-[10px] font-medium text-[#7C96FF]">{post.version}</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-medium text-[#7C96FF]">{post.version}</span>
+            <RecruitStatusBadge status={post.status} />
+          </div>
           <h2 className="truncate text-[1.2rem] font-black tracking-tight text-slate-950 transition duration-200 group-hover:text-[#2458E6] sm:text-[1.35rem]">
             {post.title}
           </h2>
@@ -487,7 +586,14 @@ const RecruitCard = ({ post, onOpen }) => {
 const RecruitMemberPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { fetchList, searchArticles, removeArticle, isLoading, error: errorMessage } = useRecruit();
+  const {
+    fetchList,
+    searchArticles,
+    removeArticle,
+    closeArticle,
+    isLoading,
+    error: errorMessage,
+  } = useRecruit();
   const initialSearchCategory =
     searchParams.get("searchCategory") === "hackathon" ? "hackathon" : "titleAndContent";
   const initialSearchValue = searchParams.get("search") ?? "";
@@ -589,6 +695,43 @@ const RecruitMemberPage = () => {
     return result;
   };
 
+  const handleClosePost = async (post) => {
+    const result = await closeArticle(post.articleId);
+
+    if (!result?.isSuccess) {
+      return result;
+    }
+
+    setRecruitItems((prev) =>
+      prev.map((item) =>
+        item.articleId === post.articleId
+          ? {
+              ...item,
+              status: "closed",
+              rawArticle: {
+                ...item.rawArticle,
+                isOpen: false,
+              },
+            }
+          : item,
+      ),
+    );
+    setSelectedPost((prev) =>
+      prev?.articleId === post.articleId
+        ? {
+            ...prev,
+            status: "closed",
+            rawArticle: {
+              ...prev.rawArticle,
+              isOpen: false,
+            },
+          }
+        : prev,
+    );
+
+    return result;
+  };
+
   return (
     <div className="min-h-screen bg-[#F3F6FF]">
       <div className="mx-auto max-w-[1640px] px-4 py-8 sm:px-5 sm:py-10 lg:px-10 lg:py-12">
@@ -683,6 +826,7 @@ const RecruitMemberPage = () => {
           onClose={() => setSelectedPost(null)}
           onEdit={handleEditPost}
           onDelete={handleDeletePost}
+          onCloseRecruit={handleClosePost}
         />
       ) : null}
     </div>

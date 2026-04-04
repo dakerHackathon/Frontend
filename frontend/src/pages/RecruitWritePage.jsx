@@ -7,11 +7,6 @@ import { mapRecruitPostToForm, recruitEditableTeams, validateRecruitCreateForm }
 
 const TEAM_MAX_MEMBERS = 5;
 
-const statusOptions = [
-  { value: "open", label: "모집중", dotTone: "active" },
-  { value: "closed", label: "마감", dotTone: "closed" },
-];
-
 const tagOptions = ["FE", "BE", "AI", "DB", "DESIGNER"];
 
 const tagColorMap = {
@@ -20,11 +15,6 @@ const tagColorMap = {
   AI: "bg-[#666666] text-white",
   DB: "bg-[#FFB547] text-white",
   DESIGNER: "bg-[#FF7AB6] text-white",
-};
-
-const toneDotClass = {
-  active: "bg-[#28C840]",
-  closed: "bg-[#EB3B3B]",
 };
 
 const positionDisplayLabel = {
@@ -88,7 +78,7 @@ const CloseIcon = ({ className = "h-4 w-4" }) => (
   </svg>
 );
 
-const SelectField = ({ value, onChange, options, showDot = false }) => {
+const SelectField = ({ value, onChange, options }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
   const selectedOption = options.find((option) => option.value === value) ?? options[0];
@@ -112,13 +102,6 @@ const SelectField = ({ value, onChange, options, showDot = false }) => {
         className="flex h-12 w-full cursor-pointer items-center justify-between rounded-2xl bg-transparent px-4 text-sm font-bold text-slate-800 outline-none transition duration-200"
       >
         <span className="flex items-center gap-2">
-          {showDot && selectedOption.dotTone ? (
-            <span
-              className={`h-2.5 w-2.5 rounded-full ${
-                toneDotClass[selectedOption.dotTone] ?? "bg-slate-400"
-              }`}
-            />
-          ) : null}
           <span>{selectedOption.label}</span>
         </span>
         <span
@@ -144,13 +127,6 @@ const SelectField = ({ value, onChange, options, showDot = false }) => {
                 option.value === value ? "bg-[#EEF3FF] text-[#2458E6]" : "text-slate-800"
               }`}
             >
-              {showDot && option.dotTone ? (
-                <span
-                  className={`mr-2 h-2.5 w-2.5 rounded-full ${
-                    toneDotClass[option.dotTone] ?? "bg-slate-400"
-                  }`}
-                />
-              ) : null}
               {option.label}
             </button>
           ))}
@@ -261,7 +237,7 @@ const RecruitPreviewCard = ({ form, selectedTeam }) => {
 const RecruitWritePage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { fetchList, createArticle, updateArticle, closeArticle, isSubmitting, isLoading } =
+  const { fetchList, createArticle, updateArticle, isSubmitting, isLoading } =
     useRecruit();
   const navigationTimeoutRef = useRef(null);
   const articleId = Number(searchParams.get("articleId") ?? 0);
@@ -273,7 +249,6 @@ const RecruitWritePage = () => {
     description: "",
     hackathonName: recruitEditableTeams[0].hackathonName,
     contact: "",
-    status: "open",
     positionSlots: {
       FE: { recruit: 1 },
       BE: { recruit: 1 },
@@ -285,11 +260,6 @@ const RecruitWritePage = () => {
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");
   const [isEditReady, setIsEditReady] = useState(!isEditMode);
-
-  const selectedStatusLabel = useMemo(
-    () => statusOptions.find((option) => option.value === form.status)?.label ?? "모집중",
-    [form.status]
-  );
 
   useEffect(() => {
     return () => {
@@ -450,17 +420,6 @@ const RecruitWritePage = () => {
         result?.message || (isEditMode ? "팀원 모집 글을 수정하지 못했습니다." : "팀원 모집 글을 등록하지 못했습니다."),
       );
       return;
-    }
-
-    if (!isEditMode && form.status === "closed") {
-      // 등록 API에는 상태 필드가 없어서, 마감 작성은 등록 직후 마감 API로 상태를 맞춥니다.
-      const closeResult = await closeArticle(result.data?.articleId);
-
-      if (!closeResult?.isSuccess) {
-        setSubmitSuccess("");
-        setSubmitError(closeResult?.message || "등록 후 공고를 마감하지 못했습니다.");
-        return;
-      }
     }
 
     setSubmitSuccess(
@@ -631,44 +590,18 @@ const RecruitWritePage = () => {
                   </div>
                 </div>
 
-                {!isEditMode ? (
-                  <>
-                    <div>
-                      <FieldLabel>모집 상태</FieldLabel>
-                      <SelectField
-                        value={form.status}
-                        onChange={(event) => updateField("status", event.target.value)}
-                        options={statusOptions}
-                        showDot
-                      />
-                    </div>
-
-                    <div />
-                  </>
-                ) : null}
               </div>
 
-              <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-3xl bg-[#F8FAFF] px-5 py-4">
-                <div className="flex flex-wrap items-center gap-4">
-                  <span className="text-sm font-bold text-slate-500">게시 상태</span>
-                  <span
-                    className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-sm font-black ${
-                      form.status === "open"
-                        ? "bg-[#EEF9F1] text-[#1E9F46]"
-                        : "bg-[#FFF1F1] text-[#D93A3A]"
-                    }`}
-                  >
-                    <span
-                      className={`h-2.5 w-2.5 rounded-full ${
-                        form.status === "open" ? "bg-[#28C840]" : "bg-[#EB3B3B]"
-                      }`}
-                    />
-                    {selectedStatusLabel}
-                  </span>
-                </div>
+              <div className="mt-8 flex flex-wrap items-center justify-end gap-4 rounded-3xl bg-[#F8FAFF] px-5 py-4">
                 <div className="w-full sm:w-auto">
                   <PrimaryActionButton fullWidth onClick={handleSubmit}>
-                    {isSubmitting ? (isEditMode ? "수정 중..." : "등록 중...") : isEditMode ? "수정 완료" : "작성 완료"}
+                    {isSubmitting
+                      ? isEditMode
+                        ? "수정 중..."
+                        : "등록 중..."
+                      : isEditMode
+                        ? "수정 완료"
+                        : "작성 완료"}
                   </PrimaryActionButton>
                 </div>
               </div>
