@@ -4,7 +4,13 @@ import BaseInfoCard from "../components/common/BaseInfoCard";
 import PrimaryActionButton from "../components/common/PrimaryActionButton";
 import SearchFilterBar from "../components/common/SearchFilterBar";
 import { useRecruit } from "../hooks/useRecruit";
-import { getPositionIdByFilter } from "../utils/recruit";
+import {
+  getDefaultRecruitPositionCatalog,
+  getPositionDisplayLabel,
+  getPositionIdByFilter,
+  getPositionTagByFilterValue,
+  getRecruitPositionOptions,
+} from "../utils/recruit";
 
 const searchOptions = [
   { value: "titleAndContent", label: "제목 + 내용" },
@@ -15,15 +21,6 @@ const statusOptions = [
   { value: "all", label: "모집 상태", dotTone: "neutral" },
   { value: "open", label: "모집중", dotTone: "active" },
   { value: "closed", label: "마감", dotTone: "closed" },
-];
-
-const positionOptions = [
-  { value: "all", label: "포지션" },
-  { value: "frontend", label: "프론트엔드" },
-  { value: "backend", label: "백엔드" },
-  { value: "ai", label: "AI" },
-  { value: "designer", label: "디자이너" },
-  { value: "data", label: "DB" },
 ];
 
 const ownershipOptions = [
@@ -45,19 +42,12 @@ const recruitStatusMeta = {
 };
 
 const tagColorMap = {
+  PM: "bg-[#7E57C2] text-white",
   FE: "bg-[#2A3FFF] text-white",
   BE: "bg-[#4CD137] text-white",
   AI: "bg-[#666666] text-white",
   DB: "bg-[#FFB547] text-white",
   DESIGNER: "bg-[#FF7AB6] text-white",
-};
-
-const positionDisplayLabel = {
-  FE: "프론트엔드",
-  BE: "백엔드",
-  AI: "AI",
-  DB: "데이터 / DB",
-  DESIGNER: "디자이너",
 };
 
 const getTotalCounts = (post) =>
@@ -141,7 +131,7 @@ const RecruitStatusBadge = ({ status }) => {
   );
 };
 
-const RecruitDetailModal = ({ post, onClose, onEdit, onDelete, onCloseRecruit }) => {
+const RecruitDetailModal = ({ post, onClose, onEdit, onDelete, onCloseRecruit, positionCatalog }) => {
   const recruitDisplayCount = getRecruitDisplayCount(post);
   const availablePositions = useMemo(
     () =>
@@ -160,7 +150,7 @@ const RecruitDetailModal = ({ post, onClose, onEdit, onDelete, onCloseRecruit })
       ? selectedPosition
       : (availablePositions[0]?.[0] ?? "");
   const selectedPositionLabel =
-    positionDisplayLabel[currentSelectedPosition] ?? currentSelectedPosition;
+    getPositionDisplayLabel(currentSelectedPosition, positionCatalog);
   const messageLength = message.trim().length;
 
   useEffect(() => {
@@ -587,6 +577,7 @@ const RecruitMemberPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const {
+    fetchPositions,
     fetchList,
     searchArticles,
     removeArticle,
@@ -604,6 +595,35 @@ const RecruitMemberPage = () => {
   const [ownershipFilter, setOwnershipFilter] = useState("all");
   const [selectedPost, setSelectedPost] = useState(null);
   const [recruitItems, setRecruitItems] = useState([]);
+  const [positionCatalog, setPositionCatalog] = useState(getDefaultRecruitPositionCatalog());
+  const positionOptions = useMemo(
+    () => getRecruitPositionOptions(positionCatalog),
+    [positionCatalog],
+  );
+  const selectedPositionId = useMemo(
+    () => getPositionIdByFilter(positionFilter, positionCatalog),
+    [positionCatalog, positionFilter],
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadPositionCatalog = async () => {
+      const result = await fetchPositions();
+
+      if (!isMounted || !result?.isSuccess) {
+        return;
+      }
+
+      setPositionCatalog(result.data?.positionCatalog ?? getDefaultRecruitPositionCatalog());
+    };
+
+    loadPositionCatalog();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchPositions]);
 
   useEffect(() => {
     const nextParams = new URLSearchParams(searchParams);
@@ -641,11 +661,15 @@ const RecruitMemberPage = () => {
         : await fetchList({
             open:
               statusFilter === "all" ? undefined : statusFilter === "open",
-            position: getPositionIdByFilter(positionFilter),
+            position: selectedPositionId,
           });
 
       if (!isMounted || !result?.isSuccess) {
         return;
+      }
+
+      if (result.data?.positionCatalog?.length) {
+        setPositionCatalog(result.data.positionCatalog);
       }
 
       setRecruitItems(result.data?.posts ?? []);
@@ -656,26 +680,20 @@ const RecruitMemberPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [fetchList, positionFilter, searchArticles, searchCategory, searchValue, statusFilter]);
+  }, [fetchList, searchArticles, searchCategory, searchValue, selectedPositionId, statusFilter]);
 
   const filteredPosts = useMemo(() => {
+    const selectedPositionTag = getPositionTagByFilterValue(positionFilter, positionCatalog);
+
     return recruitItems.filter((post) => {
       const matchesStatus = statusFilter === "all" || post.status === statusFilter;
       const matchesPosition =
-        positionFilter === "all" ||
-        post.tags.some((tag) => {
-          if (positionFilter === "frontend") return tag === "FE";
-          if (positionFilter === "backend") return tag === "BE";
-          if (positionFilter === "ai") return tag === "AI";
-          if (positionFilter === "designer") return tag === "DESIGNER";
-          if (positionFilter === "data") return tag === "DB";
-          return false;
-        });
+        !selectedPositionTag || post.tags.some((tag) => tag === selectedPositionTag);
       const matchesOwnership = ownershipFilter === "all" || post.isMine;
 
       return matchesStatus && matchesPosition && matchesOwnership;
     });
-  }, [ownershipFilter, positionFilter, recruitItems, statusFilter]);
+  }, [ownershipFilter, positionCatalog, positionFilter, recruitItems, statusFilter]);
 
   const handleEditPost = (post) => {
     setSelectedPost(null);
@@ -827,6 +845,7 @@ const RecruitMemberPage = () => {
           onEdit={handleEditPost}
           onDelete={handleDeletePost}
           onCloseRecruit={handleClosePost}
+          positionCatalog={positionCatalog}
         />
       ) : null}
     </div>

@@ -1,5 +1,13 @@
 export const RECRUIT_STORAGE_KEY = "mockRecruitArticles";
 
+export const mockRecruitPositions = [
+  { id: 1, name: "FrontEnd" },
+  { id: 2, name: "BackEnd" },
+  { id: 3, name: "AI" },
+  { id: 4, name: "DB" },
+  { id: 5, name: "Designer" },
+];
+
 export const mockRecruitTeams = [
   {
     id: 1,

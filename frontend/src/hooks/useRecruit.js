@@ -4,6 +4,7 @@ import {
   buildRecruitCreatePayload,
   getRecruitUserId,
   mapRecruitArticlesResponse,
+  mapRecruitPositionsResponse,
   recruitSearchFilterMap,
 } from "../utils/recruit";
 
@@ -12,6 +13,33 @@ export const useRecruit = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  const fetchPositions = useCallback(async () => {
+    setError("");
+
+    try {
+      const response = await API.recruit.getPositions();
+      const positions = response.data?.positions ?? [];
+
+      return {
+        ...response,
+        data: {
+          ...response.data,
+          positions,
+          positionCatalog: mapRecruitPositionsResponse(positions),
+        },
+      };
+    } catch (error) {
+      const message = error.response?.data?.message || "모집 포지션 목록을 불러오지 못했습니다.";
+      setError(message);
+
+      return {
+        isSuccess: false,
+        message,
+        data: { positions: [], positionCatalog: [] },
+      };
+    }
+  }, []);
+
   const fetchList = useCallback(async ({ open, position } = {}) => {
     const userId = getRecruitUserId();
 
@@ -19,6 +47,9 @@ export const useRecruit = () => {
     setError("");
 
     try {
+      const positionResponse = await API.recruit.getPositions();
+      const positionCatalog = mapRecruitPositionsResponse(positionResponse.data?.positions ?? []);
+
       // 모집 상태 "전체"는 명세상 별도 파라미터가 없어 open/closed 요청을 합쳐서 구성합니다.
       const responses =
         open === undefined
@@ -35,7 +66,8 @@ export const useRecruit = () => {
         message: "요청이 성공적입니다.",
         data: {
           articles: mergedArticles,
-          posts: mapRecruitArticlesResponse(mergedArticles),
+          positionCatalog,
+          posts: mapRecruitArticlesResponse(mergedArticles, positionCatalog),
         },
       };
     } catch (error) {
@@ -59,6 +91,8 @@ export const useRecruit = () => {
     setError("");
 
     try {
+      const positionResponse = await API.recruit.getPositions();
+      const positionCatalog = mapRecruitPositionsResponse(positionResponse.data?.positions ?? []);
       const response = await API.recruit.search(userId, {
         filter: recruitSearchFilterMap[filter] ?? "title",
         query: query ?? "",
@@ -69,7 +103,8 @@ export const useRecruit = () => {
         ...response,
         data: {
           ...response.data,
-          posts: mapRecruitArticlesResponse(articles),
+          positionCatalog,
+          posts: mapRecruitArticlesResponse(articles, positionCatalog),
         },
       };
     } catch (error) {
@@ -86,14 +121,18 @@ export const useRecruit = () => {
     }
   }, []);
 
-  const createArticle = useCallback(async ({ teamId, form }) => {
+  const createArticle = useCallback(async ({ teamId, form, positionCatalog }) => {
     const userId = getRecruitUserId();
 
     setIsSubmitting(true);
     setError("");
 
     try {
-      return await API.recruit.create(userId, teamId, buildRecruitCreatePayload(form));
+      return await API.recruit.create(
+        userId,
+        teamId,
+        buildRecruitCreatePayload(form, positionCatalog),
+      );
     } catch (error) {
       const message = error.response?.data?.message || "팀원 모집 글을 등록하지 못했습니다.";
       setError(message);
@@ -108,14 +147,18 @@ export const useRecruit = () => {
     }
   }, []);
 
-  const updateArticle = useCallback(async ({ articleId, form }) => {
+  const updateArticle = useCallback(async ({ articleId, form, positionCatalog }) => {
     const userId = getRecruitUserId();
 
     setIsSubmitting(true);
     setError("");
 
     try {
-      return await API.recruit.update(userId, articleId, buildRecruitCreatePayload(form));
+      return await API.recruit.update(
+        userId,
+        articleId,
+        buildRecruitCreatePayload(form, positionCatalog),
+      );
     } catch (error) {
       const message = error.response?.data?.message || "팀원 모집 글을 수정하지 못했습니다.";
       setError(message);
@@ -169,6 +212,7 @@ export const useRecruit = () => {
   }, []);
 
   return {
+    fetchPositions,
     fetchList,
     searchArticles,
     createArticle,
