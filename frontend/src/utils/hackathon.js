@@ -194,5 +194,6 @@ export const mapHackathonDetailResponse = ({ detail, summary }) => {
     },
     poster,
     ...summaryMeta,
+    isStar: Boolean(detail.isStar ?? summaryMeta.isStar),
   };
 };

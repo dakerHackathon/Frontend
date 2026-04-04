@@ -26,8 +26,10 @@ export const useHackathon = () => {
 
   // useCallback으로 참조를 안정화해 useEffect 무한 루프를 방지한다.
   const fetchList = useCallback(async () => {
+    const userId = getHackathonUserId();
+
     try {
-      const response = await fetchListExecute();
+      const response = await fetchListExecute(userId);
       const hackathons = response?.data?.hackathons ?? [];
 
       return {
@@ -49,8 +51,10 @@ export const useHackathon = () => {
 
   const fetchDetail = useCallback(
     async (hackathonId, summaryItem) => {
+      const userId = getHackathonUserId();
+
       try {
-        const response = await fetchDetailExecute(hackathonId);
+        const response = await fetchDetailExecute(userId, hackathonId);
 
         return {
           ...response,
