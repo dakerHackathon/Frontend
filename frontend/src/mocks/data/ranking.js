@@ -69,6 +69,7 @@ const rankingProfiles = {
 
 const rankingPointByFilter = {
   temp: [
+    { id: 5, point: 98.6 },
     { id: 8, point: 97.2 },
     { id: 2, point: 96.5 },
     { id: 1, point: 95.2 },
@@ -77,32 +78,31 @@ const rankingPointByFilter = {
     { id: 4, point: 94.0 },
     { id: 10, point: 93.8 },
     { id: 9, point: 93.1 },
-    { id: 5, point: 91.2 },
     { id: 7, point: 90.5 },
   ],
   part: [
-    { id: 1, point: 514.0 },
-    { id: 2, point: 498.0 },
-    { id: 3, point: 472.0 },
-    { id: 4, point: 455.0 },
-    { id: 5, point: 432.0 },
-    { id: 6, point: 420.0 },
-    { id: 7, point: 408.0 },
-    { id: 8, point: 401.0 },
-    { id: 9, point: 388.0 },
-    { id: 10, point: 375.0 },
+    { id: 6, point: 28.0 },
+    { id: 1, point: 25.0 },
+    { id: 9, point: 22.0 },
+    { id: 4, point: 21.0 },
+    { id: 5, point: 20.0 },
+    { id: 2, point: 20.0 },
+    { id: 7, point: 19.0 },
+    { id: 3, point: 18.0 },
+    { id: 8, point: 17.0 },
+    { id: 10, point: 16.0 },
   ],
   win: [
-    { id: 2, point: 1280.0 },
-    { id: 1, point: 1214.0 },
-    { id: 3, point: 1176.0 },
-    { id: 4, point: 1108.0 },
-    { id: 5, point: 1060.0 },
-    { id: 6, point: 1002.0 },
-    { id: 7, point: 978.0 },
-    { id: 8, point: 956.0 },
-    { id: 9, point: 921.0 },
-    { id: 10, point: 905.0 },
+    { id: 10, point: 12.0 },
+    { id: 3, point: 11.0 },
+    { id: 2, point: 9.0 },
+    { id: 4, point: 8.0 },
+    { id: 1, point: 8.0 },
+    { id: 5, point: 7.0 },
+    { id: 6, point: 7.0 },
+    { id: 7, point: 6.0 },
+    { id: 8, point: 5.0 },
+    { id: 9, point: 4.0 },
   ],
 };
 
@@ -126,8 +126,8 @@ export const myRankingResponse = {
 
 const sidebarLabels = {
   temp: "°C",
-  win: "점",
-  part: "점",
+  win: "회",
+  part: "회",
 };
 
 const buildRankItem = (filter, entry) => {
