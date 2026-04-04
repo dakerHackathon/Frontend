@@ -558,28 +558,29 @@ const HackathonDetailPage = () => {
                 <BaseInfoCard className="flex min-h-[500px] flex-col rounded-[28px] p-6">
                   <HackathonDetailSectionTitle icon={iconTeam} title="팀 현황" />
                   <div className="rounded-2xl bg-[#F7F9FF] px-4 py-4">
-                    <p className="text-sm font-medium text-slate-500">내 팀 목록</p>
+                    <p className="text-sm font-medium text-slate-500">현재 등록 팀</p>
                     <p className="mt-2 text-3xl font-black text-slate-900">
-                      {leaderTeams.length}팀
+                      {hackathon.teams.count}팀
                     </p>
                   </div>
                   <div className="mt-4 flex-1 space-y-3">
-                    {isLeaderTeamsLoading ? (
-                      <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-4 py-6 text-center text-sm font-medium text-slate-400">
-                        팀 목록을 불러오는 중입니다.
-                      </div>
-                    ) : leaderTeams.length > 0 ? (
-                      leaderTeams.map((team) => (
+                    {hackathon.teams.items.length > 0 ? (
+                      hackathon.teams.items.map((team) => (
                         <div
-                          key={team.teamId}
+                          key={team.name}
                           className="rounded-2xl border border-slate-100 px-4 py-4 transition hover:border-[#D6E2FF] hover:bg-[#FBFCFF]"
                         >
-                          <p className="text-sm font-black text-slate-900">{team.teamName}</p>
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-black text-slate-900">{team.name}</p>
+                            </div>
+                            <span className="text-sm font-bold text-[#336DFE]">{team.members}</span>
+                          </div>
                         </div>
                       ))
                     ) : (
                       <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-4 py-6 text-center text-sm font-medium text-slate-400">
-                        현재 조회되는 팀이 없습니다.
+                        현재 등록된 팀이 없습니다.
                       </div>
                     )}
                   </div>
