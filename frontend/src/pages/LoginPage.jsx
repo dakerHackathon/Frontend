@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import loginimage from "../assets/loginImage.png";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -30,26 +31,23 @@ const LoginPage = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* 왼쪽 영역: 일러스트레이션 (데스크탑 전용) */}
-      <div className="hidden lg:flex lg:w-2/5 bg-gradient-to-br from-blue-100 to-blue-200 items-center justify-center p-12">
-        <div className="relative max-w-lg w-full">
+      <div className="hidden lg:flex lg:w-[45%] bg-gradient-to-br from-blue-100 to-blue-200 items-center justify-center overflow-hidden"> 
+        
+        <div className="relative w-full h-full">           
           <img
-            src="/api/placeholder/600/600"
+            src={loginimage}
             alt="Security Illustration"
-            className="w-full h-auto drop-shadow-2xl"
+            className="w-full h-full object-cover drop-shadow-2xl" 
           />
         </div>
       </div>
 
       {/* 오른쪽 영역: 로그인 폼 */}
-      <div className="w-full lg:w-3/5 flex flex-col justify-center items-center p-8 bg-white">
+      <div className="w-full lg:w-[55%] flex flex-col justify-center items-center p-8 bg-white">
         <div className="max-w-md w-full space-y-8">
           {/* 헤더 섹션 */}
           <div className="text-center">
             <h1 className="text-4xl font-bold text-blue-600 mb-4">로그인</h1>
-            <p className="text-sm text-gray-500 leading-relaxed">
-              어쩌고저쩌고
-            </p>
           </div>
 
           {/* 폼 섹션 */}

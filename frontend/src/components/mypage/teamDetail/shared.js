@@ -1,5 +1,3 @@
-import { teamPartOptions } from "../constants";
-
 export const pageCardClass =
   "rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.06)] sm:p-6";
 
@@ -24,7 +22,30 @@ const partStyleMap = {
   },
 };
 
-export const getPartMeta = (part) =>
-  teamPartOptions.find((option) => option.value === part) ?? teamPartOptions[0];
+const fallbackPartStyle = {
+  chip: "bg-slate-500 text-white",
+  card: "bg-slate-100 text-slate-700",
+  icon: "ETC",
+};
 
-export const getPartStyle = (part) => partStyleMap[part] ?? partStyleMap.frontend;
+const getFallbackPartMeta = (part) => {
+  const rawLabel = String(part || "포지션").trim();
+
+  return {
+    value: part || "unknown",
+    label: rawLabel || "포지션",
+    shortLabel: rawLabel.slice(0, 3).toUpperCase() || "ETC",
+  };
+};
+
+export const getPartMeta = (part, partOptions = []) =>
+  partOptions.find((option) => option.value === part) ?? getFallbackPartMeta(part);
+
+export const getPartStyle = (part, partOptions = []) => {
+  const partMeta = getPartMeta(part, partOptions);
+
+  return {
+    ...(partStyleMap[part] ?? fallbackPartStyle),
+    icon: partStyleMap[part]?.icon ?? partMeta.shortLabel,
+  };
+};

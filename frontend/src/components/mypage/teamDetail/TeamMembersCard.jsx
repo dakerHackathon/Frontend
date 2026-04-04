@@ -36,8 +36,8 @@ const TeamMembersCard = ({
 
       <div className="mt-5 space-y-3">
         {members.map((member) => {
-          const partMeta = getPartMeta(member.part);
-          const partStyle = getPartStyle(member.part);
+          const partMeta = getPartMeta(member.part, partOptions);
+          const partStyle = getPartStyle(member.part, partOptions);
           const isCurrentUser = member.userId === currentUserId;
           const canMessage = !isCurrentUser && Boolean(member.email);
           const canKick = isLeader && !isCurrentUser;

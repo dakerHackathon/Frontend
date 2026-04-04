@@ -1,33 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { buildTeamPartOptions, initialProfile, teamPartOptions } from "../components/mypage/constants";
+import { initialProfile, teamPartOptions } from "../components/mypage/constants";
 import { useTeam } from "./useTeam";
 import { useUser } from "./useUser";
+import { mapRecruitPositionsResponse } from "../utils/recruit";
 import { getCurrentUser } from "../utils/auth";
 
 const TEAMS_STORAGE_KEY = "mypageTeams";
 const TEAM_LEADER_LABEL = "팀장";
-
-const teamRoleRequestMap = {
-  planner: "planner",
-  frontend: "frontend",
-  backend: "backend",
-};
-
-const normalizePositionName = (value) =>
-  String(value || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, "");
-
-const resolvePositionKey = (value) => {
-  const normalizedValue = normalizePositionName(value);
-
-  if (normalizedValue === "pm") return "planner";
-  if (normalizedValue === "frontend") return "frontend";
-  if (normalizedValue === "backend") return "backend";
-
-  return null;
-};
 
 const getStoredTeams = () => {
   const storedTeams = localStorage.getItem(TEAMS_STORAGE_KEY);
@@ -115,22 +95,35 @@ export const useTeamDetailPage = (teamId) => {
 
       const nextPositionIdMap = {};
       const nextPositionKeyMap = {};
+      const positionCatalog = mapRecruitPositionsResponse(result.data.positions ?? []);
 
-      (result.data.positions ?? []).forEach((position) => {
-        const positionKey = resolvePositionKey(position.name);
-        if (!positionKey) {
+      positionCatalog.forEach((position) => {
+        if (!position.filterValue) {
           return;
         }
 
-        nextPositionIdMap[positionKey] = position.id;
-        nextPositionKeyMap[position.id] = positionKey;
+        nextPositionIdMap[position.filterValue] = position.id;
+        nextPositionKeyMap[position.id] = position.filterValue;
       });
 
+      console.log("[TeamDetail] positionCatalog:", positionCatalog);
       console.log("[TeamDetail] positionIdMap:", nextPositionIdMap);
       console.log("[TeamDetail] positionKeyMap:", nextPositionKeyMap);
       setPositionIdMap(nextPositionIdMap);
       setPositionKeyMap(nextPositionKeyMap);
-      const nextPartOptions = buildTeamPartOptions(result.data.positions);
+      const nextPartOptions = positionCatalog
+        .map((position) => {
+          if (!position.filterValue) {
+            return null;
+          }
+
+          return {
+            value: position.filterValue,
+            label: position.label || position.name,
+            shortLabel: position.tag || position.label || position.name,
+          };
+        })
+        .filter(Boolean);
       if (nextPartOptions.length > 0) {
         console.log("[TeamDetail] partOptions from positions:", nextPartOptions);
         setPartOptions(nextPartOptions);
@@ -144,6 +137,7 @@ export const useTeamDetailPage = (teamId) => {
     partOptions.find((option) => option.value === invitePart)?.value ??
     partOptions[0]?.value ??
     teamPartOptions[0].value;
+  const defaultPartValue = partOptions[0]?.value ?? teamPartOptions[0].value;
 
   const fetchTeamDetail = useCallback(async () => {
     if (!userId || !requestTeamId) {
@@ -197,7 +191,7 @@ export const useTeamDetailPage = (teamId) => {
             ? TEAM_LEADER_LABEL
             : "팀원",
         // 팀 상세의 position 숫자도 /camp/positions 기준으로 해석해야 PATCH/GET 결과가 어긋나지 않습니다.
-        part: positionKeyMap[member.position] || "frontend",
+        part: positionKeyMap[member.position] || defaultPartValue,
       })) ?? [];
 
     console.log("[TeamDetail] team detail members:", result.data.member ?? []);
@@ -232,6 +226,7 @@ export const useTeamDetailPage = (teamId) => {
     getTeamDetail,
     getTeamMembers,
     requestTeamId,
+    defaultPartValue,
     positionKeyMap,
     sourceTeam,
     userId,
@@ -325,7 +320,7 @@ export const useTeamDetailPage = (teamId) => {
   const handlePartChange = async (memberId, value) => {
     if (userId && requestTeamId) {
       const targetUserId = Number(memberId.replace(/^tm/, ""));
-      const position = positionIdMap[teamRoleRequestMap[value]];
+      const position = positionIdMap[value];
 
       console.log("[TeamDetail] handlePartChange input:", {
         memberId,
@@ -398,7 +393,7 @@ export const useTeamDetailPage = (teamId) => {
     }
 
     if (userId && requestTeamId) {
-      const position = positionIdMap[teamRoleRequestMap[selectedInvitePart]];
+      const position = positionIdMap[selectedInvitePart];
       if (!position) {
         setInviteNotice("선택한 포지션 ID를 찾지 못했습니다.");
         return;
