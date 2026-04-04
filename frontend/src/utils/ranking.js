@@ -27,7 +27,13 @@ const rankingValueLabelMap = {
 
 export const getRankingUserName = () => {
   const currentUser = getCurrentUser();
-  return currentUser?.nickname ?? currentUser?.name ?? "My NickName";
+  return (
+    currentUser?.userNickname ??
+    currentUser?.nickname ??
+    currentUser?.nickName ??
+    currentUser?.name ??
+    "My NickName"
+  );
 };
 
 export const getRankingUserId = () => {
@@ -54,10 +60,12 @@ export const mapRankingRowsResponse = (items = [], filter = "temp") =>
 
 export const mapMyRankingResponse = (data = {}) => {
   const currentUser = getRankingUserName();
-  const profile = getRankingProfile(18);
+  const currentUserId = getRankingUserId();
+  const profile = getRankingProfile(currentUserId);
 
   return {
     temp: {
+      id: currentUserId,
       rank: data.temp?.rank ?? 0,
       point: data.temp?.point ?? 0,
       temperature: Number(data.temp?.temperature ?? profile.temperature ?? data.temp?.point ?? 0),
@@ -66,6 +74,7 @@ export const mapMyRankingResponse = (data = {}) => {
       avatar: profile.avatar,
     },
     win: {
+      id: currentUserId,
       rank: data.win?.rank ?? 0,
       point: data.win?.point ?? 0,
       temperature: Number(data.win?.temperature ?? profile.temperature ?? 0),
@@ -74,6 +83,7 @@ export const mapMyRankingResponse = (data = {}) => {
       avatar: profile.avatar,
     },
     part: {
+      id: currentUserId,
       rank: data.part?.rank ?? 0,
       point: data.part?.point ?? 0,
       temperature: Number(data.part?.temperature ?? profile.temperature ?? 0),
@@ -109,6 +119,7 @@ export const mapCurrentUserRow = (myRanking = {}, periodKey = "temperature") => 
   }
 
   return {
+    id: item.id,
     rank: item.rank,
     name: item.name,
     github: item.github,
