@@ -2,6 +2,7 @@ import { getCurrentUser } from "./auth";
 
 export const HACKATHON_SAVE_UPDATED_EVENT = "hackathon-save-updated";
 export const HACKATHON_LIST_REFRESH_EVENT = "hackathon-list-refresh";
+const HACKATHON_FAVORITE_STORAGE_KEY = "hackathon-favorite-overrides";
 
 const parseApiDate = (value) => new Date(String(value).replace(" ", "T"));
 
@@ -111,6 +112,68 @@ const buildSummaryMeta = (summary) => {
 export const getHackathonUserId = () => {
   const currentUser = getCurrentUser();
   return currentUser?.userId ?? currentUser?.id ?? 1;
+};
+
+const readHackathonFavoriteOverrides = () => {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  try {
+    const saved = window.localStorage.getItem(HACKATHON_FAVORITE_STORAGE_KEY);
+    return saved ? JSON.parse(saved) : {};
+  } catch {
+    return {};
+  }
+};
+
+const writeHackathonFavoriteOverrides = (value) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(HACKATHON_FAVORITE_STORAGE_KEY, JSON.stringify(value));
+};
+
+export const persistHackathonFavoriteState = (userId, hackathonId, isStar) => {
+  if (!userId || !hackathonId) {
+    return;
+  }
+
+  const saved = readHackathonFavoriteOverrides();
+  const userKey = String(userId);
+
+  writeHackathonFavoriteOverrides({
+    ...saved,
+    [userKey]: {
+      ...(saved[userKey] ?? {}),
+      [String(hackathonId)]: Boolean(isStar),
+    },
+  });
+};
+
+export const applyHackathonFavoriteOverrides = (items = [], userId) => {
+  if (!userId) {
+    return items;
+  }
+
+  const saved = readHackathonFavoriteOverrides();
+  const userFavorites = saved[String(userId)] ?? {};
+
+  return items.map((item) =>
+    Object.prototype.hasOwnProperty.call(userFavorites, String(item.id))
+      ? { ...item, isStar: Boolean(userFavorites[String(item.id)]) }
+      : item,
+  );
+};
+
+export const applyHackathonFavoriteOverride = (item, userId) => {
+  if (!item || !userId) {
+    return item;
+  }
+
+  const [updatedItem] = applyHackathonFavoriteOverrides([item], userId);
+  return updatedItem;
 };
 
 export const notifyHackathonSaveUpdated = ({ hackathonId, isStar }) => {

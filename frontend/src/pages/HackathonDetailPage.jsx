@@ -24,6 +24,7 @@ import {
 import {
   getHackathonUserId,
   notifyHackathonSaveUpdated,
+  persistHackathonFavoriteState,
 } from "../utils/hackathon";
 
 const HackathonDetailPage = () => {
@@ -299,6 +300,7 @@ const HackathonDetailPage = () => {
 
     const nextIsStar = !hackathon.isStar;
 
+    persistHackathonFavoriteState(currentUserId, hackathon.id, nextIsStar);
     setHackathon((prev) => (prev ? { ...prev, isStar: nextIsStar } : prev));
     notifyHackathonSaveUpdated({
       hackathonId: hackathon.id,
