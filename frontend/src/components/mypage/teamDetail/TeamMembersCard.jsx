@@ -18,6 +18,7 @@ const TeamMembersCard = ({
   onKickMember,
   onLeaveTeam,
   onDisbandTeam,
+  partOptions = teamPartOptions,
 }) => {
   return (
     <div className={pageCardClass}>
@@ -125,7 +126,7 @@ const TeamMembersCard = ({
                         onChange={(event) => onPartChange(member.id, event.target.value)}
                         className={`${baseInputClass} py-2.5`}
                       >
-                        {teamPartOptions.map((option) => (
+                        {partOptions.map((option) => (
                           <option key={option.value} value={option.value}>
                             {option.label}
                           </option>

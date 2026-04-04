@@ -8,12 +8,12 @@ async function enableMocking() {
     return;
   }
 
-  // 가로채기 설정을 담은 browser.js 파일을 가져옵니다.
-  const { worker } = await import("./mocks/browser");
-
-  return worker.start({
-    onUnhandledRequest: "warn",
-  });
+  // MSW 동작 확인을 위해 잠시 비활성화합니다.
+  // 가로채기 재확인이 필요하면 아래 worker import/start 코드를 다시 활성화하면 됩니다.
+  // const { worker } = await import("./mocks/browser");
+  // return worker.start({
+  //   onUnhandledRequest: "warn",
+  // });
 }
 
 enableMocking().then(() => {

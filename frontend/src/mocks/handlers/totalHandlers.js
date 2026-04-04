@@ -6,6 +6,7 @@ import { hackathonHandlers } from "./hackathonHandlers";
 import { rankingHandlers } from "./rankingHandlers";
 import { teamHandlers } from "./teamHandlers";
 import { recruitHandlers } from "./recruitHandlers";
+import { temperatureHandlers } from "./temperatureHandlers";
 
 export const totalHandlers = [
   ...userHandlers,
@@ -14,6 +15,7 @@ export const totalHandlers = [
   ...mailHandlers,
   ...mypageHandlers,
   ...skillHandlers,
+  ...temperatureHandlers,
   ...teamHandlers,
   ...recruitHandlers,
 ];

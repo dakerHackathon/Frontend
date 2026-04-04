@@ -1,10 +1,12 @@
 import { useMemo, useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { useMail } from "../hooks/useMail";
 import MailSidebar from "../components/mail/MailSidebar";
 import MailViewer from "../components/mail/MailViewer";
 import NewMessageModal from "../components/mail/NewMessageModal";
 
 const MailPage = () => {
+  const location = useLocation();
   // 1. 초기값 설정: localStorage에서 가져옴
   const [userId] = useState(() => {
     const storedUser = localStorage.getItem("currentUser");
@@ -28,6 +30,12 @@ const MailPage = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [activeMessageId, setActiveMessageId] = useState(null);
   const [isComposeOpen, setIsComposeOpen] = useState(false);
+
+  useEffect(() => {
+    if (location.state?.composeTo) {
+      setIsComposeOpen(true);
+    }
+  }, [location.state]);
 
   // --- [로직 1: 데이터 로딩] ---
   // userId가 null에서 ID값으로 바뀌는 순간, 리액트가 이 useEffect를 자동으로 다시 실행합니다.
@@ -143,9 +151,12 @@ const MailPage = () => {
       </div>
 
       <NewMessageModal
+        key={`${location.state?.composeTo || ""}-${location.state?.composeSubject || ""}-${isComposeOpen ? "open" : "closed"}`}
         isOpen={isComposeOpen}
         onClose={() => setIsComposeOpen(false)}
         onSend={sendMail}
+        initialReceiver={location.state?.composeTo || ""}
+        initialSubject={location.state?.composeSubject || ""}
       />
     </div>
   );

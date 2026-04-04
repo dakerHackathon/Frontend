@@ -1,4 +1,4 @@
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import TeamBasicInfoCard from "../components/mypage/teamDetail/TeamBasicInfoCard";
 import TeamInviteCard from "../components/mypage/teamDetail/TeamInviteCard";
 import TeamMembersCard from "../components/mypage/teamDetail/TeamMembersCard";
@@ -25,30 +25,34 @@ const TeamDetailPage = () => {
     inviteNotice,
     invitePart,
     inviteQuery,
+    inviteSearchEmptyMessage,
+    isInviteSearchLoading,
     isLeader,
+    loadError,
     members,
+    partOptions,
     saveNotice,
     selectedCandidateId,
     setInviteMessage,
     setInvitePart,
     setInviteQuery,
     setSelectedCandidateId,
-    sourceTeam,
     teamForm,
     teamRole,
   } = useTeamDetailPage(teamId);
 
-  if (!sourceTeam) {
-    return <Navigate to="/mypage" replace />;
-  }
-
   return (
     <div className="min-h-screen bg-[#F3F6FF] px-4 py-8 sm:px-5 lg:px-8 lg:py-10">
       <div className="mx-auto max-w-[1440px] space-y-6">
+        {loadError ? (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+            팀 상세 API 호출 실패: {loadError}
+          </div>
+        ) : null}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <Link to="/mypage" className="text-sm font-semibold text-[#336DFE] hover:underline">
-              마이페이지로 돌아가기
+              &lt; 마이페이지로 돌아가기
             </Link>
             <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">{teamForm.name}</h1>
             <p className="mt-2 text-sm text-slate-500">
@@ -72,6 +76,7 @@ const TeamDetailPage = () => {
               onKickMember={handleKickMember}
               onLeaveTeam={handleLeaveTeam}
               onDisbandTeam={handleDisbandTeam}
+              partOptions={partOptions}
             />
           </section>
 
@@ -83,13 +88,16 @@ const TeamDetailPage = () => {
                 invitePart={invitePart}
                 inviteMessage={inviteMessage}
                 inviteNotice={inviteNotice}
+                isInviteSearchLoading={isInviteSearchLoading}
                 filteredCandidates={filteredCandidates}
+                inviteSearchEmptyMessage={inviteSearchEmptyMessage}
                 isLeader={isLeader}
                 onInviteQueryChange={setInviteQuery}
                 onCandidateSelect={setSelectedCandidateId}
                 onInvitePartChange={setInvitePart}
                 onInviteMessageChange={setInviteMessage}
                 onInvite={handleInvite}
+                partOptions={partOptions}
               />
             ) : null}
           </aside>

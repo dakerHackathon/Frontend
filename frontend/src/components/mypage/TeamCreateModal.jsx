@@ -8,12 +8,17 @@ const TeamCreateModal = ({
   onCreate,
   isCreating = false,
   createError = "",
+  partOptions = teamPartOptions,
 }) => {
   const [form, setForm] = useState({
     name: "",
     description: "",
-    role: teamPartOptions[0].value,
+    role: partOptions[0]?.value ?? teamPartOptions[0].value,
   });
+  const selectedRole =
+    partOptions.find((option) => option.value === form.role)?.value ??
+    partOptions[0]?.value ??
+    teamPartOptions[0].value;
 
   if (!isOpen) return null;
 
@@ -28,13 +33,16 @@ const TeamCreateModal = ({
       return;
     }
 
-    const result = await onCreate(form);
+    const result = await onCreate({
+      ...form,
+      role: selectedRole,
+    });
 
     if (result?.isSuccess) {
       setForm({
         name: "",
         description: "",
-        role: teamPartOptions[0].value,
+        role: partOptions[0]?.value ?? teamPartOptions[0].value,
       });
     }
   };
@@ -66,13 +74,13 @@ const TeamCreateModal = ({
         </label>
 
         <label className="block">
-          <span className="mb-2 block text-sm font-bold text-slate-700">본인 역할</span>
+            <span className="mb-2 block text-sm font-bold text-slate-700">본인 역할</span>
           <select
-            value={form.role}
+            value={selectedRole}
             onChange={(event) => handleChange("role", event.target.value)}
             className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-[#AFC5FF] focus:ring-4 focus:ring-[#EEF3FF]"
           >
-            {teamPartOptions.map((option) => (
+            {partOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>

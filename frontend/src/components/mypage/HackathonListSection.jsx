@@ -14,6 +14,18 @@ const VoteButton = ({ icon, label, onClick, disabled, tone }) => (
   </button>
 );
 
+const VoteCompletedBadge = ({ isSessionVote }) => (
+  <div
+    className={`rounded-lg px-3 py-2 text-xs font-bold ${
+      isSessionVote
+        ? "border border-blue-200 bg-blue-50 text-blue-700"
+        : "border border-slate-200 bg-slate-100 text-slate-600"
+    }`}
+  >
+    투표 완료
+  </div>
+);
+
 const ThumbUpIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true">
     <path
@@ -38,8 +50,17 @@ const ThumbDownIcon = () => (
   </svg>
 );
 
-const HackathonListSection = ({ hackathons, voteLocks, onVote }) => {
-  const [selectedHackathon, setSelectedHackathon] = useState(null);
+const HackathonListSection = ({
+  hackathons,
+  isTemperatureLoading,
+  selectedHackathon,
+  temperatureError,
+  temperatureMembers,
+  voteLocks,
+  onCloseVote,
+  onOpenVote,
+  onVote,
+}) => {
   const [isScrolling, setIsScrolling] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const scrollTimeoutRef = useRef(null);
@@ -47,7 +68,7 @@ const HackathonListSection = ({ hackathons, voteLocks, onVote }) => {
   const [thumbStyle, setThumbStyle] = useState({ top: 0, height: 0, visible: false });
   const dragStateRef = useRef({ isDown: false, startY: 0, startScrollTop: 0 });
 
-  const closeModal = () => setSelectedHackathon(null);
+  const closeModal = () => onCloseVote();
 
   const updateThumbStyle = () => {
     const listEl = listRef.current;
@@ -181,7 +202,7 @@ const HackathonListSection = ({ hackathons, voteLocks, onVote }) => {
                 <div className="mt-3 flex justify-end">
                   <button
                     type="button"
-                    onClick={() => setSelectedHackathon(hackathon)}
+                    onClick={() => onOpenVote(hackathon)}
                     className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
                   >
                     투표하기
@@ -224,10 +245,28 @@ const HackathonListSection = ({ hackathons, voteLocks, onVote }) => {
             </div>
 
             <div className="mt-4 space-y-2">
-              {selectedHackathon.members.map((member) => {
-                const memberKey = `${selectedHackathon.id}:${member.id}`;
+              {isTemperatureLoading ? (
+                <div className="rounded-lg border border-slate-200 px-3 py-4 text-sm text-slate-500">
+                  평가 대상을 불러오는 중입니다.
+                </div>
+              ) : null}
+
+              {temperatureError ? (
+                <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-4 text-sm font-semibold text-rose-700">
+                  온도 평가 API 호출 실패: {temperatureError}
+                </div>
+              ) : null}
+
+              {!isTemperatureLoading && !temperatureError && temperatureMembers.length === 0 ? (
+                <div className="rounded-lg border border-slate-200 px-3 py-4 text-sm text-slate-500">
+                  평가 가능한 팀원이 없습니다.
+                </div>
+              ) : null}
+
+              {temperatureMembers.map((member) => {
+                const memberKey = `${selectedHackathon.id}:${member.userId}`;
                 const selectedVote = voteLocks[memberKey];
-                const isVoted = Boolean(selectedVote);
+                const isAlreadyCompleted = Boolean(selectedVote) || !member.canSet;
                 const upTone =
                   selectedVote === "up"
                     ? "border-emerald-300 bg-emerald-100 text-emerald-700"
@@ -243,26 +282,33 @@ const HackathonListSection = ({ hackathons, voteLocks, onVote }) => {
 
                 return (
                   <div
-                    key={member.id}
+                    key={member.userId}
                     className="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-sm"
                   >
-                    <span>{member.name}</span>
-                    <div className="flex items-center gap-1">
-                      <VoteButton
-                        icon={<ThumbUpIcon />}
-                        label="좋아요"
-                        disabled={isVoted}
-                        onClick={() => onVote(selectedHackathon.id, member.id, 0.3)}
-                        tone={upTone}
-                      />
-                      <VoteButton
-                        icon={<ThumbDownIcon />}
-                        label="나빠요"
-                        disabled={isVoted}
-                        onClick={() => onVote(selectedHackathon.id, member.id, -0.2)}
-                        tone={downTone}
-                      />
+                    <div>
+                      <span>{member.userNickName}</span>
+                      <p className="text-xs text-slate-500">{member.userEmail}</p>
                     </div>
+                    {isAlreadyCompleted ? (
+                      <VoteCompletedBadge isSessionVote={Boolean(selectedVote)} />
+                    ) : (
+                      <div className="flex items-center gap-1">
+                        <VoteButton
+                          icon={<ThumbUpIcon />}
+                          label="좋아요"
+                          disabled={false}
+                          onClick={() => onVote(selectedHackathon, member, true)}
+                          tone={upTone}
+                        />
+                        <VoteButton
+                          icon={<ThumbDownIcon />}
+                          label="나빠요"
+                          disabled={false}
+                          onClick={() => onVote(selectedHackathon, member, false)}
+                          tone={downTone}
+                        />
+                      </div>
+                    )}
                   </div>
                 );
               })}
