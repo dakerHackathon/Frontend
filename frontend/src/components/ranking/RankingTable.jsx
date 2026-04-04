@@ -9,15 +9,81 @@ const GithubIcon = ({ className = "" }) => (
   </svg>
 );
 
+const RankingRow = ({ row, highlighted = false }) => (
+  <div
+    className={`grid gap-5 px-5 py-5 text-sm sm:px-6 md:grid-cols-[72px_minmax(0,1.25fr)_minmax(180px,240px)_96px] md:items-center md:gap-6 lg:grid-cols-[92px_minmax(0,1.5fr)_240px_160px] lg:gap-10 ${
+      highlighted ? "bg-[#F8FAFF]" : ""
+    }`}
+  >
+    <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-4 md:flex md:justify-center">
+      <span className="text-sm font-black tracking-[0.04em] whitespace-nowrap text-slate-400 md:hidden">
+        순위
+      </span>
+      <span
+        className={`inline-flex h-12 w-12 items-center justify-center rounded-full text-base font-black md:h-9 md:w-9 md:text-sm ${
+          rankBadgeTones[row.rank] ?? "text-slate-700"
+        }`}
+      >
+        {row.rank}
+      </span>
+    </div>
+
+    <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-4 md:flex md:min-w-0 md:justify-center">
+      <span className="text-sm font-black tracking-[0.04em] whitespace-nowrap text-slate-400 md:hidden">
+        닉네임
+      </span>
+      <div className="inline-flex max-w-full items-center gap-3 md:justify-center">
+        <div className="shrink-0">
+          <AvatarBadge player={row} />
+        </div>
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="truncate text-[1.35rem] font-extrabold leading-none text-slate-900 md:text-[1rem]">
+            {row.name}
+          </span>
+          {row.github ? (
+            <a
+              href={row.github}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EEF3FF] text-[#336DFE] transition hover:bg-[#336DFE] hover:text-white"
+              aria-label={`${row.name} GitHub`}
+            >
+              <GithubIcon className="h-4 w-4" />
+            </a>
+          ) : (
+            <div className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full" />
+          )}
+        </div>
+      </div>
+    </div>
+
+    <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-4 md:flex md:justify-self-center">
+      <span className="text-sm font-black tracking-[0.04em] whitespace-nowrap text-slate-400 md:hidden">
+        온도
+      </span>
+      <TemperatureBar value={row.temperature} />
+    </div>
+
+    <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-4 md:flex md:justify-self-center">
+      <span className="text-sm font-black tracking-[0.04em] whitespace-nowrap text-slate-400 md:hidden">
+        포인트
+      </span>
+      <div className="text-left text-[1.6rem] font-extrabold text-[#336DFE] md:text-[1rem]">
+        {row.points}점
+      </div>
+    </div>
+  </div>
+);
+
 // 랭킹 TOP 10 테이블 컴포넌트 — 순위, 닉네임, 온도, 포인트를 표시
-const RankingTable = ({ rows, title }) => (
+const RankingTable = ({ rows, title, currentUser }) => (
   <section className="rounded-[30px] border border-slate-200 bg-white px-5 py-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)] sm:px-8 sm:py-8">
     <div className="border-b border-slate-200 pb-5">
       <h2 className="text-[1.45rem] font-black tracking-tight text-slate-950">{title} TOP 10</h2>
     </div>
 
     <div className="mt-6 overflow-hidden rounded-[28px] border border-slate-200">
-      <div className="grid grid-cols-[92px_minmax(0,1.5fr)_240px_160px] items-center gap-10 bg-[#F8FAFF] px-6 py-4 text-sm font-black text-slate-700">
+      <div className="hidden bg-[#F8FAFF] px-6 py-4 text-sm font-black text-slate-700 md:grid md:grid-cols-[72px_minmax(0,1.25fr)_minmax(180px,240px)_96px] md:items-center md:gap-6 lg:grid-cols-[92px_minmax(0,1.5fr)_240px_160px] lg:gap-10">
         <span className="justify-self-center font-extrabold text-slate-900">순위</span>
         <span className="justify-self-center font-extrabold text-slate-900">닉네임</span>
         <span className="justify-self-center font-extrabold text-slate-900">온도</span>
@@ -26,55 +92,21 @@ const RankingTable = ({ rows, title }) => (
 
       <div>
         {rows.map((row) => (
-          <div
-            key={`${row.rank}-${row.name}`}
-            className="grid grid-cols-[92px_minmax(0,1.5fr)_240px_160px] items-center gap-10 border-t border-slate-100 px-6 py-5 text-sm"
-          >
-            <div className="flex items-center justify-center">
-              <span
-                className={`inline-flex h-9 w-9 items-center justify-center rounded-full text-sm font-black ${
-                  rankBadgeTones[row.rank] ?? "text-slate-700"
-                }`}
-              >
-                {row.rank}
-              </span>
-            </div>
-
-            <div className="flex min-w-0 items-center justify-center">
-              <div className="inline-flex max-w-full items-center justify-center gap-3">
-                <div className="shrink-0">
-                  <AvatarBadge player={row} />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="truncate text-[1rem] font-extrabold leading-none text-slate-900">
-                    {row.name}
-                  </span>
-                  {row.github ? (
-                    <a
-                      href={row.github}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EEF3FF] text-[#336DFE] transition hover:bg-[#336DFE] hover:text-white"
-                      aria-label={`${row.name} GitHub`}
-                    >
-                      <GithubIcon className="h-4 w-4" />
-                    </a>
-                  ) : (
-                    <div className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full" />
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="justify-self-center">
-              <TemperatureBar value={row.temperature} />
-            </div>
-
-            <div className="justify-self-center text-[1rem] font-extrabold text-[#336DFE]">
-              {row.points}점
-            </div>
+          <div key={`${row.rank}-${row.name}`} className="border-t border-slate-100">
+            <RankingRow row={row} />
           </div>
         ))}
+
+        {currentUser ? (
+          <div className="border-t border-slate-100">
+            <div className="flex items-center justify-center px-6 py-4 text-lg font-black tracking-[0.2em] text-slate-300">
+              ...
+            </div>
+            <div className="border-t border-dashed border-slate-200">
+              <RankingRow row={currentUser} highlighted />
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   </section>

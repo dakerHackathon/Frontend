@@ -6,6 +6,7 @@ import { skillApi } from "./skill";
 import { teamApi } from "./team";
 import { mailApi } from "./mail";
 import { recruitApi } from "./recruit";
+import { rankingApi } from "./ranking";
 
 export const API = {
   auth: authApi,
@@ -15,4 +16,5 @@ export const API = {
   team: teamApi,
   mail: mailApi,
   recruit: recruitApi,
+  ranking: rankingApi,
 };
