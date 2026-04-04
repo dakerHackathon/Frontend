@@ -24,6 +24,7 @@ import {
 import {
   getHackathonUserId,
   notifyHackathonSaveUpdated,
+  persistHackathonFavoriteState,
 } from "../utils/hackathon";
 
 const HackathonDetailPage = () => {
@@ -299,6 +300,7 @@ const HackathonDetailPage = () => {
 
     const nextIsStar = !hackathon.isStar;
 
+    persistHackathonFavoriteState(currentUserId, hackathon.id, nextIsStar);
     setHackathon((prev) => (prev ? { ...prev, isStar: nextIsStar } : prev));
     notifyHackathonSaveUpdated({
       hackathonId: hackathon.id,
@@ -562,19 +564,25 @@ const HackathonDetailPage = () => {
                     </p>
                   </div>
                   <div className="mt-4 flex-1 space-y-3">
-                    {hackathon.teams.items.map((team) => (
-                      <div
-                        key={team.name}
-                        className="rounded-2xl border border-slate-100 px-4 py-4 transition hover:border-[#D6E2FF] hover:bg-[#FBFCFF]"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <div>
-                            <p className="text-sm font-black text-slate-900">{team.name}</p>
+                    {hackathon.teams.items.length > 0 ? (
+                      hackathon.teams.items.map((team) => (
+                        <div
+                          key={team.name}
+                          className="rounded-2xl border border-slate-100 px-4 py-4 transition hover:border-[#D6E2FF] hover:bg-[#FBFCFF]"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-black text-slate-900">{team.name}</p>
+                            </div>
+                            <span className="text-sm font-bold text-[#336DFE]">{team.members}</span>
                           </div>
-                          <span className="text-sm font-bold text-[#336DFE]">{team.members}</span>
                         </div>
+                      ))
+                    ) : (
+                      <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-4 py-6 text-center text-sm font-medium text-slate-400">
+                        현재 등록된 팀이 없습니다.
                       </div>
-                    ))}
+                    )}
                   </div>
                   <div className="mt-auto pt-2">
                     <div className="grid gap-3 sm:grid-cols-[0.9fr_1.1fr]">

@@ -2,6 +2,8 @@ import { useCallback } from "react";
 import { API } from "../api/api_registry";
 import { useApi } from "./common/useApi";
 import {
+  applyHackathonFavoriteOverride,
+  applyHackathonFavoriteOverrides,
   getHackathonUserId,
   mapHackathonDetailResponse,
   mapHackathonListResponse,
@@ -30,7 +32,7 @@ export const useHackathon = () => {
 
     try {
       const response = await fetchListExecute(userId);
-      const hackathons = response?.data?.hackathons ?? [];
+      const hackathons = applyHackathonFavoriteOverrides(response?.data?.hackathons ?? [], userId);
 
       return {
         ...response,
@@ -55,13 +57,14 @@ export const useHackathon = () => {
 
       try {
         const response = await fetchDetailExecute(userId, hackathonId);
+        const detail = applyHackathonFavoriteOverride(response.data, userId);
 
         return {
           ...response,
           data: {
-            ...response.data,
+            ...detail,
             detailView: mapHackathonDetailResponse({
-              detail: response.data,
+              detail,
               summary: summaryItem,
             }),
           },

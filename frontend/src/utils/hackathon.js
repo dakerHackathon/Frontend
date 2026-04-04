@@ -2,12 +2,34 @@ import { getCurrentUser } from "./auth";
 
 export const HACKATHON_SAVE_UPDATED_EVENT = "hackathon-save-updated";
 export const HACKATHON_LIST_REFRESH_EVENT = "hackathon-list-refresh";
+const HACKATHON_FAVORITE_STORAGE_KEY = "hackathon-favorite-overrides";
 
 const parseApiDate = (value) => new Date(String(value).replace(" ", "T"));
 
 const formatDateDot = (value) => String(value).slice(0, 10).replaceAll("-", ".");
 
 const formatPeriod = (startAt, endAt) => `${formatDateDot(startAt)} ~ ${formatDateDot(endAt)}`;
+
+const formatScheduleDateTime = (value) => {
+  if (!value) {
+    return "-";
+  }
+
+  const normalizedValue = String(value).trim().replace(" ", "T");
+  const parsedDate = new Date(normalizedValue);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return String(value).replace(" ", "  ");
+  }
+
+  const year = parsedDate.getFullYear();
+  const month = String(parsedDate.getMonth() + 1).padStart(2, "0");
+  const date = String(parsedDate.getDate()).padStart(2, "0");
+  const hours = String(parsedDate.getHours()).padStart(2, "0");
+  const minutes = String(parsedDate.getMinutes()).padStart(2, "0");
+
+  return `${year}.${month}.${date} ${hours}:${minutes}`;
+};
 
 const getStatusMeta = (startAt, endAt) => {
   const now = new Date();
@@ -113,6 +135,68 @@ export const getHackathonUserId = () => {
   return currentUser?.userId ?? currentUser?.id ?? 1;
 };
 
+const readHackathonFavoriteOverrides = () => {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  try {
+    const saved = window.localStorage.getItem(HACKATHON_FAVORITE_STORAGE_KEY);
+    return saved ? JSON.parse(saved) : {};
+  } catch {
+    return {};
+  }
+};
+
+const writeHackathonFavoriteOverrides = (value) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(HACKATHON_FAVORITE_STORAGE_KEY, JSON.stringify(value));
+};
+
+export const persistHackathonFavoriteState = (userId, hackathonId, isStar) => {
+  if (!userId || !hackathonId) {
+    return;
+  }
+
+  const saved = readHackathonFavoriteOverrides();
+  const userKey = String(userId);
+
+  writeHackathonFavoriteOverrides({
+    ...saved,
+    [userKey]: {
+      ...(saved[userKey] ?? {}),
+      [String(hackathonId)]: Boolean(isStar),
+    },
+  });
+};
+
+export const applyHackathonFavoriteOverrides = (items = [], userId) => {
+  if (!userId) {
+    return items;
+  }
+
+  const saved = readHackathonFavoriteOverrides();
+  const userFavorites = saved[String(userId)] ?? {};
+
+  return items.map((item) =>
+    Object.prototype.hasOwnProperty.call(userFavorites, String(item.id))
+      ? { ...item, isStar: Boolean(userFavorites[String(item.id)]) }
+      : item,
+  );
+};
+
+export const applyHackathonFavoriteOverride = (item, userId) => {
+  if (!item || !userId) {
+    return item;
+  }
+
+  const [updatedItem] = applyHackathonFavoriteOverrides([item], userId);
+  return updatedItem;
+};
+
 export const notifyHackathonSaveUpdated = ({ hackathonId, isStar }) => {
   window.dispatchEvent(
     new CustomEvent(HACKATHON_SAVE_UPDATED_EVENT, {
@@ -159,7 +243,7 @@ export const mapHackathonDetailResponse = ({ detail, summary }) => {
     location: detail.location,
     schedule: (detail.schedule ?? []).map((item, index) => ({
       title: item.scheduleName,
-      period: item.scheduleTime,
+      period: formatScheduleDateTime(item.scheduleTime),
       active: index === 0,
     })),
     evaluation: (detail.evaluationCriteria ?? []).map((item) => ({

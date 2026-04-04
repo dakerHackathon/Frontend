@@ -14,6 +14,7 @@ import {
   getHackathonUserId,
   HACKATHON_LIST_REFRESH_EVENT,
   HACKATHON_SAVE_UPDATED_EVENT,
+  persistHackathonFavoriteState,
 } from "../utils/hackathon";
 
 const favoriteFilterOptions = [
@@ -145,10 +146,14 @@ const HackathonListPage = () => {
       return;
     }
 
+    const targetHackathon = hackathonItems.find((item) => item.id === hackathonId);
+    const nextIsStar = !targetHackathon?.isStar;
+
     setFavoriteMessage("");
+    persistHackathonFavoriteState(currentUserId, hackathonId, nextIsStar);
     setHackathonItems((prev) =>
       prev.map((hackathon) =>
-        hackathon.id === hackathonId ? { ...hackathon, isStar: !hackathon.isStar } : hackathon,
+        hackathon.id === hackathonId ? { ...hackathon, isStar: nextIsStar } : hackathon,
       ),
     );
   };
