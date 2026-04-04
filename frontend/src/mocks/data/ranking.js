@@ -248,6 +248,33 @@ export const rankingByPeriod = {
   ],
 };
 
+export const currentUserRankingByPeriod = {
+  temperature: {
+    rank: 18,
+    name: "My NickName",
+    github: "https://github.com/my-nickname",
+    temperature: 84.2,
+    points: 61,
+    avatar: { initials: "M", bg: "from-[#5B6EFF] to-[#9EA9FF]" },
+  },
+  mostParticipation: {
+    rank: 18,
+    name: "My NickName",
+    github: "https://github.com/my-nickname",
+    temperature: 84.2,
+    points: 236,
+    avatar: { initials: "M", bg: "from-[#5B6EFF] to-[#9EA9FF]" },
+  },
+  mostWins: {
+    rank: 18,
+    name: "My NickName",
+    github: "https://github.com/my-nickname",
+    temperature: 84.2,
+    points: 312,
+    avatar: { initials: "M", bg: "from-[#5B6EFF] to-[#9EA9FF]" },
+  },
+};
+
 // 사이드바에 표시할 카테고리별 미니 랭킹 데이터
 export const sidebarRankings = [
   {
