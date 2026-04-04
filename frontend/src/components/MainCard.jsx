@@ -10,7 +10,7 @@ const MainCard = ({ title, description, path, imageUrl }) => {
       className="group flex flex-col p-6 bg-white rounded-[2.5rem] shadow-xl border border-gray-50 cursor-pointer transition-all duration-300 hover:-translate-y-3 hover:shadow-2xl w-full max-w-[380px] min-h-[500px]"
     >
       {/* 1. 이미지/컨텐츠 영역 (비율 유지) */}
-      <div className="w-full aspect-square bg-[#F1F3F6] rounded-[2rem] flex items-center justify-center p-8 overflow-hidden">
+      <div className="w-full aspect-square bg-[#F1F3F6] rounded-[2rem] flex items-center justify-center overflow-hidden">
         {imageUrl ? (
           <img
             src={imageUrl}

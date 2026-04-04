@@ -41,7 +41,23 @@ const MailViewer = ({ message, mode, onToggleStar, onDelete, onRespond }) => {
     (message.type === 1 ? "[팀 초대] 합류 제안" : "[참가 신청] 팀 지원 알림");
 
   // 3. 날짜 처리 (백엔드 추가 필드 'created_at' 최우선 반영)
-  const displayDate = message.created_at || message.send_at || "날짜 정보 없음";
+  //날짜 텍스트 포멧
+  const formatDate = (dateString) => {
+    if (!dateString) return "날짜 정보 없음";
+    const date = new Date(dateString);
+    
+    // 한국 시간 기준으로 포맷 (YYYY-MM-DD HH:mm)
+    return date.toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+  };
+  
+  const displayDate = formatDate(message.created_at || message.send_at) || "날짜 정보 없음";
 
   // 4. 포지션 매핑
   const positions = {

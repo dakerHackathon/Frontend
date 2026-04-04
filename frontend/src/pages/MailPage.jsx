@@ -47,7 +47,7 @@ const MailPage = () => {
       fetchMessages(filter);
     } else {
       const type =
-        activeTab === "invited" ? 1 : activeTab === "requested" ? 2 : null;
+        activeTab === "requested" ? 1 : activeTab === "invited" ? 2 : null;
       fetchInvitations(type);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
