@@ -11,11 +11,12 @@ const recruitBasePositionMeta = {
 };
 
 const fallbackRecruitPositions = [
-  { id: 1, name: "FrontEnd" },
-  { id: 2, name: "BackEnd" },
-  { id: 3, name: "AI" },
-  { id: 4, name: "DB" },
-  { id: 5, name: "Designer" },
+  { id: 1, name: "Project Manager", abb: "PM" },
+  { id: 2, name: "FrontEnd", abb: "FE" },
+  { id: 3, name: "BackEnd", abb: "BE" },
+  { id: 4, name: "AI", abb: "AI" },
+  { id: 5, name: "Database", abb: "DB" },
+  { id: 6, name: "Designer", abb: "DESIGNER" },
 ];
 
 const isLocalMockApiMode = () => {
@@ -27,7 +28,9 @@ const normalizeRecruitPositionName = (name = "") => {
   const normalized = String(name).trim().toLowerCase().replace(/[\s/_-]/g, "");
 
   if (normalized === "pm") return "pm";
+  if (normalized === "fe") return "frontend";
   if (normalized === "frontend" || normalized === "front") return "frontend";
+  if (normalized === "be") return "backend";
   if (normalized === "backend" || normalized === "back") return "backend";
   if (normalized === "ai") return "ai";
   if (normalized === "db" || normalized === "database" || normalized === "data") return "data";
@@ -37,13 +40,20 @@ const normalizeRecruitPositionName = (name = "") => {
 };
 
 const mapApiPositionToCatalogItem = (position) => {
-  const baseMeta = recruitBasePositionMeta[normalizeRecruitPositionName(position?.name)] ?? null;
+  const abb = String(position?.abb ?? "").trim().toUpperCase();
+  const baseMeta =
+    recruitBasePositionMeta[
+      normalizeRecruitPositionName(position?.abb || position?.name)
+    ] ?? null;
 
   if (baseMeta) {
     return {
       id: Number(position.id),
       name: position.name,
-      ...baseMeta,
+      abb,
+      tag: abb || baseMeta.tag,
+      filterValue: abb ? abb.toLowerCase() : baseMeta.filterValue,
+      label: abb || baseMeta.tag,
     };
   }
 
@@ -52,9 +62,10 @@ const mapApiPositionToCatalogItem = (position) => {
   return {
     id: Number(position.id),
     name: normalizedName,
-    tag: normalizedName.toUpperCase(),
-    filterValue: normalizedName.toLowerCase(),
-    label: normalizedName,
+    abb,
+    tag: abb || normalizedName.toUpperCase(),
+    filterValue: abb ? abb.toLowerCase() : normalizedName.toLowerCase(),
+    label: abb || normalizedName,
   };
 };
 
