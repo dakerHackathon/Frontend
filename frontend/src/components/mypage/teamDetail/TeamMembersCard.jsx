@@ -1,5 +1,5 @@
 import { teamPartOptions } from "../constants";
-import { baseInputClass, getPartMeta, getPartStyle, pageCardClass } from "./shared.jsx";
+import { baseInputClass, getPartMeta, getPartStyle, pageCardClass } from "./shared";
 
 const TEAM_LEADER_LABEL = "팀장";
 
@@ -12,7 +12,7 @@ const actionButtonClass = "rounded-xl border px-3 py-2 text-xs font-bold transit
 const TeamMembersCard = ({
   members,
   isLeader,
-  currentUserEmail,
+  currentUserId,
   onPartChange,
   onSendMessage,
   onKickMember,
@@ -37,8 +37,8 @@ const TeamMembersCard = ({
         {members.map((member) => {
           const partMeta = getPartMeta(member.part);
           const partStyle = getPartStyle(member.part);
-          const isCurrentUser = member.email === currentUserEmail;
-          const canMessage = !isCurrentUser;
+          const isCurrentUser = member.userId === currentUserId;
+          const canMessage = !isCurrentUser && Boolean(member.email);
           const canKick = isLeader && !isCurrentUser;
           const canLeave = !isLeader && isCurrentUser;
           const canDisband = isLeader && isCurrentUser;
