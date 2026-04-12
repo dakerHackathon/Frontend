@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/user/:path*",
+      "destination": "http://13.125.160.175:8080/user/:path*"
+    },
+    {
+      "source": "/camp/:path*",
+      "destination": "http://13.125.160.175:8080/camp/:path*"
+    }
+  ]
+}
